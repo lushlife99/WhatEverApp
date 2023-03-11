@@ -1,0 +1,17 @@
+
+spring:
+  datasource:
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    username: chan
+    url: jdbc:mysql://localhost:3306/ServeyApp?serverTimezone=UTC&characterEncoding=UTF-8
+    password: chan1234
+  data:
+    mongodb:
+      #username: chan
+      #password:1234
+      spring:
+        data:
+          mongodb:
+            host: localhost
+            port: 27017
+            database: ServeyApp
