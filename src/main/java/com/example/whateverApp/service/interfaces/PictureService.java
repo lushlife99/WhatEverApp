@@ -1,4 +1,4 @@
-package com.example.whateverApp.service;
+package com.example.whateverApp.service.interfaces;
 
 import jakarta.servlet.http.HttpServletRequest;
 

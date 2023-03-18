@@ -39,7 +39,7 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 1800000); //86400000 -> 토큰 유효기간 30분 = 30*60*1000
+        Date accessTokenExpiresIn = new Date(now + 1800000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)//
@@ -49,7 +49,7 @@ public class JwtTokenProvider {
 
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 1800000))
+                .setExpiration(new Date(now + 86400000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
@@ -63,7 +63,7 @@ public class JwtTokenProvider {
     // JWT 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
     public Authentication getAuthentication(String accessToken) {
         // 토큰 복호화
-        Claims claims = parseClaims(accessToken);//claims : 권한
+        Claims claims = parseClaims(accessToken);
 
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
@@ -74,7 +74,6 @@ public class JwtTokenProvider {
                 Arrays.stream(claims.get("auth").toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-
         // UserDetails 객체를 만들어서 Authentication 리턴
         UserDetails principal = new User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);

@@ -1,4 +1,4 @@
-package com.example.whateverApp.service;
+package com.example.whateverApp.service.interfaces;
 
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Work;
