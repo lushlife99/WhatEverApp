@@ -29,7 +29,7 @@ public class User implements UserDetails {
     private String password;
     private String name;
     private String introduce;
-    private Float rating; //1~5사이 별점
+    private Float rating;
     private Integer reward;
     private Integer avgReactTime;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
@@ -40,6 +40,8 @@ public class User implements UserDetails {
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
     private List<String> roles = new ArrayList<>();
+
+    private String refreshToken;
 
     @Override
     public String getUsername() {

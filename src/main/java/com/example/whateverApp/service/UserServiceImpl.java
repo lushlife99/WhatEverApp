@@ -5,13 +5,17 @@ import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
 import com.example.whateverApp.service.interfaces.UserService;
+import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.el.parser.Token;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.Collection;
@@ -28,7 +32,7 @@ public class UserServiceImpl implements UserService {
 
     private final PasswordEncoder passwordEncoder;
 
-    public TokenInfo login(User user){
+    public TokenInfo login(User user, HttpServletResponse response){
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
 
         // 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
@@ -36,8 +40,7 @@ public class UserServiceImpl implements UserService {
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication);
-
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         return tokenInfo;
     }
 
@@ -50,6 +53,17 @@ public class UserServiceImpl implements UserService {
         return true;
     }
 
+    public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response){
+        Cookie[] cookies = request.getCookies();
+        String refreshToken="";
+        for (Cookie cookie : cookies) {
+            if(cookie.getName().equals("refreshToken")){
+                refreshToken = cookie.getValue();
+            }
+        }
+
+        return jwtTokenProvider.reissueToken(refreshToken, response);
+    }
 
 
 

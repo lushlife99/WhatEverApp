@@ -21,7 +21,7 @@ spring:
     generate-ddl: true
     open-in-view: true
     hibernate:
-      ddl-auto:
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: false
