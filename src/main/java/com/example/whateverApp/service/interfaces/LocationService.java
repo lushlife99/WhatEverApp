@@ -1,11 +1,16 @@
 package com.example.whateverApp.service.interfaces;
 
+import com.example.whateverApp.dto.UserResponseDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Work;
 import jakarta.servlet.http.HttpServletRequest;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 
 public interface LocationService {
-
+    Page<UserResponseDto> findHelperByDistance(Pageable pageable, HttpServletRequest request);
+    Page<UserResponseDto> findHelper(Pageable pageable, HttpServletRequest request);
     Location setUserLocation(HttpServletRequest request);
     Location setSellerLocation(HttpServletRequest request, Work work);
     /**

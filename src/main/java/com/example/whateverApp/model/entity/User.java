@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -29,7 +30,7 @@ public class User implements UserDetails {
     private String password;
     private String name;
     private String introduce;
-    private Float rating;
+    private Double rating;
     private Integer reward;
     private Integer avgReactTime;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
@@ -42,6 +43,10 @@ public class User implements UserDetails {
     private List<String> roles = new ArrayList<>();
 
     private String refreshToken;
+
+    private Double latitude =0.0;
+
+    private Double longitude =0.0;
 
     @Override
     public String getUsername() {

@@ -7,7 +7,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 @Document("locations")
 public class Location {
 
-    private Float latitude;
-    private Float longitude;
+    private Double latitude;
+    private Double longitude;
 
 }
