@@ -1,17 +1,26 @@
 package com.example.whateverApp.model.entity;
 
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Data
 @Entity
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class User implements UserDetails {
 
     @Id @GeneratedValue(strategy = GenerationType.IDENTITY)
@@ -19,9 +28,9 @@ public class User implements UserDetails {
 
     private String userId;
     private String password;
-    private String username;
+    private String name;
     private String introduce;
-    private Float rating; //1~5사이 별점
+    private Double rating;
     private Integer reward;
     private Integer avgReactTime;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
@@ -29,10 +38,32 @@ public class User implements UserDetails {
     @OneToMany(mappedBy = "seller")
     private List<Work> sellList = new ArrayList<>();
     private UUID imageFileName;
+    @ElementCollection(fetch = FetchType.EAGER)
+    @Builder.Default
+    private List<String> roles = new ArrayList<>();
+
+    private String refreshToken;
+
+    private Double latitude =0.0;
+
+    private Double longitude =0.0;
 
     @Override
-    public Collection<? extends GrantedAuthority> getAuthorities() {
-        return null;
+    public String getUsername() {
+        return userId;
+    }
+
+    @Override
+    public String getPassword() {
+        return password;
+    }
+
+    @Override
+    public Collection<? extends GrantedAuthority> getAuthorities()
+    {
+        return this.roles.stream()
+                .map(SimpleGrantedAuthority::new)
+                .collect(Collectors.toList());
     }
 
     @Override

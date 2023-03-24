@@ -29,5 +29,10 @@ public class TestController {
         return "ok";
     }
 
+    @GetMapping("/api/test")
+    public String 권한체크(){
 
+        return "ok";
+    }
 }
+

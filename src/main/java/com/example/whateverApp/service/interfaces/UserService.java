@@ -1,4 +1,4 @@
-package com.example.whateverApp.service;
+package com.example.whateverApp.service.interfaces;
 
 import com.example.whateverApp.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;

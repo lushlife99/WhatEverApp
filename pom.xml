@@ -11,8 +11,8 @@
     <groupId>com.example</groupId>
     <artifactId>ServeyApp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
-    <name>ServeyApp</name>
-    <description>ServeyApp</description>
+    <name>WhatEverApp</name>
+    <description>WhatEverApp</description>
     <properties>
         <java.version>17</java.version>
     </properties>

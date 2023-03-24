@@ -1,37 +1,46 @@
 package com.example.whateverApp.jwt;
 
 import com.example.whateverApp.dto.TokenInfo;
+import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.repository.UserRepository;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.servlet.http.Cookie;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.User;
+
+
 import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.security.core.userdetails.UsernameNotFoundException;
+import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.stereotype.Component;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.security.Key;
-import java.util.Arrays;
-import java.util.Collection;
-import java.util.Date;
+import java.util.*;
 import java.util.stream.Collectors;
 
 @Slf4j
 @Component
 public class JwtTokenProvider {
     private final Key key;
+    private final UserRepository userRepository;
 
-    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey) {
+    public JwtTokenProvider(@Value("${jwt.secret}") String secretKey, UserRepository userRepository) {
         byte[] keyBytes = Decoders.BASE64.decode(secretKey);
         this.key = Keys.hmacShaKeyFor(keyBytes);
+        this.userRepository = userRepository;
     }
 
     // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
-    public TokenInfo generateToken(Authentication authentication) {
+    public TokenInfo generateToken(Authentication authentication, HttpServletResponse response) {
         // 권한 가져오기
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
@@ -39,31 +48,40 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 1800000); //86400000 -> 토큰 유효기간 30분 = 30*60*1000
+        Date accessTokenExpiresIn = new Date(now + 86400000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)//
                 .setExpiration(accessTokenExpiresIn) //유효기간 설정
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
-
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
-                .setExpiration(new Date(now + 1800000))
+                .setExpiration(new Date(now + 86400000))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
+        Cookie cookie = new Cookie("refreshToken", refreshToken);
+        cookie.setMaxAge(7*24*60*60);
+        cookie.setPath("/");
+        //cookie.setSecure(true); //로컬환경에서는 Secure설정을 꺼놔야 함. secure가 켜지면 https환경에서만 쿠키가 전달됨.
+        cookie.setHttpOnly(true);
+        response.addCookie(cookie);
+
+        User user = userRepository.findByUserId(authentication.getName()).get();
+        user.setRefreshToken(refreshToken);
+        userRepository.save(user);
         return TokenInfo.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken("httpOnly")
                 .build();
     }
 
     // JWT 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
     public Authentication getAuthentication(String accessToken) {
         // 토큰 복호화
-        Claims claims = parseClaims(accessToken);//claims : 권한
+        Claims claims = parseClaims(accessToken);
 
         if (claims.get("auth") == null) {
             throw new RuntimeException("권한 정보가 없는 토큰입니다.");
@@ -74,9 +92,8 @@ public class JwtTokenProvider {
                 Arrays.stream(claims.get("auth").toString().split(","))
                         .map(SimpleGrantedAuthority::new)
                         .collect(Collectors.toList());
-
         // UserDetails 객체를 만들어서 Authentication 리턴
-        UserDetails principal = new User(claims.getSubject(), "", authorities);
+        UserDetails principal = new org.springframework.security.core.userdetails.User(claims.getSubject(), "", authorities);
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
@@ -96,6 +113,42 @@ public class JwtTokenProvider {
         }
         return false;
     }
+
+
+    //여기 문법 좀 많이 고쳐야됨. 어려움 ㅠㅠ
+    @Transactional
+    public TokenInfo reissueToken(String refreshToken, HttpServletResponse response) throws RuntimeException{
+        User user=null;
+        String findRefreshToken;
+        //만약 값이 있으면 ? user의 refreshToken과 쿠키의 refreshToken을 비교.
+        Optional<User> finduser = userRepository.findByRefreshToken(refreshToken);
+
+        if(finduser.isPresent()){
+            user = finduser.get();
+            findRefreshToken = user.getRefreshToken();
+        }
+        else{
+            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            return null;
+        }
+
+        Collection<? extends GrantedAuthority> authorities =
+                Arrays.stream(user.getRoles().toString().split(","))
+                        .map(SimpleGrantedAuthority::new)
+                        .collect(Collectors.toList());
+        UserDetails principal = new org.springframework.security.core.userdetails.User(user.getUsername(), "", authorities);
+        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), authorities);
+        if(findRefreshToken.equals(refreshToken)){
+            // 새로운거 생성
+            TokenInfo newToken = generateToken(authentication, response);
+            return newToken;
+        }
+        else {
+            log.info("refresh 토큰이 일치하지 않습니다. ");
+            return null;
+        }
+    }
+
 
     private Claims parseClaims(String accessToken) {
         try {
