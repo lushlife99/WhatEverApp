@@ -1,8 +1,10 @@
 package com.example.whateverApp.controller;
 
+import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
 import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
@@ -12,11 +14,20 @@ import org.springframework.web.bind.annotation.RestController;
 public class TestController {
 
     private final UserRepository userRepository;
+    private final JwtTokenProvider jwtTokenProvider;
 
 
-    @PostMapping("/test/user")
-    public String addUser(@RequestBody User user){
-        userRepository.save(user);
+    @PostMapping("/test/login")
+    public User addUser(@RequestBody User user) {
+        return userRepository.save(user);
+
+    }
+
+    @GetMapping("/test")
+    public String test(){
+        System.out.println("TestController.test");
         return "ok";
     }
+
+
 }
