@@ -17,6 +17,9 @@ spring:
             host: localhost
             port: 27017
             database: WhatEverApp
+  servlet:
+    multipart:
+      max-file-size: 1MB
   jpa:
     generate-ddl: true
     open-in-view: true
@@ -28,3 +31,5 @@ spring:
     properties:
       hibernate.format_sql: true
 
+  file:
+    dir: \Users\82104\userImage\

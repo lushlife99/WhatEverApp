@@ -37,7 +37,6 @@ public class UserAuthenticationService implements UserDetailsService {
                 passwordEncoder.encode(user.getPassword()),
                 List.of(new SimpleGrantedAuthority(user.getRoles().toString().substring(1, user.getRoles().toString().length()-1)))
         );
-
     }
 
 }

@@ -33,13 +33,13 @@ public class LocationServiceImpl implements LocationService {
 
 
 
-    public Page<UserResponseDto> findHelperByDistance(Pageable pageable, HttpServletRequest request) {
+    public Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) {
         User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
 
         //현재 위도 좌표 (y 좌표)
-        double nowLatitude = user.getLatitude();
+        double nowLatitude = location.getLatitude();
         //현재 경도 좌표 (x 좌표)
-        double nowLongitude = user.getLongitude();
+        double nowLongitude = location.getLongitude();
 
         double EARTH_RADIUS = 6371;
 
@@ -65,7 +65,9 @@ public class LocationServiceImpl implements LocationService {
         }).filter(u -> {
             return u.getLongitude().compareTo(minX) >= 0;
         }).toList();
-
+        if(tempAroundHelperList.contains(user)) {
+            tempAroundHelperList.remove(user);
+        }
 
         List<UserResponseDto>resultAroundUserList = new ArrayList<>();
         UserResponseDto userDto;
@@ -80,18 +82,19 @@ public class LocationServiceImpl implements LocationService {
         }
         resultAroundUserList.remove(0);
         Collections.sort(resultAroundUserList, (u1, u2)->{
-             return u1.getDistance().compareTo(u2.getDistance());
+            return u1.getDistance().compareTo(u2.getDistance());
         });
         Page<UserResponseDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
 
         return page;
     }
-    public Page<UserResponseDto> findHelper(Pageable pageable, HttpServletRequest request) {
+    @Override
+    public Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) {
         User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
         //현재 위도 좌표 (y 좌표)
-        double nowLatitude = user.getLatitude();
+        double nowLatitude = location.getLatitude();
         //현재 경도 좌표 (x 좌표)
-        double nowLongitude = user.getLongitude();
+        double nowLongitude = location.getLongitude();
 
         double EARTH_RADIUS = 6371;
 
@@ -119,7 +122,9 @@ public class LocationServiceImpl implements LocationService {
         User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
 
         ArrayList<User> tempAroundHelperList = new ArrayList<>(list);
-        tempAroundHelperList.remove(user);
+        if(tempAroundHelperList.contains(user)) {
+            tempAroundHelperList.remove(user);
+        }
 
         List<UserResponseDto>resultAroundUserList = new ArrayList<>();
         UserResponseDto userDto;

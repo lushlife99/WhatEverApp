@@ -5,6 +5,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface WorkService {
 
+    Work  Create(Work work, HttpServletRequest request);
     Work update(Work work);
     Work delete(Long workId);
     Work get(HttpServletRequest request);

@@ -1,5 +1,6 @@
 package com.example.whateverApp.model.entity;
 
+import com.example.whateverApp.model.document.Location;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -48,6 +49,18 @@ public class User implements UserDetails {
 
     private Double longitude =0.0;
 
+    public User updateUserInfo(User user){
+        this.password = user.getPassword();
+        this.name = user.getName();
+        this.introduce = user.getIntroduce();
+        return this;
+    }
+
+    public User updateLocation(Location location){
+        this.latitude = location.getLatitude();
+        this.longitude = location.getLongitude();
+        return this;
+    }
     @Override
     public String getUsername() {
         return userId;

@@ -18,19 +18,22 @@ public class LocationController {
 
     private final LocationServiceImpl locationService;
 
-    @GetMapping("/findHelper/distance")
-    public Page<UserResponseDto> findHelperByDistance(@PageableDefault(size = 10)Pageable pageable, HttpServletRequest request){
-        return locationService.findHelperByDistance(pageable, request);
+    @PutMapping("/findHelper/distance")
+    public Page<UserResponseDto> findHelperByDistance(@PageableDefault(size = 10)Pageable pageable,
+                                                      @RequestBody Location location, HttpServletRequest request){
+        return locationService.findHelperByDistance(pageable, location, request);
     }
 
-    @GetMapping("/findHelper/rating")
-    public Page<UserResponseDto> findHelperByRating(@PageableDefault(size = 10, sort="rating", direction = Sort.Direction.DESC)Pageable pageable, HttpServletRequest request){
-        return locationService.findHelper(pageable, request);
+    @PutMapping("/findHelper/rating")
+    public Page<UserResponseDto> findHelperByRating(@PageableDefault(size = 10, sort="rating", direction = Sort.Direction.DESC)Pageable pageable,
+                                                    @RequestBody Location location, HttpServletRequest request){
+        return locationService.findHelper(pageable, location, request);
     }
 
-    @GetMapping("/findHelper/avgReactTime")
-    public Page<UserResponseDto> findHelperByReactTime(@PageableDefault(size = 10, sort="avgReactTime")Pageable pageable, HttpServletRequest request){
-        return locationService.findHelper(pageable, request);
+    @PutMapping("/findHelper/avgReactTime")
+    public Page<UserResponseDto> findHelperByReactTime(@PageableDefault(size = 10, sort="avgReactTime")Pageable pageable,
+                                                       @RequestBody Location location, HttpServletRequest request){
+        return locationService.findHelper(pageable, location, request);
     }
 
     @PutMapping("/user")

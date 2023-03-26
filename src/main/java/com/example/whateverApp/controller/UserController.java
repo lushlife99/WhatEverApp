@@ -2,41 +2,46 @@ package com.example.whateverApp.controller;
 
 
 import com.example.whateverApp.dto.TokenInfo;
+import com.example.whateverApp.dto.UserResponseDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.core.io.Resource;
+import org.springframework.core.io.UrlResource;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
-@RestController
+import java.io.IOException;
+import java.net.MalformedURLException;
+
+
+@Slf4j
 @RequiredArgsConstructor
+@RequestMapping("/api")
+@RestController
 public class UserController {
 
-
     private final UserServiceImpl userService;
-    private final UserServiceImpl userServiceImpl;
 
-    // 회원가입 API
-    @PostMapping("/join")
-    public Boolean join(@Validated @RequestBody User user) {
-        return userService.join(user);
+    @PutMapping("/userInfo")
+    public UserResponseDto updateUserInfo(@RequestBody User user, HttpServletRequest request){
+        return userService.update(user, request);
     }
 
-    // 로그인 API
-    @PostMapping("/login")
-    public TokenInfo login(@RequestBody User user, HttpServletResponse response) {
-        return userService.login(user, response);
+    @PutMapping("/userInfo/image")
+    public void imageUpdate(@RequestParam MultipartFile image, HttpServletRequest request) throws IOException {
+        User user = userService.updateProfileImage(request, image);
     }
 
-    //Token Update
-    @PutMapping("/token")
-    public TokenInfo IssueToken(HttpServletRequest request, HttpServletResponse response){
-        Cookie[] cookies = request.getCookies();
-        return userService.issueToken(request, response);
+    @GetMapping("/userInfo/image")
+    public Resource getImage(HttpServletRequest request) throws MalformedURLException {
+        return userService.getUserImage(request);
     }
 
 }

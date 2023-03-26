@@ -62,7 +62,7 @@ class LocationServiceImplTest {
         location.setLatitude(standardUser.getLatitude());
         location.setLongitude(standardUser.getLongitude());
 
-        Page<UserResponseDto> helperList = locationService.findHelperByDistance(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "distance")), request);
+        Page<UserResponseDto> helperList = locationService.findHelperByDistance(PageRequest.of(0, 10, Sort.by(Sort.Direction.ASC, "distance")), location, request);
         Assertions.assertThat(helperList.getTotalElements()).isEqualTo(3); //* 자기 자신까지 포함한 숫자임. 왜냐하면 테스트레이어에선 jwt검증이 안되기 때문에 인증이 되지 않았음. 그래서 자기 자신을 빼서 주는 로직을 빼놨음.
         Assertions.assertThat(helperList.getContent().get(0).getName()).isEqualTo("조선대학교 해오름관");
         Assertions.assertThat(helperList.getContent().get(1).getName()).isEqualTo("동명동");
