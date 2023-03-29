@@ -16,6 +16,8 @@ import org.bson.json.JsonObject;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 
 @RequiredArgsConstructor
 @Service
@@ -55,20 +57,13 @@ public class ConversationImpl implements ConversationService {
     }
 
     @Override
-    public Conversation sendChatting(HttpServletRequest request, String conversationId, String message) {
-        Chat chat = new Chat();
-        chat.setMessageType("Message");
-        Authentication authentication = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User sender = userRepository.findByUserId(authentication.getName()).get();
-        chat.setSenderName(sender.getName());
+    public Conversation sendChatting(Chat chat, String conversationId) {
         Conversation conversation = conversationRepository.findById(conversationId).get();
-        User participant = userRepository.findById(conversation.getParticipant_id()).get();
-        chat.setReceiverName(participant.getName());
-        chat.setMessage(message);
+        chat.setMessageType("Chat");
         conversation.updateChat(chat);
-        Chat save = chatRepository.save(chat);
         return conversationRepository.save(conversation);
     }
+
 
 
 
