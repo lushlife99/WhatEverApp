@@ -40,7 +40,7 @@ public class Work {
 
     @ManyToOne
     @JoinColumn(name = "seller_Id")
-    private User seller;
+    private User helper;
 
     @JsonIgnore
     @OneToOne
