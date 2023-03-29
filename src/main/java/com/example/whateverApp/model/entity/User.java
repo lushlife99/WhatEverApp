@@ -36,7 +36,7 @@ public class User implements UserDetails {
     private Integer avgReactTime;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
     private List<Work> purchaseList = new ArrayList<>();
-    @OneToMany(mappedBy = "seller")
+    @OneToMany(mappedBy = "helper")
     private List<Work> sellList = new ArrayList<>();
     private UUID imageFileName;
     @ElementCollection(fetch = FetchType.EAGER)
