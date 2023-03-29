@@ -18,5 +18,4 @@ public class ConversationConnection {
     @OneToOne
     private User participator;
 
-
 }

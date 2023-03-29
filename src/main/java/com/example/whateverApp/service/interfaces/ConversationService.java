@@ -7,7 +7,7 @@ import jakarta.servlet.http.HttpServletRequest;
 
 public interface ConversationService {
 
-    Conversation open(User opener, User participator);
+    Conversation open(HttpServletRequest request, Long participatorId);
     Conversation sendWork(HttpServletRequest request, String conversationId, Work work); //채팅으로 일을 의뢰함.
-    Conversation sendChatting(HttpServletRequest request, String conversationId, String chat);
+    Conversation sendChatting(HttpServletRequest request, String conversationId, String message);
 }

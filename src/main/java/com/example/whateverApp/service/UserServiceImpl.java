@@ -89,9 +89,6 @@ public class UserServiceImpl implements UserService {
 
         Optional<User> userOptional = userRepository.findByUserId(userId);
 
-
-
-
         User user = userOptional.get();
 
         System.out.println("user = " + user);

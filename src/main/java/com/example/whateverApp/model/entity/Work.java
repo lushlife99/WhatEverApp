@@ -1,5 +1,6 @@
 package com.example.whateverApp.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 import org.hibernate.annotations.ColumnDefault;
@@ -41,6 +42,7 @@ public class Work {
     @JoinColumn(name = "seller_Id")
     private User seller;
 
+    @JsonIgnore
     @OneToOne
     private LocationConnection connection;
 

@@ -11,7 +11,7 @@ import org.springframework.data.web.PageableDefault;
 public interface LocationService {
     Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request);
     Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request);
-    Location setUserLocation(HttpServletRequest request);
+    UserResponseDto setUserLocation(HttpServletRequest request, Location location);
     Location setSellerLocation(HttpServletRequest request, Work work);
     /**
      * setSellerLocation 함수.

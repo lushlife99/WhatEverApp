@@ -155,8 +155,12 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Location setUserLocation(HttpServletRequest request) {
-        return null;
+    public UserResponseDto setUserLocation(HttpServletRequest request, Location location) {
+        Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
+        User user = userRepository.findByUserId(authorization.getName()).get();
+        user.setLatitude(location.getLatitude());
+        user.setLongitude(location.getLongitude());
+        return new UserResponseDto(userRepository.save(user));
     }
 
     @Override
