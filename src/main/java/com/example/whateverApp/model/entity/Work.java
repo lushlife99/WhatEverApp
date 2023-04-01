@@ -1,5 +1,6 @@
 package com.example.whateverApp.model.entity;
 
+import com.example.whateverApp.dto.WorkResponseDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -18,7 +19,7 @@ public class Work {
     private Long id;
     private String title;
     private String context;
-    private Integer deadLineTIme;
+    private Integer deadLineTime;
     /**
      * 23/03/11 chan
      *
@@ -29,10 +30,10 @@ public class Work {
      * 기록된 위치정보는 신고서비스에 쓰임.
      */
     private Integer reward;
-    private Float latitude;
-    private Float longitude;
+    private Double latitude;
+    private Double longitude;
     @ColumnDefault("true")
-    private boolean isProceeding; //진행중인 심부름 = true, 완료 = false
+    private boolean proceeding; //진행중인 심부름 = true, 완료 = false
 
     @ManyToOne
     @JoinColumn(name = "customer_Id")
@@ -48,4 +49,20 @@ public class Work {
 
     @CreationTimestamp
     private LocalDateTime createdTime;
+
+    public Work updateWork(WorkResponseDto workDto){
+        try {
+            this.id = workDto.getId();
+            this.title = workDto.getTitle();
+            this.context = workDto.getContext();
+            this.deadLineTime = workDto.getDeadLineTime();
+            this.latitude = workDto.getLatitude();
+            this.longitude = workDto.getLongitude();
+            this.proceeding = workDto.isProceeding();
+
+        }catch (NullPointerException e){
+
+        }
+        return this;
+    }
 }

@@ -1,5 +1,6 @@
 package com.example.whateverApp.model.entity;
 
+import com.example.whateverApp.model.document.SellerLocation;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.Id;

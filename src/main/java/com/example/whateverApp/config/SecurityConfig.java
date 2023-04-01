@@ -37,6 +37,7 @@ public class SecurityConfig {
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests()
+                .requestMatchers("/ws").permitAll()
                 .requestMatchers("/api/**").hasRole("USER")// 1 이게 맞는 순서
                 .anyRequest().permitAll()
                 .and()

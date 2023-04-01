@@ -1,5 +1,6 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.WorkResponseDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.document.SellerLocation;
@@ -9,8 +10,10 @@ import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.Transient;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -25,29 +28,35 @@ public class WorkServiceImpl implements WorkService {
     private final UserRepository userRepository;
 
 
-    public Work  Create(Work work, HttpServletRequest request) {
-        SellerLocation sellerLocation;
-        String sellerLocationId;
+    public Work Create(WorkResponseDto workResponseDto, HttpServletRequest request) {
+        // WorkResponseDto to Work
+        Work work = new Work().updateWork(workResponseDto);
         LocationConnection locationConnection = new LocationConnection();
-        if(work.getDeadLineTIme() == 1){
-             sellerLocation= new SellerLocation();
-             sellerLocationId = sellerLocationRepository.save(sellerLocation).getId();
-            locationConnection.setSellerLocationId(sellerLocationId);
-        }
-
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User user = userRepository.findByUserId(authorization.getName()).get();
         work.setCustomer(user);
-        locationConnection.setWork(work);
-        locationConnectionRepository.save(locationConnection);
-        return workRepository.save(work);
+        if(workResponseDto.getDeadLineTime() == 1){
+            createConnection(work);
+        }
+        return  workRepository.save(work);
     }
 
-    @Override
-    public Work update(Work work){
-        Work findWork = workRepository.findById(work.getId()).get();
+    @Transactional
+    public LocationConnection createConnection(Work work){
+        SellerLocation sellerLocation= new SellerLocation();
+        String sellerLocationId = sellerLocationRepository.save(sellerLocation).getId();
+        LocationConnection locationConnection = new LocationConnection();
+        locationConnection.setSellerLocationId(sellerLocationId);
+        work.setConnection(locationConnection);
+        return locationConnectionRepository.save(locationConnection);
+    }
 
-        return null;
+
+    @Override
+    public Work update(WorkResponseDto workResponseDto){
+        Work work = workRepository.findById(workResponseDto.getId()).get();
+        work.updateWork(workResponseDto);
+        return workRepository.save(work);
     }
 
     @Override

@@ -58,6 +58,7 @@ public class UserServiceImpl implements UserService {
             return false;
         }
         user.setRoles(Collections.singletonList("ROLE_USER"));
+        user.setImageFileName(UUID.randomUUID());
         userRepository.save(user);
         return true;
     }
@@ -82,21 +83,9 @@ public class UserServiceImpl implements UserService {
         String refreshToken = request.getHeader("Authorization").substring(7);
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
         String userId = authentication.getName();
-
-        System.out.println("userId = " + userId);
-
-        UUID uuid = UUID.randomUUID();
-
         Optional<User> userOptional = userRepository.findByUserId(userId);
-
         User user = userOptional.get();
-
-        System.out.println("user = " + user);
-
-        file.transferTo(new File(fileDir + uuid));
-
-        user.setImageFileName(uuid);
-
+        file.transferTo(new File(fileDir + user.getImageFileName()));
         return user;
 
     }
@@ -106,15 +95,11 @@ public class UserServiceImpl implements UserService {
 
         Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
         String userId = authentication.getName();
-
-        UUID uuid = UUID.randomUUID();
-
         Optional<User> userOptional = userRepository.findByUserId(userId);
-
         User user = userOptional.get();
-
         return new UrlResource("file:" + fileDir + user.getImageFileName() );
     }
+
 
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response){
         Cookie[] cookies = request.getCookies();

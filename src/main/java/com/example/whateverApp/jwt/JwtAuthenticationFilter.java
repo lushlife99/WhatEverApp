@@ -35,7 +35,6 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         response1.setHeader("Access-Control-Allow-Credentials",  "true");
         // 1. Request Header 에서 JWT 토큰 추출
         String accessToken = resolveToken((HttpServletRequest) request);
-        String refreshToken = ((HttpServletRequest) request).getHeader("refreshToken");
         // 2. validateToken 으로 토큰 유효성 검사
         if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
             // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장

@@ -11,6 +11,8 @@ import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.web.bind.annotation.*;
 
+import java.net.MalformedURLException;
+
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/location")
@@ -20,19 +22,19 @@ public class LocationController {
 
     @PutMapping("/findHelper/distance")
     public Page<UserResponseDto> findHelperByDistance(@PageableDefault(size = 10)Pageable pageable,
-                                                      @RequestBody Location location, HttpServletRequest request){
+                                                      @RequestBody Location location, HttpServletRequest request) throws MalformedURLException {
         return locationService.findHelperByDistance(pageable, location, request);
     }
 
     @PutMapping("/findHelper/rating")
     public Page<UserResponseDto> findHelperByRating(@PageableDefault(size = 10, sort="rating", direction = Sort.Direction.DESC)Pageable pageable,
-                                                    @RequestBody Location location, HttpServletRequest request){
+                                                    @RequestBody Location location, HttpServletRequest request) throws MalformedURLException{
         return locationService.findHelper(pageable, location, request);
     }
 
     @PutMapping("/findHelper/avgReactTime")
     public Page<UserResponseDto> findHelperByReactTime(@PageableDefault(size = 10, sort="avgReactTime")Pageable pageable,
-                                                       @RequestBody Location location, HttpServletRequest request){
+                                                       @RequestBody Location location, HttpServletRequest request) throws MalformedURLException{
         return locationService.findHelper(pageable, location, request);
     }
 

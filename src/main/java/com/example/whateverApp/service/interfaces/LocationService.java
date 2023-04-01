@@ -8,9 +8,11 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 
+import java.net.MalformedURLException;
+
 public interface LocationService {
-    Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request);
-    Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request);
+    Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
+    Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
     UserResponseDto setUserLocation(HttpServletRequest request, Location location);
     Location setSellerLocation(HttpServletRequest request, Work work);
     /**

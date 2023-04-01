@@ -13,38 +13,39 @@ import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.web.bind.annotation.CrossOrigin;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RestController;
 
 @RequiredArgsConstructor
 @RestController
+@CrossOrigin
 public class ConversationController {
 
     private final WorkServiceImpl workService;
     private final ConversationImpl conversationService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    @MessageMapping("/hello")
-    @SendTo("/sub/greeting")
-    public String greeting() {
-        System.out.println("ConversationController.greeting");
-        return "Hi!!!!!!!!!!!";
-    }
+//    @MessageMapping("/hello")
+//    @SendTo("/topic/greeting")
+//    public String greeting() {
+//        System.out.println("ConversationController.greeting");
+//        return "Hi!!!!!!!!!!!";
+//    }
 
-    @PostMapping("/conversation")
+    @PostMapping("/api/conversation")
     public Conversation createChat(HttpServletRequest request, Long participantId ){
         return conversationService.open(request, participantId);
     }
 
     @MessageMapping("/work/{conversationId}")
-
     public void sendWork(@RequestBody Work work, @DestinationVariable String conversationId, HttpServletRequest request){
-        simpMessagingTemplate.convertAndSend("/sub/chat/" + conversationId , conversationService.sendWork(request, conversationId, work));
-
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(request, conversationId, work));
     }
 
     @MessageMapping("/chat/{conversationId}")
     public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId){
-        simpMessagingTemplate.convertAndSend("/sub/chat/" + conversationId , conversationService.sendChatting(chat, conversationId));
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendChatting(chat, conversationId));
     }
+
 }

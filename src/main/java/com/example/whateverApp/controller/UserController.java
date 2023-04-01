@@ -43,5 +43,9 @@ public class UserController {
     public Resource getImage(HttpServletRequest request) throws MalformedURLException {
         return userService.getUserImage(request);
     }
+    @GetMapping("/userInfo")
+    public UserResponseDto getUserInfo(HttpServletRequest request){
+        return userService.getUserInfo(request);
+    }
 
 }

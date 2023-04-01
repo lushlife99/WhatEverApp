@@ -9,15 +9,21 @@ import com.example.whateverApp.repository.UserRepository;
 import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.geo.Distance;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileNotFoundException;
 import java.lang.reflect.Array;
+import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -29,62 +35,67 @@ public class LocationServiceImpl implements LocationService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final UserServiceImpl userService;
+    @Value("${file:dir}")
+    private String fileDir;
 
+    public Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException {
+            User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
+            user.setLatitude(location.getLatitude());
+            user.setLongitude(location.getLongitude());
+            userRepository.save(user);
+            /**
+             * 위에 있는 저장기능 나중에 지우기.
+             */
+            //현재 위도 좌표 (y 좌표)
+            double nowLatitude = location.getLatitude();
+            //현재 경도 좌표 (x 좌표)
+            double nowLongitude = location.getLongitude();
 
+            double EARTH_RADIUS = 6371;
 
+            //m당 y 좌표 이동 값
+            double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
+            //m당 x 좌표 이동 값
+            double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
 
-    public Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) {
-        User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
+            //현재 위치 기준 검색 거리 좌표
+            double maxY = nowLatitude + (5000 * mForLatitude);
+            double minY = nowLatitude - (5000 * mForLatitude);
+            double maxX = nowLongitude + (5000 * mForLongitude);
+            double minX = nowLongitude - (5000 * mForLongitude);
 
-        //현재 위도 좌표 (y 좌표)
-        double nowLatitude = location.getLatitude();
-        //현재 경도 좌표 (x 좌표)
-        double nowLongitude = location.getLongitude();
+            //해당되는 좌표의 범위 안에 있는 유저 찾기. filter
 
-        double EARTH_RADIUS = 6371;
+            List<User> tempAroundHelperList = userRepository.findAll().stream().filter(u -> {
+                return u.getLatitude().compareTo(maxY) <= 0;
+            }).filter(u -> {
+                return u.getLatitude().compareTo(minY) >= 0;
+            }).filter(u -> {
+                return u.getLongitude().compareTo(maxX) <= 0;
+            }).filter(u -> {
+                return u.getLongitude().compareTo(minX) >= 0;
+            }).toList();
 
-        //m당 y 좌표 이동 값
-        double mForLatitude =(1 /(EARTH_RADIUS* 1 *(Math.PI/ 180)))/ 1000;
-        //m당 x 좌표 이동 값
-        double mForLongitude =(1 /(EARTH_RADIUS* 1 *(Math.PI/ 180)* Math.cos(Math.toRadians(nowLatitude))))/ 1000;
+            List<UserResponseDto> resultAroundUserList = new ArrayList<>();
+            UserResponseDto userDto;
+            //정확한 거리계산, And 유저 거리저장.
 
-        //현재 위치 기준 검색 거리 좌표
-        double maxY = nowLatitude +(5000* mForLatitude);
-        double minY = nowLatitude -(5000* mForLatitude);
-        double maxX = nowLongitude +(5000* mForLongitude);
-        double minX = nowLongitude -(5000* mForLongitude);
-
-        //해당되는 좌표의 범위 안에 있는 유저 찾기. filter
-
-        List<User> tempAroundHelperList = userRepository.findAll().stream().filter(u -> {
-            return u.getLatitude().compareTo(maxY) <= 0;
-        }).filter(u -> {
-            return u.getLatitude().compareTo(minY) >= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(maxX) <= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(minX) >= 0;
-        }).toList();
-        if(tempAroundHelperList.contains(user)) {
-            tempAroundHelperList.remove(user);
-        }
-
-        List<UserResponseDto>resultAroundUserList = new ArrayList<>();
-        UserResponseDto userDto;
-        //정확한 거리계산, And 유저 거리저장.
-        for(User user1 : tempAroundHelperList){
-            double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
-            if(distance < 5000) {
-                userDto = new UserResponseDto(user1);
-                userDto.setDistance(distance);
-                resultAroundUserList.add(userDto);
+            for (User user1 : tempAroundHelperList) {
+                double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
+                if (distance < 5000) {
+                    userDto = new UserResponseDto(user1);
+                    userDto.setDistance(distance);
+                    UrlResource urlResource = new UrlResource("file:" + fileDir + user.getImageFileName());
+                    //userDto.setImage(urlResource);
+                    if (user.getId() != userDto.getId())
+                        resultAroundUserList.add(userDto);
+                }
             }
-        }
-        resultAroundUserList.remove(0);
-        Collections.sort(resultAroundUserList, (u1, u2)->{
-            return u1.getDistance().compareTo(u2.getDistance());
-        });
-        Page<UserResponseDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
+            Collections.sort(resultAroundUserList, (u1, u2) -> {
+                return u1.getDistance().compareTo(u2.getDistance());
+            });
+            Page<UserResponseDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
 
         return page;
     }
@@ -122,18 +133,17 @@ public class LocationServiceImpl implements LocationService {
         User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
 
         ArrayList<User> tempAroundHelperList = new ArrayList<>(list);
-        if(tempAroundHelperList.contains(user)) {
-            tempAroundHelperList.remove(user);
-        }
 
         List<UserResponseDto>resultAroundUserList = new ArrayList<>();
         UserResponseDto userDto;
         //정확한 거리계산, And 유저 거리저장.
+
         for(User user1 : tempAroundHelperList){
             double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
             if(distance < 5000) {
                 userDto = new UserResponseDto(user1);
                 userDto.setDistance(distance);
+                if(userDto.getId() != user.getId())
                 resultAroundUserList.add(userDto);
             }
         }
