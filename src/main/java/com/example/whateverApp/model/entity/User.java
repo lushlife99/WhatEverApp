@@ -1,12 +1,12 @@
 package com.example.whateverApp.model.entity;
 
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.document.Location;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.hibernate.annotations.ColumnDefault;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
@@ -49,7 +49,7 @@ public class User implements UserDetails {
 
     private Double longitude =0.0;
 
-    public User updateUserInfo(User user){
+    public User updateUserInfo(UserDto user){
         this.password = user.getPassword();
         this.name = user.getName();
         this.introduce = user.getIntroduce();

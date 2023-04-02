@@ -1,6 +1,6 @@
 package com.example.whateverApp.model.entity;
 
-import com.example.whateverApp.dto.WorkResponseDto;
+import com.example.whateverApp.dto.WorkDto;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -50,7 +50,7 @@ public class Work {
     @CreationTimestamp
     private LocalDateTime createdTime;
 
-    public Work updateWork(WorkResponseDto workDto){
+    public Work updateWork(WorkDto workDto){
         try {
             this.id = workDto.getId();
             this.title = workDto.getTitle();
@@ -59,7 +59,6 @@ public class Work {
             this.latitude = workDto.getLatitude();
             this.longitude = workDto.getLongitude();
             this.proceeding = workDto.isProceeding();
-
         }catch (NullPointerException e){
 
         }

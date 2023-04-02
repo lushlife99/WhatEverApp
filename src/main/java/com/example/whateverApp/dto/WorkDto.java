@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class WorkResponseDto {
+public class WorkDto {
     private Long id;
     private String title;
     private String context;
@@ -21,7 +21,7 @@ public class WorkResponseDto {
     private Long customerId;
     private Long helperId;
 
-    public WorkResponseDto(Work work){
+    public WorkDto(Work work){
         this.id = work.getId();
         this.title = work.getTitle();
         this.context = work.getContext();

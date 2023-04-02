@@ -13,8 +13,8 @@ public class Conversation {
 
     @Id
     private String _id;
-    private Long creator_id;
-    private Long participant_id;
+    private Long creatorId;
+    private Long participantId;
     private List<Chat> chatList = new ArrayList<>();
 
     public List<Chat> updateChat(Chat chat){

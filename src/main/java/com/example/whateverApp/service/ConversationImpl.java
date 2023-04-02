@@ -17,9 +17,11 @@ import org.bson.json.JsonObject;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.Objects;
+import java.util.Optional;
 
 
 @RequiredArgsConstructor
@@ -32,18 +34,27 @@ public class ConversationImpl implements ConversationService {
     private final ChatRepository chatRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     @Override
-    public Conversation open(HttpServletRequest request, Long participatorId) {
+    public Conversation openAndMessage(HttpServletRequest request, Long participatorId) {
         String accessToken = request.getHeader("Authorization").substring(7);
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         User creator = userRepository.findByUserId(authentication.getName()).get();
-        Conversation conversation = new Conversation();
-        conversation.setCreator_id(creator.getId());
-        conversation.setParticipant_id(participatorId);
+        Conversation conversation = open(creator.getId(), participatorId);
         simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", conversation));
         simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", conversation));
-        return conversationRepository.save(conversation);
+        return conversation;
     }
 
+    @Transactional
+    public Conversation open(Long creatorId, Long participatorId){
+        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creatorId, participatorId);
+        if(findConv.isPresent()){
+            return findConv.get();
+        }
+        Conversation conversation = new Conversation();
+        conversation.setCreatorId(creatorId);
+        conversation.setParticipantId(participatorId);
+        return conversationRepository.save(conversation);
+    }
 
 
     @Override
@@ -54,7 +65,7 @@ public class ConversationImpl implements ConversationService {
         User sender = userRepository.findByUserId(authentication.getName()).get();
         chat.setSenderName(sender.getName());
         Conversation conversation = conversationRepository.findById(conversationId).get();
-        User participant = userRepository.findById(conversation.getParticipant_id()).get();
+        User participant = userRepository.findById(conversation.getParticipantId()).get();
         chat.setReceiverName(participant.getName());
         chat.setWork(work);
         conversation.updateChat(chat);

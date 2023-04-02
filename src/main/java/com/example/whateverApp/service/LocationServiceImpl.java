@@ -1,28 +1,32 @@
 package com.example.whateverApp.service;
 
-import com.example.whateverApp.dto.UserResponseDto;
+import com.example.whateverApp.dto.MessageDto;
+import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
+import com.example.whateverApp.repository.HelperLocationRepository;
 import com.example.whateverApp.repository.UserRepository;
+import com.example.whateverApp.repository.WorkRepository;
 import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.geo.Distance;
-import org.springframework.data.web.PageableDefault;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.parameters.P;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.lang.reflect.Array;
+import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -36,10 +40,15 @@ public class LocationServiceImpl implements LocationService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserServiceImpl userService;
+    private final WorkRepository workRepository;
+    private final HelperLocationRepository helperLocationRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+
     @Value("${file:dir}")
     private String fileDir;
 
-    public Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException {
+    @Override
+    public Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException {
             User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
             user.setLatitude(location.getLatitude());
             user.setLongitude(location.getLongitude());
@@ -77,17 +86,15 @@ public class LocationServiceImpl implements LocationService {
                 return u.getLongitude().compareTo(minX) >= 0;
             }).toList();
 
-            List<UserResponseDto> resultAroundUserList = new ArrayList<>();
-            UserResponseDto userDto;
+            List<UserDto> resultAroundUserList = new ArrayList<>();
+            UserDto userDto;
             //정확한 거리계산, And 유저 거리저장.
 
             for (User user1 : tempAroundHelperList) {
                 double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
                 if (distance < 5000) {
-                    userDto = new UserResponseDto(user1);
+                    userDto = new UserDto(user1);
                     userDto.setDistance(distance);
-                    UrlResource urlResource = new UrlResource("file:" + fileDir + user.getImageFileName());
-                    //userDto.setImage(urlResource);
                     if (user.getId() != userDto.getId())
                         resultAroundUserList.add(userDto);
                 }
@@ -95,12 +102,12 @@ public class LocationServiceImpl implements LocationService {
             Collections.sort(resultAroundUserList, (u1, u2) -> {
                 return u1.getDistance().compareTo(u2.getDistance());
             });
-            Page<UserResponseDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
+            Page<UserDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
 
         return page;
     }
     @Override
-    public Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) {
+    public Page<UserDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) {
         User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
         //현재 위도 좌표 (y 좌표)
         double nowLatitude = location.getLatitude();
@@ -134,20 +141,20 @@ public class LocationServiceImpl implements LocationService {
 
         ArrayList<User> tempAroundHelperList = new ArrayList<>(list);
 
-        List<UserResponseDto>resultAroundUserList = new ArrayList<>();
-        UserResponseDto userDto;
+        List<UserDto>resultAroundUserList = new ArrayList<>();
+        UserDto userDto;
         //정확한 거리계산, And 유저 거리저장.
 
         for(User user1 : tempAroundHelperList){
             double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
             if(distance < 5000) {
-                userDto = new UserResponseDto(user1);
+                userDto = new UserDto(user1);
                 userDto.setDistance(distance);
                 if(userDto.getId() != user.getId())
                 resultAroundUserList.add(userDto);
             }
         }
-        Page<UserResponseDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
+        Page<UserDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
 
         return page;
     }
@@ -165,17 +172,34 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public UserResponseDto setUserLocation(HttpServletRequest request, Location location) {
+    public UserDto setUserLocation(HttpServletRequest request, Location location) {
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User user = userRepository.findByUserId(authorization.getName()).get();
         user.setLatitude(location.getLatitude());
         user.setLongitude(location.getLongitude());
-        return new UserResponseDto(userRepository.save(user));
+        return new UserDto(userRepository.save(user));
     }
 
     @Override
-    public Location setSellerLocation(HttpServletRequest request, Work work) {
-        return null;
+    public void setHelperLocation(Location location, Long workId)
+    {
+        Work work = workRepository.findById(workId).get();
+        HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
+        helperLocation.getLocationList().add(location);
+        helperLocationRepository.save(helperLocation);
     }
 
+    public void recordLocation(WorkDto workDto) throws InterruptedException{
+        Work work = workRepository.findById(workDto.getId()).get();
+        User helper = work.getHelper();
+        HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
+        List<Location> locationList = helperLocation.getLocationList();
+        while(locationList.size()<=60){
+            simpMessagingTemplate.convertAndSend("/queue/"+helper.getId(), new MessageDto("postLocation", workDto));
+            if(!workRepository.findById(workDto.getId()).get().isProceeding()){
+                break;
+            }
+            Thread.sleep(60000);
+        }
+    }
 }

@@ -1,19 +1,13 @@
 package com.example.whateverApp.controller;
 
 
-import com.example.whateverApp.dto.TokenInfo;
-import com.example.whateverApp.dto.UserResponseDto;
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.core.io.Resource;
-import org.springframework.core.io.UrlResource;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -30,8 +24,8 @@ public class UserController {
     private final UserServiceImpl userService;
 
     @PutMapping("/userInfo")
-    public UserResponseDto updateUserInfo(@RequestBody User user, HttpServletRequest request){
-        return userService.update(user, request);
+    public UserDto updateUserInfo(@RequestBody UserDto userDto, HttpServletRequest request){
+        return userService.update(userDto, request);
     }
 
     @PutMapping("/userInfo/image")
@@ -44,7 +38,7 @@ public class UserController {
         return userService.getUserImage(request);
     }
     @GetMapping("/userInfo")
-    public UserResponseDto getUserInfo(HttpServletRequest request){
+    public UserDto getUserInfo(HttpServletRequest request){
         return userService.getUserInfo(request);
     }
 

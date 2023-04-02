@@ -1,7 +1,8 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.TokenInfo;
-import com.example.whateverApp.dto.UserResponseDto;
+import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.jwt.JwtAuthenticationFilter;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
@@ -10,8 +11,8 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.context.properties.ConfigurationProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -35,10 +36,9 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
-
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${file:dir}")
+    @Value("${file:}")
     private String fileDir;
 
     public TokenInfo login(User user, HttpServletResponse response){
@@ -63,41 +63,54 @@ public class UserServiceImpl implements UserService {
         return true;
     }
     @Override
-    public UserResponseDto getUserInfo(HttpServletRequest request) {
+    public UserDto getUserInfo(HttpServletRequest request) {
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User findUser = userRepository.findByUserId(authorization.getName()).get();
-        return new UserResponseDto(findUser);
+        return new UserDto(findUser);
     }
 
     @Override
-    public UserResponseDto update(User user, HttpServletRequest request) {
+    public UserDto update(UserDto userDto, HttpServletRequest request) {
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User findUser = userRepository.findByUserId(authorization.getName()).get();
-        findUser.updateUserInfo(user);
+        findUser.updateUserInfo(userDto);
         userRepository.save(findUser);
-        return new UserResponseDto(findUser);
+        return new UserDto(findUser);
     }
 
     @Transactional
     public User updateProfileImage(HttpServletRequest request, MultipartFile file) throws IOException {
-        String refreshToken = request.getHeader("Authorization").substring(7);
-        Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
+        String accessToken = request.getHeader("Authorization").substring(7);
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         String userId = authentication.getName();
         Optional<User> userOptional = userRepository.findByUserId(userId);
         User user = userOptional.get();
-        file.transferTo(new File(fileDir + user.getImageFileName()));
+        System.out.println(user.getImageFileName());
+        file.transferTo(new File(fileDir+user.getImageFileName()));
         return user;
-
     }
 
     public Resource getUserImage(HttpServletRequest request) throws MalformedURLException {
-        String refreshToken = request.getHeader("Authorization").substring(7);
-
-        Authentication authentication = jwtTokenProvider.getAuthentication(refreshToken);
+        String accessToken = request.getHeader("Authorization").substring(7);
+        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         String userId = authentication.getName();
         Optional<User> userOptional = userRepository.findByUserId(userId);
         User user = userOptional.get();
-        return new UrlResource("file:" + fileDir + user.getImageFileName() );
+        return new UrlResource(fileDir + user.getImageFileName() );
+    }
+
+    /**
+     * 이거 될 진 모르겠음. 일단 해보자.
+     * 위에 있는 getUserImage 먼저 해보고 잘 되면 아래꺼 해보자.
+     */
+
+    public ArrayList<UrlResource> getUserImageList(Long[] userIdList) throws MalformedURLException {
+        ArrayList<UrlResource> urlResources = new ArrayList<>();
+        for (Long id : userIdList) {
+            UUID imageFileName = userRepository.findById(id).get().getImageFileName();
+            urlResources.add(new UrlResource(fileDir + imageFileName));
+        }
+        return urlResources;
     }
 
 
@@ -109,7 +122,6 @@ public class UserServiceImpl implements UserService {
                 refreshToken = cookie.getValue();
             }
         }
-
         return jwtTokenProvider.reissueToken(refreshToken, response);
     }
 

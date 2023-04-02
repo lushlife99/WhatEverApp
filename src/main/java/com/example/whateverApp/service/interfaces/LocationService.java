@@ -1,20 +1,20 @@
 package com.example.whateverApp.service.interfaces;
 
-import com.example.whateverApp.dto.UserResponseDto;
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Work;
 import jakarta.servlet.http.HttpServletRequest;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
-import org.springframework.data.web.PageableDefault;
 
+import java.io.IOException;
 import java.net.MalformedURLException;
 
 public interface LocationService {
-    Page<UserResponseDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
-    Page<UserResponseDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
-    UserResponseDto setUserLocation(HttpServletRequest request, Location location);
-    Location setSellerLocation(HttpServletRequest request, Work work);
+    Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException;
+    Page<UserDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
+    UserDto setUserLocation(HttpServletRequest request, Location location);
+    void setHelperLocation(Location location, Long workId);
     /**
      * setSellerLocation 함수.
      * deadLineTime이 1시간인 심부름은 seller의 위치를 저장함.

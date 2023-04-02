@@ -34,7 +34,7 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         response1.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, Origin,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
         response1.setHeader("Access-Control-Allow-Credentials",  "true");
         // 1. Request Header 에서 JWT 토큰 추출
-        String accessToken = resolveToken((HttpServletRequest) request);
+        String accessToken = jwtTokenProvider.resolveToken((HttpServletRequest) request);
         // 2. validateToken 으로 토큰 유효성 검사
         if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
             // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
@@ -45,12 +45,5 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         chain.doFilter(request, response1);
     }
 
-    // Request Cookie 에서 토큰 정보 추출
-    private String resolveToken(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer")) {
-            return bearerToken.substring(7);
-        }
-        return null;
-    }
+
 }

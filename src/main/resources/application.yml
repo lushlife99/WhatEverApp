@@ -31,5 +31,4 @@ spring:
     properties:
       hibernate.format_sql: true
 
-  file:
-    dir: \Users\82104\userImage\
+file: C:\Users\82104\userImage\
