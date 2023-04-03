@@ -14,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
-    //private final StompHandler stompHandler;
+    private final StompHandler stompHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -24,7 +24,7 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
-        registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
+        registry.addEndpoint("/ws").setAllowedOriginPatterns("*").withSockJS();
         // 웹소켓에 접근하기 위한 endpoint. localhost:8000/ws 으로 발행 또는 구독 시에만 가능하다.
         // registerStompEndpoints() 는 최초의 websocket을 생성하는 endpoint를 지정해준다 여기에서 sockJS의 사용유무를 결정할 수 있다.
     }

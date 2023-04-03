@@ -41,7 +41,7 @@ public class UserServiceImpl implements UserService {
     @Value("${file:}")
     private String fileDir;
 
-    public TokenInfo login(User user, HttpServletResponse response){
+    public TokenInfo login(User user, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
 
         // 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
@@ -53,8 +53,8 @@ public class UserServiceImpl implements UserService {
         return tokenInfo;
     }
 
-    public Boolean join(User user){
-        if(userRepository.findByUserId(user.getUserId()).isPresent()){
+    public Boolean join(User user) {
+        if (userRepository.findByUserId(user.getUserId()).isPresent()) {
             return false;
         }
         user.setRoles(Collections.singletonList("ROLE_USER"));
@@ -62,6 +62,7 @@ public class UserServiceImpl implements UserService {
         userRepository.save(user);
         return true;
     }
+
     @Override
     public UserDto getUserInfo(HttpServletRequest request) {
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
@@ -86,7 +87,7 @@ public class UserServiceImpl implements UserService {
         Optional<User> userOptional = userRepository.findByUserId(userId);
         User user = userOptional.get();
         System.out.println(user.getImageFileName());
-        file.transferTo(new File(fileDir+user.getImageFileName()));
+        file.transferTo(new File(fileDir + user.getImageFileName()));
         return user;
     }
 
@@ -96,7 +97,7 @@ public class UserServiceImpl implements UserService {
         String userId = authentication.getName();
         Optional<User> userOptional = userRepository.findByUserId(userId);
         User user = userOptional.get();
-        return new UrlResource(fileDir + user.getImageFileName() );
+        return new UrlResource(fileDir + user.getImageFileName());
     }
 
     /**
@@ -104,21 +105,27 @@ public class UserServiceImpl implements UserService {
      * 위에 있는 getUserImage 먼저 해보고 잘 되면 아래꺼 해보자.
      */
 
-    public ArrayList<UrlResource> getUserImageList(Long[] userIdList) throws MalformedURLException {
-        ArrayList<UrlResource> urlResources = new ArrayList<>();
-        for (Long id : userIdList) {
-            UUID imageFileName = userRepository.findById(id).get().getImageFileName();
-            urlResources.add(new UrlResource(fileDir + imageFileName));
+    public UrlResource[] getUserImageList(Long[] userIdList) throws MalformedURLException {
+        UrlResource[] urlResources = new UrlResource[userIdList.length];
+        for (int i = 0; i < userIdList.length; i++) {
+
+            UUID imageFileName = userRepository.findById(userIdList[i]).get().getImageFileName();
+            File file = new File(fileDir + imageFileName);
+            if (file.exists()) {
+                urlResources[i] = new UrlResource(fileDir + imageFileName);
+            } else {
+                urlResources[i] = null;
+            }
         }
         return urlResources;
     }
 
 
-    public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response){
+    public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
-        String refreshToken="";
+        String refreshToken = "";
         for (Cookie cookie : cookies) {
-            if(cookie.getName().equals("refreshToken")){
+            if (cookie.getName().equals("refreshToken")) {
                 refreshToken = cookie.getValue();
             }
         }
