@@ -22,7 +22,7 @@ public class AuthController {
 
     // 회원가입 API
     @PostMapping("/join")
-    public Boolean join(@Validated @RequestBody User user) {
+    public User join(@Validated @RequestBody User user) {
         return userService.join(user);
     }
 

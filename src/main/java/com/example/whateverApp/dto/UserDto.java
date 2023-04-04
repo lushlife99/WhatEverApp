@@ -20,6 +20,7 @@ public class UserDto {
     private Integer avgReactTime;
     private Double latitude;
     private Double longitude;
+    private String image;
 
     public UserDto(User user){
         id = user.getId();

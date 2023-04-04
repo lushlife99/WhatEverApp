@@ -7,7 +7,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
-@NoArgsConstructor
 @AllArgsConstructor
 public class WorkDto {
     private Long id;
@@ -37,6 +36,5 @@ public class WorkDto {
         catch (Exception e){
             System.out.println("e = " + e.getMessage()+ "나중에 꼭 확인하세요 !! ");
         }
-
     }
 }

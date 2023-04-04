@@ -19,8 +19,6 @@ public class Chat {
     private String message;
     private String senderName;
     private String receiverName;
-    @OneToOne
-    private Work work;
     @CreatedDate
     private LocalDateTime sendTime;
 }

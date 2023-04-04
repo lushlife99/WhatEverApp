@@ -42,9 +42,5 @@ public class UserController {
         return userService.getUserInfo(request);
     }
 
-    @PutMapping("/findHelper/images")
-    public Resource[] getImages(@RequestBody Long[] idList) throws MalformedURLException{
-        return userService.getUserImageList(idList);
-    }
 
 }

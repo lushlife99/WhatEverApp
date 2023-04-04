@@ -1,18 +1,23 @@
 package com.example.whateverApp.controller;
 
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.ConversationImpl;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.example.whateverApp.service.interfaces.ConversationService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.servlet.http.HttpServletResponse;
 import jdk.jfr.MemoryAddress;
 import lombok.RequiredArgsConstructor;
+import org.bson.json.JsonObject;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 @RequiredArgsConstructor
@@ -31,14 +36,15 @@ public class ConversationController {
     }
 
     @PostMapping("/api/conversation/{participantId}")
-    public Conversation createChat(HttpServletRequest request, @PathVariable Long participantId){
+    public Conversation createChat(@RequestBody WorkDto workDto ,@PathVariable Long participantId, HttpServletRequest request){
         System.out.println("ConversationController.createChat");
-        return conversationService.openAndMessage(request, participantId);
+        return conversationService.openAndMessage(request, participantId,workDto);
     }
 
     @MessageMapping("/work/{conversationId}")
-    public void sendWork(@RequestBody Work work, @DestinationVariable String conversationId, HttpServletRequest request){
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(request, conversationId, work));
+    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException {
+        System.out.println("ConversationController.sendWork");
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
     }
 
     @MessageMapping("/chat/{conversationId}")

@@ -2,7 +2,6 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
-import com.example.whateverApp.jwt.JwtAuthenticationFilter;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
@@ -11,7 +10,6 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.apache.tomcat.util.codec.binary.Base64;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
@@ -50,17 +48,17 @@ public class UserServiceImpl implements UserService {
 
         // 3. 인증 정보를 기반으로 JWT 토큰 생성
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
+        tokenInfo.setId(userRepository.findByUserId(user.getUserId()).get().getId());
         return tokenInfo;
     }
 
-    public Boolean join(User user) {
+    public User join(User user) {
         if (userRepository.findByUserId(user.getUserId()).isPresent()) {
-            return false;
+            return null;
         }
         user.setRoles(Collections.singletonList("ROLE_USER"));
         user.setImageFileName(UUID.randomUUID());
-        userRepository.save(user);
-        return true;
+        return userRepository.save(user);
     }
 
     @Override
@@ -86,8 +84,8 @@ public class UserServiceImpl implements UserService {
         String userId = authentication.getName();
         Optional<User> userOptional = userRepository.findByUserId(userId);
         User user = userOptional.get();
-        System.out.println(user.getImageFileName());
         file.transferTo(new File(fileDir + user.getImageFileName()));
+        System.out.println(fileDir + user.getImageFileName());
         return user;
     }
 
@@ -104,22 +102,6 @@ public class UserServiceImpl implements UserService {
      * 이거 될 진 모르겠음. 일단 해보자.
      * 위에 있는 getUserImage 먼저 해보고 잘 되면 아래꺼 해보자.
      */
-
-    public UrlResource[] getUserImageList(Long[] userIdList) throws MalformedURLException {
-        UrlResource[] urlResources = new UrlResource[userIdList.length];
-        for (int i = 0; i < userIdList.length; i++) {
-
-            UUID imageFileName = userRepository.findById(userIdList[i]).get().getImageFileName();
-            File file = new File(fileDir + imageFileName);
-            if (file.exists()) {
-                urlResources[i] = new UrlResource(fileDir + imageFileName);
-            } else {
-                urlResources[i] = null;
-            }
-        }
-        return urlResources;
-    }
-
 
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
