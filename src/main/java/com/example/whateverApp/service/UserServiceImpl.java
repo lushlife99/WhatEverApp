@@ -62,10 +62,18 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserInfo(HttpServletRequest request) {
+    public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException{
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User findUser = userRepository.findByUserId(authorization.getName()).get();
-        return new UserDto(findUser);
+        Base64.Encoder encoder = Base64.getEncoder();
+        byte[] photoEncode;
+        File file = new File(fileDir + findUser.getImageFileName());
+        UserDto userDto = new UserDto(findUser);
+        if (file.exists()) {
+            photoEncode = encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
+            userDto.setImage(new String(photoEncode, "UTF8"));
+        }
+        return userDto;
     }
 
     @Override

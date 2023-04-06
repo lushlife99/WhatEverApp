@@ -1,5 +1,6 @@
 package com.example.whateverApp.config;
 
+import com.example.whateverApp.handler.ChatPreHandler;
 import com.example.whateverApp.handler.StompHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -15,6 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompHandler stompHandler;
+    private final ChatPreHandler chatPreHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
@@ -29,8 +31,8 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
         // registerStompEndpoints() 는 최초의 websocket을 생성하는 endpoint를 지정해준다 여기에서 sockJS의 사용유무를 결정할 수 있다.
     }
 
-//    @Override
-//    public void configureClientInboundChannel(ChannelRegistration registration) {
-//        registration.interceptors(stompHandler);
-//    }
+    @Override
+    public void configureClientInboundChannel(ChannelRegistration registration) {
+        registration.interceptors(chatPreHandler);
+    }
 }

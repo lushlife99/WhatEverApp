@@ -96,7 +96,7 @@ public class LocationServiceImpl implements LocationService {
                 File file = new File(fileDir + user1.getImageFileName());
                 if (file.exists()) {
                     photoEncode = encoder.encode(new UrlResource("file:" + fileDir + user1.getImageFileName()).getContentAsByteArray());
-                    //userDto.setImage(new String(photoEncode, "UTF8"));
+                    userDto.setImage(new String(photoEncode, "UTF8"));
                 }
 
                 if (user.getId() != userDto.getId()) {

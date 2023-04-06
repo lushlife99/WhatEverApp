@@ -4,13 +4,15 @@ import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import jakarta.servlet.http.HttpServletRequest;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
 import java.util.List;
 
 public interface UserService {
 
     UserDto update(UserDto userDto, HttpServletRequest request); //post update 둘다 이 함수 호출
 
-    UserDto getUserInfo(HttpServletRequest request);
+    UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException;
     User delete(HttpServletRequest request);
     User get(HttpServletRequest request);
     User getPurchaseList(HttpServletRequest request);

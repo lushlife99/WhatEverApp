@@ -7,6 +7,7 @@ import com.example.whateverApp.service.UserServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.core.io.Resource;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -38,9 +39,8 @@ public class UserController {
         return userService.getUserImage(request);
     }
     @GetMapping("/userInfo")
-    public UserDto getUserInfo(HttpServletRequest request){
+    public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException {
         return userService.getUserInfo(request);
     }
-
 
 }
