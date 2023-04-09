@@ -98,11 +98,9 @@ public class LocationServiceImpl implements LocationService {
                     photoEncode = encoder.encode(new UrlResource("file:" + fileDir + user1.getImageFileName()).getContentAsByteArray());
                     userDto.setImage(new String(photoEncode, "UTF8"));
                 }
-
                 if (user.getId() != userDto.getId()) {
                     resultAroundUserList.add(userDto);
                 }
-
             }
         }
             Collections.sort(resultAroundUserList, (u1, u2) -> {
@@ -188,11 +186,12 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public void setHelperLocation(Location location, Long workId) {
+    public Location setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
         HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
         helperLocation.getLocationList().add(location);
         helperLocationRepository.save(helperLocation);
+        return location;
     }
 
     public void recordLocation(WorkDto workDto) throws InterruptedException {

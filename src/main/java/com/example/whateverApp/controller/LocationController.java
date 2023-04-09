@@ -60,8 +60,8 @@ public class LocationController {
     }
 
     @PostMapping("/helperLocation/{workId}")
-    public void updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
-        locationService.setHelperLocation(location, workId);
+    public Location updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
+        return locationService.setHelperLocation(location, workId);
     }
 
     @PostMapping("/helperLocation/recordStart")

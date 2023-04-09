@@ -3,6 +3,7 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
 import com.example.whateverApp.service.interfaces.UserService;
@@ -120,6 +121,15 @@ public class UserServiceImpl implements UserService {
             }
         }
         return jwtTokenProvider.reissueToken(refreshToken, response);
+    }
+
+    public Location setUserLocation(Location location, HttpServletRequest request){
+        Authentication authentication = jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request));
+        User user = userRepository.findByUserId(authentication.getName()).get();
+        user.setLatitude(location.getLatitude());
+        user.setLongitude(location.getLongitude());
+        userRepository.save(user);
+        return location;
     }
 
     @Override

@@ -7,5 +7,5 @@ import java.util.Optional;
 
 public interface ConversationRepository extends MongoRepository<Conversation, String> {
 
-    Optional<Conversation> findByCreatorIdAndParticipantId(Long Creator_id, Long Participant_id);
+    Optional<Conversation> findByCreatorIdAndParticipantId(Long creatorId, Long participantId);
 }

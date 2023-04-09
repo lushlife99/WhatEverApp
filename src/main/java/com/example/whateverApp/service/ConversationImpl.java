@@ -45,23 +45,37 @@ public class ConversationImpl implements ConversationService {
         String accessToken = request.getHeader("Authorization").substring(7);
         Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
         User creator = userRepository.findByUserId(authentication.getName()).get();
-        Conversation conversation = open(creator.getId(), participatorId);
         Work work = workRepository.findById(workDto.getId()).get();
         work.setHelper(userRepository.findById(participatorId).get());
-        simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", conversation));
-        simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", conversation));
+        User participator = userRepository.findById(participatorId).get();
+        Conversation conversation = open(creator, participator, work.getId());
+        List<Conversation> conversationList = conversationRepository.findAll().stream().filter( c->{
+            return c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId());
+        }).toList();
+
+        simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", conversationList));
+        simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", conversationList));
         return conversation;
     }
 
     @Transactional
-    public Conversation open(Long creatorId, Long participatorId){
-        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creatorId, participatorId);
-        if(findConv.isPresent()){
-            return findConv.get();
-        }
+    public Conversation open(User creator, User participator, Long workId){
+//        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creator.getId(), participator.getId());
+//        if(findConv.isPresent()){
+//            /**
+//             * 나중에 수정하기.
+//             * work가 이미 진행중이면 예외처리해주고
+//             * work가 만약 끝났다면 work를 새로운 work로 set해주기.
+//             */
+//
+//            //return findConv.get();
+//        }
         Conversation conversation = new Conversation();
-        conversation.setCreatorId(creatorId);
-        conversation.setParticipantId(participatorId);
+        conversation.setCreatorId(creator.getId());
+        conversation.setParticipantId(participator.getId());
+        conversation.setWorkId(workId);
+        conversation.setCreatorName(creator.getName());
+        conversation.setParticipatorName(participator.getName());
         return conversationRepository.save(conversation);
     }
 

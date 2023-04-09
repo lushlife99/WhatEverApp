@@ -15,6 +15,8 @@ public class Conversation {
     private String _id;
     private Long creatorId;
     private Long participantId;
+    private String creatorName;
+    private String participatorName;
     private Long workId;
     private List<Chat> chatList = new ArrayList<>();
 

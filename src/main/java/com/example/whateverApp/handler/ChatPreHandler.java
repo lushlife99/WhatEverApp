@@ -8,6 +8,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
@@ -24,18 +25,11 @@ public class ChatPreHandler implements ChannelInterceptor {
         StompHeaderAccessor headerAccessor = StompHeaderAccessor.wrap(message);
         String authorizationHeader = String.valueOf(headerAccessor.getNativeHeader("Authorization"));
         if(authorizationHeader == null || authorizationHeader.equals("null")){
-            throw new MessageDeliveryException("메세지 예외");
+            throw new MessageDeliveryException("토큰이 없습니다.");
         }
-
-        String token = authorizationHeader.substring(BEARER_PREFIX.length());
-
-        try{
-             jwtTokenProvider.validateToken(token);
-        }catch (MessageDeliveryException e){
-            throw new MessageDeliveryException("메세지 에러");
-        }catch (MalformedJwtException e){
-            throw new MessageDeliveryException("예외3");
-        }
+         String token = authorizationHeader.substring(BEARER_PREFIX.length());
+        System.out.println(token);
+        jwtTokenProvider.validateToken(token);
 
         return message;
     }

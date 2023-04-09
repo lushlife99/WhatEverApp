@@ -3,6 +3,7 @@ package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.service.WorkServiceImpl;
+import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -23,6 +24,11 @@ public class WorkController {
     @PutMapping("/work")
     public WorkDto updateWork(@RequestBody WorkDto workDto, HttpServletRequest request){
         return new WorkDto(workService.update(workDto));
+    }
+
+    @GetMapping("/work/{id}")
+    public WorkDto getWork(@PathVariable Long id, HttpServletRequest request){
+        return new WorkDto(workService.get(id, request));
     }
 
 

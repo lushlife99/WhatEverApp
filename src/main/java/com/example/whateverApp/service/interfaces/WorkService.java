@@ -9,6 +9,6 @@ public interface WorkService {
     Work  Create(WorkDto workDto, HttpServletRequest request);
     Work update(WorkDto workDto);
     Work delete(Long workId);
-    Work get(HttpServletRequest request);
+    Work get(Long id, HttpServletRequest request);
     Work success(WorkDto workDto);
 }

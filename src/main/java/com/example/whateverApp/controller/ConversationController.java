@@ -41,11 +41,11 @@ public class ConversationController {
         return conversationService.openAndMessage(request, participantId,workDto);
     }
 
-    @MessageMapping("/work/{conversationId}")
-    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException {
-        System.out.println("ConversationController.sendWork");
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
-    }
+//    @MessageMapping("/work/{conversationId}")
+//    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException {
+//        System.out.println("ConversationController.sendWork");
+//        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
+//    }
 
     @MessageMapping("/chat/{conversationId}")
     public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId){

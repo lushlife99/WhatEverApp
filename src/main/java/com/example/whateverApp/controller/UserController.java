@@ -2,6 +2,7 @@ package com.example.whateverApp.controller;
 
 
 import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
@@ -41,6 +42,11 @@ public class UserController {
     @GetMapping("/userInfo")
     public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException {
         return userService.getUserInfo(request);
+    }
+
+    @PutMapping("/userLocation")
+    public Location setUserLocation(@RequestBody Location location,  HttpServletRequest request){
+        return userService.setUserLocation(location, request);
     }
 
 }

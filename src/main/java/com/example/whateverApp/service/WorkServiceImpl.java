@@ -83,8 +83,8 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public Work get(HttpServletRequest request) {
-        return null;
+    public Work get(Long id, HttpServletRequest request) {
+        return workRepository.findById(id).get();
     }
 
     @Override
