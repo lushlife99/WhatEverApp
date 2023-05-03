@@ -5,7 +5,9 @@ import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.UserRepository;
+import com.example.whateverApp.repository.WorkRepository;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,21 +37,16 @@ class LocationServiceImplTest {
     @MockBean private LocationController locationController;
     @MockBean private MockHttpServletRequest request;
     @MockBean private UserServiceImpl userService;
+    @Autowired private WorkRepository workRepository;
 
     @BeforeEach
     @Transactional
       void BeforeEach(){
-        userRepository.deleteAll();
-        List<User> users = new ArrayList<>();
-        ArrayList<String> role = new ArrayList<>();
-        role.add("ROLE_USER");
-
-
-        users.add(User.builder().userId("a").avgReactTime(1).name("조선대학교 해오름관").rating(1.0).latitude(35.142967).longitude(126.930168).password("1234").roles(role).imageFileName(UUID.randomUUID()).build()); //기준이 되는 유저. 조선대학교 해오름관
-        users.add(User.builder().userId("d").avgReactTime(4).name("기아 광주공장").rating(4.0).latitude(35.163842).longitude(126.872818).password("1234").roles(role).imageFileName(UUID.randomUUID()).build()); //광주 기아. 6km거리임
-        users.add(User.builder().userId("c").avgReactTime(3).name("진월동 행정복지센터").rating(2.0).latitude(35.112438).longitude(126.898595).password("1234").roles(role).imageFileName(UUID.randomUUID()).build()); // 진월동 행정복지센터 4km정도
-        users.add(User.builder().userId("b").avgReactTime(2).name("동명동").rating(3.0).latitude(35.152054).longitude(126.924698).password("1234").roles(role).imageFileName(UUID.randomUUID()).build()); //동명동 1km
-        userRepository.saveAll(users);
+        User user = userRepository.findByUserId("admin").get();
+        ArrayList<String> strings = new ArrayList<>();
+        strings.add("ROLE_ADMIN");
+        user.setRoles(strings);
+        userRepository.save(user);
     }
 
 //    @BeforeEach
@@ -77,7 +74,6 @@ class LocationServiceImplTest {
         Assertions.assertThat(helperList.getContent().get(0).getName()).isEqualTo("조선대학교 해오름관");
         Assertions.assertThat(helperList.getContent().get(1).getName()).isEqualTo("동명동");
         Assertions.assertThat(helperList.getContent().get(2).getName()).isEqualTo("진월동 행정복지센터");
-
 
     }
 

@@ -34,13 +34,15 @@ public class Work {
     private Double longitude;
     @ColumnDefault("true")
     private boolean proceeding; //진행중인 심부름 = true, 완료 = false
+    @ColumnDefault("true")
+    private boolean finished;
 
     @ManyToOne
     @JoinColumn(name = "customer_Id")
     private User customer;
 
     @ManyToOne
-    @JoinColumn(name = "seller_Id")
+    @JoinColumn(name = "helper_Id")
     private User helper;
 
     @JsonIgnore

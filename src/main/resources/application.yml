@@ -31,6 +31,11 @@ spring:
     properties:
       hibernate.format_sql: true
 
+server:
+  compression:
+    enabled: true
+    mime-types: text/html,text/plain,text/css,application/javascript,application/json
+    min-response-size: 1024
 
 
 file: C:\Users\82104\userImage\

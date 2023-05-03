@@ -29,29 +29,8 @@ public class LocationController {
     @PutMapping("/findHelper/distance")
     public Page<UserDto> findHelperByDistance(@PageableDefault(size = 10)Pageable pageable,
                                               @RequestBody Location location, HttpServletRequest request, HttpServletResponse response) throws MalformedURLException, IOException {
-        /**
-         * 나중에 이거 봐보기.
-         *
-         * 일단 되는지 보자. 안되면 아래 방법 써보기.
-         *
-         * 클라이언트에서 dataType을 multipart/form-data로 정의해놓고
-         * 받아지는지 확인하기.
-         */
         response.setContentType("multipart/form-data");
         return locationService.findHelperByDistance(pageable, location, request);
-    }
-
-    @PutMapping("/findHelper/rating")
-    public Page<UserDto> findHelperByRating(@PageableDefault(size = 10, sort="rating", direction = Sort.Direction.DESC)Pageable pageable,
-                                            @RequestBody Location location, HttpServletRequest request) throws MalformedURLException{
-        System.out.println("LocationController.findHelperByRating");
-        return locationService.findHelper(pageable, location, request);
-    }
-
-    @PutMapping("/findHelper/avgReactTime")
-    public Page<UserDto> findHelperByReactTime(@PageableDefault(size = 10, sort="avgReactTime")Pageable pageable,
-                                               @RequestBody Location location, HttpServletRequest request) throws MalformedURLException{
-        return locationService.findHelper(pageable, location, request);
     }
 
     @PutMapping("/user")
@@ -60,13 +39,13 @@ public class LocationController {
     }
 
     @PostMapping("/helperLocation/{workId}")
-    public Location updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
+    public Boolean updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
         return locationService.setHelperLocation(location, workId);
     }
 
-    @PostMapping("/helperLocation/recordStart")
-    public void locationRecordStart(@RequestBody WorkDto workDto) throws InterruptedException{
-        locationService.recordLocation(workDto);
-    }
+//    @PostMapping("/helperLocation/recordStart")
+//    public void locationRecordStart(@RequestBody WorkDto workDto) throws InterruptedException{
+//        locationService.recordLocation(workDto);
+//    }
 
 }

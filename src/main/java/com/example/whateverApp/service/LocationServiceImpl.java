@@ -47,12 +47,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException {
         User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
-        user.setLatitude(location.getLatitude());
-        user.setLongitude(location.getLongitude());
-        userRepository.save(user);
-        /**
-         * 위에 있는 저장기능 나중에 지우기.
-         */
+
         //현재 위도 좌표 (y 좌표)
         double nowLatitude = location.getLatitude();
         //현재 경도 좌표 (x 좌표)
@@ -103,65 +98,10 @@ public class LocationServiceImpl implements LocationService {
                 }
             }
         }
-            Collections.sort(resultAroundUserList, (u1, u2) -> {
+        Collections.sort(resultAroundUserList, (u1, u2) -> {
                 return u1.getDistance().compareTo(u2.getDistance());
-            });
-            Page<UserDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
-
-            return page;
-        }
-
-
-    @Override
-    public Page<UserDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) {
-        User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
-        //현재 위도 좌표 (y 좌표)
-        double nowLatitude = location.getLatitude();
-        //현재 경도 좌표 (x 좌표)
-        double nowLongitude = location.getLongitude();
-
-        double EARTH_RADIUS = 6371;
-
-        //m당 y 좌표 이동 값
-        double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
-        //m당 x 좌표 이동 값
-        double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
-
-        //현재 위치 기준 검색 거리 좌표
-        double maxY = nowLatitude + (5000 * mForLatitude);
-        double minY = nowLatitude - (5000 * mForLatitude);
-        double maxX = nowLongitude + (5000 * mForLongitude);
-        double minX = nowLongitude - (5000 * mForLongitude);
-
-        //해당되는 좌표의 범위 안에 있는 유저 찾기. filter
-        List<User> list = userRepository.findAll(pageable).stream().filter(u -> {
-            return u.getLatitude().compareTo(maxY) <= 0;
-        }).filter(u -> {
-            return u.getLatitude().compareTo(minY) >= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(maxX) <= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(minX) >= 0;
-        }).toList();
-        User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
-
-        ArrayList<User> tempAroundHelperList = new ArrayList<>(list);
-
-        List<UserDto> resultAroundUserList = new ArrayList<>();
-        UserDto userDto;
-        //정확한 거리계산, And 유저 거리저장.
-
-        for (User user1 : tempAroundHelperList) {
-            double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
-            if (distance < 5000) {
-                userDto = new UserDto(user1);
-                userDto.setDistance(distance);
-                if (userDto.getId() != user.getId())
-                    resultAroundUserList.add(userDto);
-            }
-        }
+        });
         Page<UserDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
-
         return page;
     }
 
@@ -186,25 +126,30 @@ public class LocationServiceImpl implements LocationService {
     }
 
     @Override
-    public Location setHelperLocation(Location location, Long workId) {
+    public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
+        if (work.isProceeding()) {
+            return false;
+        }
+
         HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
         helperLocation.getLocationList().add(location);
+        helperLocation.setLocationList(helperLocation.getLocationList());
         helperLocationRepository.save(helperLocation);
-        return location;
+        return true;
     }
 
-    public void recordLocation(WorkDto workDto) throws InterruptedException {
-        Work work = workRepository.findById(workDto.getId()).get();
-        User helper = work.getHelper();
-        HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
-        List<Location> locationList = helperLocation.getLocationList();
-        while (locationList.size() <= 60) {
-            simpMessagingTemplate.convertAndSend("/queue/" + helper.getId(), new MessageDto("postLocation", workDto));
-            if (!workRepository.findById(workDto.getId()).get().isProceeding()) {
-                break;
-            }
-            Thread.sleep(60000);
-        }
-    }
+//    public void recordLocation(WorkDto workDto) throws InterruptedException {
+//        Work work = workRepository.findById(workDto.getId()).get();
+//        User helper = work.getHelper();
+//        int count = 0;
+//        while (count < 60) {
+//            simpMessagingTemplate.convertAndSend("/queue/" + helper.getId(), new MessageDto("postLocation", workDto));
+//            if (!workRepository.findById(workDto.getId()).get().isProceeding()) {
+//                break;
+//            }
+//            count++;
+//            Thread.sleep(60000);
+//        }
+//    }
 }

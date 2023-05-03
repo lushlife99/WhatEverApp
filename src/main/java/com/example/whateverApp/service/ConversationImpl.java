@@ -8,10 +8,7 @@ import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.ChatRepository;
-import com.example.whateverApp.repository.ConversationRepository;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.repository.WorkRepository;
+import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.ConversationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -36,6 +33,7 @@ public class ConversationImpl implements ConversationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
+    private final ConversationConnectionRepository conversationConnectionRepository;
     private final ChatRepository chatRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WorkRepository workRepository;
@@ -52,24 +50,24 @@ public class ConversationImpl implements ConversationService {
         List<Conversation> conversationList = conversationRepository.findAll().stream().filter( c->{
             return c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId());
         }).toList();
-
         simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", conversationList));
         simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", conversationList));
         return conversation;
+
     }
 
     @Transactional
     public Conversation open(User creator, User participator, Long workId){
-//        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creator.getId(), participator.getId());
-//        if(findConv.isPresent()){
-//            /**
-//             * 나중에 수정하기.
-//             * work가 이미 진행중이면 예외처리해주고
-//             * work가 만약 끝났다면 work를 새로운 work로 set해주기.
-//             */
-//
-//            //return findConv.get();
-//        }
+        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creator.getId(), participator.getId());
+        if(findConv.isPresent()){
+            /**
+             * 나중에 수정하기.
+             * work가 이미 진행중이면 예외처리해주고
+             * work가 만약 끝났다면 work를 새로운 work로 set해주기.
+             */
+            Conversation conversation = findConv.get();
+            return findConv.get();
+        }
         Conversation conversation = new Conversation();
         conversation.setCreatorId(creator.getId());
         conversation.setParticipantId(participator.getId());
@@ -87,7 +85,6 @@ public class ConversationImpl implements ConversationService {
         Chat chat = new Chat();
         chat.setMessageType("Work");
         chat.setMessage(mapper.writeValueAsString(work1));
-        System.out.println(chat.getMessage());
         User sender = userRepository.findById(work1.getCustomerId()).get();
         Conversation conversation = conversationRepository.findById(conversationId).get();
         conversation.setWorkId(work.getId());
@@ -99,11 +96,27 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
+    public List<Conversation> getConversations(HttpServletRequest request){
+        String userId = jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getName();
+        User user = userRepository.findByUserId(userId).get();
+        return conversationRepository.findAll().stream().filter(c -> user.getId().equals(c.getParticipantId())
+        || user.getId().equals(c.getCreatorId())).toList();
+    }
+
     @Override
     public Conversation sendChatting(Chat chat, String conversationId) {
 
         Conversation conversation = conversationRepository.findById(conversationId).get();
         chat.setMessageType("Chat");
+        conversation.updateChat(chat);
+        chatRepository.save(chat);
+        return conversationRepository.save(conversation);
+    }
+
+    public Conversation sendCard(Chat chat, String conversationId){
+
+        Conversation conversation = conversationRepository.findById(conversationId).get();
+        chat.setMessageType("Card");
         conversation.updateChat(chat);
         return conversationRepository.save(conversation);
     }

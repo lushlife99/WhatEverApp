@@ -109,6 +109,4 @@ public class User implements UserDetails {
      * 로컬에서 개발할때는 내 pc 디렉토리에 파일이 저장되지만
      * 후에 서비스를 확장할경우 aws와 같은 외부 스토리지에 저장해야함
      */
-
-
 }

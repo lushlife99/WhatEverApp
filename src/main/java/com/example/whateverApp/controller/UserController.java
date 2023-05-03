@@ -32,7 +32,7 @@ public class UserController {
 
     @PutMapping("/userInfo/image")
     public void imageUpdate(@RequestParam MultipartFile image, HttpServletRequest request) throws IOException {
-        User user = userService.updateProfileImage(request, image);
+        userService.updateProfileImage(request, image);
     }
 
     @GetMapping("/userInfo/image")

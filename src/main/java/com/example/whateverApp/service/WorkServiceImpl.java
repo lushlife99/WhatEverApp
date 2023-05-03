@@ -11,6 +11,8 @@ import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -25,6 +27,7 @@ public class WorkServiceImpl implements WorkService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final UserServiceImpl userService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
 
     public Work Create(WorkDto workDto, HttpServletRequest request) {
@@ -71,10 +74,16 @@ public class WorkServiceImpl implements WorkService {
 
     public Work matchingHelper(WorkDto workDto){
         Work work = workRepository.findById(workDto.getId()).get();
-        User helper = userRepository.findById(work.getHelper().getId()).get();
-        work.setHelper(helper);
-        work.setProceeding(true);
-        return work;
+        if(!work.isProceeding()) {
+            User helper = userRepository.findById(work.getHelper().getId()).get();
+            work.setHelper(helper);
+            work.setProceeding(true);
+
+            return work;
+        }
+        else{
+            return null;
+        }
     }
 
     @Override

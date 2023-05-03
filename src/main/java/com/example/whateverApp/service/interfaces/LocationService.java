@@ -12,9 +12,8 @@ import java.net.MalformedURLException;
 
 public interface LocationService {
     Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException;
-    Page<UserDto> findHelper(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException;
     UserDto setUserLocation(HttpServletRequest request, Location location);
-    Location setHelperLocation(Location location, Long workId);
+    Boolean setHelperLocation(Location location, Long workId);
     /**
      * setSellerLocation 함수.
      * deadLineTime이 1시간인 심부름은 seller의 위치를 저장함.

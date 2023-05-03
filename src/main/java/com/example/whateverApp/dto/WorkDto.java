@@ -19,6 +19,7 @@ public class WorkDto {
     private boolean proceeding; //진행중인 심부름 = true, 완료 = false
     private Long customerId;
     private Long helperId;
+    private boolean finished;
 
     public WorkDto(Work work){
         this.id = work.getId();
@@ -34,7 +35,6 @@ public class WorkDto {
             this.helperId = work.getHelper().getId();
         }
         catch (Exception e){
-            System.out.println("e = " + e.getMessage()+ "나중에 꼭 확인하세요 !! ");
         }
     }
 }

@@ -20,6 +20,8 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.List;
+
 @RequiredArgsConstructor
 @RestController
 @CrossOrigin
@@ -28,19 +30,12 @@ public class ConversationController {
     private final WorkServiceImpl workService;
     private final ConversationImpl conversationService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    @MessageMapping("/hello")
-    @SendTo("/topic/greeting")
-    public String greeting() {
-        System.out.println("ConversationController.greeting");
-        return "Hi!!!!!!!!!!!";
-    }
 
     @PostMapping("/api/conversation/{participantId}")
     public Conversation createChat(@RequestBody WorkDto workDto ,@PathVariable Long participantId, HttpServletRequest request){
-        System.out.println("ConversationController.createChat");
         return conversationService.openAndMessage(request, participantId,workDto);
     }
-
+//
 //    @MessageMapping("/work/{conversationId}")
 //    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException {
 //        System.out.println("ConversationController.sendWork");
@@ -52,4 +47,19 @@ public class ConversationController {
         simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendChatting(chat, conversationId));
     }
 
+    @MessageMapping("/work/{conversationId}")
+    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException{
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
+    }
+
+
+    @MessageMapping("/card/{conversationId")
+    public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId){
+        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId , conversationService.sendCard(chat, conversationId));
+    }
+
+    @GetMapping("/api/conversations")
+    public List<Conversation> getConversations(HttpServletRequest request){
+        return conversationService.getConversations(request);
+    }
 }
