@@ -132,7 +132,7 @@ public class LocationServiceImpl implements LocationService {
             return false;
         }
 
-        HelperLocation helperLocation = helperLocationRepository.findById(work.getConnection().getHelperLocationId()).get();
+        HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId()).get();
         helperLocation.getLocationList().add(location);
         helperLocation.setLocationList(helperLocation.getLocationList());
         helperLocationRepository.save(helperLocation);

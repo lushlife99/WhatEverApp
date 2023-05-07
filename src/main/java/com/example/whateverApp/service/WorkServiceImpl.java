@@ -3,15 +3,15 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.HelperLocation;
-import com.example.whateverApp.model.entity.LocationConnection;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
+import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.converter.SimpleMessageConverter;
+import org.apache.http.HttpException;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -21,38 +21,19 @@ import org.springframework.stereotype.Service;
 public class WorkServiceImpl implements WorkService {
 
     private final WorkRepository workRepository;
-    private final HelperLocationRepository helperLocationRepository;
-    private final LocationRepository locationRepository;
-    private final LocationConnectionRepository locationConnectionRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-    private final UserServiceImpl userService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
+
 
 
     public Work Create(WorkDto workDto, HttpServletRequest request) {
         // WorkResponseDto to Work
         Work work = new Work().updateWork(workDto);
-        LocationConnection locationConnection = new LocationConnection();
         Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
         User user = userRepository.findByUserId(authorization.getName()).get();
         work.setCustomer(user);
-        if(workDto.getDeadLineTime() == 1){
-            createConnection(work);
-        }
         return  workRepository.save(work);
     }
-
-    @Transactional
-    public LocationConnection createConnection(Work work){
-        HelperLocation sellerLocation= new HelperLocation();
-        String helperLocationId = helperLocationRepository.save(sellerLocation).get_id();
-        LocationConnection locationConnection = new LocationConnection();
-        locationConnection.setHelperLocationId(helperLocationId);
-        work.setConnection(locationConnection);
-        return locationConnectionRepository.save(locationConnection);
-    }
-
 
     @Override
     public Work update(WorkDto workDto){
@@ -72,13 +53,12 @@ public class WorkServiceImpl implements WorkService {
      * HelperLocation이 1분에 한번씩 저장되는 서비스의 중복 호출을 막기 위해서 딱 한번만 실행하는 함수이다.
      */
 
-    public Work matchingHelper(WorkDto workDto){
+    public Work matchingHelper(WorkDto workDto) {
         Work work = workRepository.findById(workDto.getId()).get();
         if(!work.isProceeding()) {
             User helper = userRepository.findById(work.getHelper().getId()).get();
             work.setHelper(helper);
             work.setProceeding(true);
-
             return work;
         }
         else{

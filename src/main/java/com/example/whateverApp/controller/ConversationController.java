@@ -62,4 +62,11 @@ public class ConversationController {
     public List<Conversation> getConversations(HttpServletRequest request){
         return conversationService.getConversations(request);
     }
+
+    @MessageMapping("/pub/conversation/{participantId}")
+    public void getConversations(@RequestBody WorkDto workDto ,@PathVariable Long participantId, HttpServletRequest request){
+        simpMessagingTemplate.convertAndSend("/queue/"+participantId, conversationService.openAndMessage(request, participantId,workDto));
+    }
+
+
 }

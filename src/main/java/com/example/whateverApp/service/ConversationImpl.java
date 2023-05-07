@@ -14,15 +14,11 @@ import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.bson.json.JsonObject;
-import org.bson.json.JsonWriter;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.util.List;
-import java.util.Objects;
 import java.util.Optional;
 
 
@@ -33,7 +29,6 @@ public class ConversationImpl implements ConversationService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
-    private final ConversationConnectionRepository conversationConnectionRepository;
     private final ChatRepository chatRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WorkRepository workRepository;

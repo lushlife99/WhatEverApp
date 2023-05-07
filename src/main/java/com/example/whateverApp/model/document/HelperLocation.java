@@ -12,7 +12,7 @@ public class HelperLocation {
 
     @Id
     private String _id;
-    private Integer connectionId;
+    private Long workId;
     private List<Location> locationList;
 
 }

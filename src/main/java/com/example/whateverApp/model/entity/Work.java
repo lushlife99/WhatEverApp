@@ -45,10 +45,6 @@ public class Work {
     @JoinColumn(name = "helper_Id")
     private User helper;
 
-    @JsonIgnore
-    @OneToOne
-    private LocationConnection connection;
-
     @CreationTimestamp
     private LocalDateTime createdTime;
 

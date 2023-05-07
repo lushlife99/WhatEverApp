@@ -17,7 +17,6 @@ public class WorkController {
 
     @PostMapping("/work")
     public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
-        System.out.println("workDto = " + workDto.getLatitude());
         return new WorkDto(workService.Create(workDto, request));
     }
 

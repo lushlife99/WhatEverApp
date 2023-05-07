@@ -9,7 +9,7 @@
         <relativePath/> <!-- lookup parent from repository -->
     </parent>
     <groupId>com.example</groupId>
-    <artifactId>ServeyApp</artifactId>
+    <artifactId>WhatEverApp</artifactId>
     <version>0.0.1-SNAPSHOT</version>
     <name>WhatEverApp</name>
     <description>WhatEverApp</description>
@@ -30,13 +30,6 @@
             <artifactId>okhttp</artifactId>
             <version>4.2.2</version>
         </dependency>
-        <!-- https://mvnrepository.com/artifact/com.google.auth/google-auth-library-oauth2-http -->
-        <dependency>
-            <groupId>com.google.auth</groupId>
-            <artifactId>google-auth-library-oauth2-http</artifactId>
-            <version>1.16.0</version>
-        </dependency>
-
 
         <dependency>
             <groupId>org.springframework.boot</groupId>
