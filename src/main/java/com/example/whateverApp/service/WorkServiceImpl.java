@@ -56,7 +56,7 @@ public class WorkServiceImpl implements WorkService {
     public Work matchingHelper(WorkDto workDto) {
         Work work = workRepository.findById(workDto.getId()).get();
         if(!work.isProceeding()) {
-            User helper = userRepository.findById(work.getHelper().getId()).get();
+            User helper = userRepository.findById(workDto.getHelperId()).get();
             work.setHelper(helper);
             work.setProceeding(true);
             return work;

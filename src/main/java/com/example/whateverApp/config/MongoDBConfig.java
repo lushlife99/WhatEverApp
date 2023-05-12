@@ -3,18 +3,20 @@ package com.example.whateverApp.config;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.data.auditing.DateTimeProvider;
+import org.springframework.data.domain.AuditorAware;
 import org.springframework.data.mongodb.MongoDatabaseFactory;
+import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.convert.DbRefResolver;
 import org.springframework.data.mongodb.core.convert.DefaultDbRefResolver;
 import org.springframework.data.mongodb.core.convert.DefaultMongoTypeMapper;
 import org.springframework.data.mongodb.core.convert.MappingMongoConverter;
 import org.springframework.data.mongodb.core.mapping.MongoMappingContext;
+import org.springframework.data.mongodb.repository.config.EnableMongoRepositories;
 
-/**
- * 220310 chan
- * Config를 하는 이유는 몽고디비에 디폴트로 _class키가 들어가기 때문에
- * 필요없는 데이터저장을 방지하기위함이다.
- */
+import java.time.OffsetDateTime;
+import java.util.Optional;
+
 @Configuration
 @RequiredArgsConstructor
 public class MongoDBConfig {
@@ -30,4 +32,6 @@ public class MongoDBConfig {
         converter.setTypeMapper(new DefaultMongoTypeMapper(null));
         return converter;
     }
+
+
 }

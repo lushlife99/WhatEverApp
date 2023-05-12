@@ -113,7 +113,7 @@ public class ConversationImpl implements ConversationService {
         Conversation conversation = conversationRepository.findById(conversationId).get();
         chat.setMessageType("Card");
         conversation.updateChat(chat);
+        chatRepository.save(chat);
         return conversationRepository.save(conversation);
     }
-
 }
