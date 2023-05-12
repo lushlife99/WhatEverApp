@@ -132,6 +132,13 @@ public class UserServiceImpl implements UserService {
         return location;
     }
 
+    public String updateNotificationToken(String notificationToken, HttpServletRequest request){
+        Authentication authentication = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
+        User user = userRepository.findByUserId(authentication.getName()).get();
+        user.setNotificationToken(notificationToken);
+        return notificationToken;
+    }
+
     @Override
     public User delete(HttpServletRequest request) {
         return null;

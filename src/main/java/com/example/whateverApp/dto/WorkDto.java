@@ -34,7 +34,7 @@ public class WorkDto {
         try {
             this.helperId = work.getHelper().getId();
         }
-        catch (Exception e){
+        catch (NullPointerException e){
         }
     }
 }

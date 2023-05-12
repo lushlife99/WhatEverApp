@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
 import org.springframework.core.io.Resource;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -47,6 +48,12 @@ public class UserController {
     @PutMapping("/userLocation")
     public Location setUserLocation(@RequestBody Location location,  HttpServletRequest request){
         return userService.setUserLocation(location, request);
+    }
+
+    @PutMapping("/fcm/{token}")
+    public ResponseEntity updateNotificationToken(@PathVariable String token, HttpServletRequest request){
+        userService.updateNotificationToken(token, request);
+        return ResponseEntity.ok().build();
     }
 
 }

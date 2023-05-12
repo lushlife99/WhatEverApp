@@ -45,9 +45,10 @@ public class User implements UserDetails {
 
     private String refreshToken;
 
-    private Double latitude =0.0;
+    private Double latitude = 0.0;
 
-    private Double longitude =0.0;
+    private Double longitude = 0.0;
+    private String notificationToken;
 
     public User updateUserInfo(UserDto user){
         this.password = user.getPassword();

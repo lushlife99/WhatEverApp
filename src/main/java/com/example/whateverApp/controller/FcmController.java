@@ -5,9 +5,7 @@ import com.example.whateverApp.dto.FCMRequestDto;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 
@@ -25,4 +23,13 @@ public class FcmController {
                 requestDTO.getBody());
         return ResponseEntity.ok().build();
     }
+
+    @PostMapping("/api/fcm/{conversationId}")
+    public ResponseEntity notifyChat(@PathVariable String conversationId) throws IOException{
+        firebaseCloudMessageService.chatNotification(conversationId);
+        return ResponseEntity.ok().build();
+    }
+
+
+
 }

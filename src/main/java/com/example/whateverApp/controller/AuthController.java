@@ -35,7 +35,6 @@ public class AuthController {
     //Token Update
     @PutMapping("/token")
     public TokenInfo IssueToken(HttpServletRequest request, HttpServletResponse response){
-        Cookie[] cookies = request.getCookies();
         return userService.issueToken(request, response);
     }
 }
