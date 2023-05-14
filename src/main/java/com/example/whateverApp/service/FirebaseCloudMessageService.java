@@ -32,6 +32,8 @@ public class FirebaseCloudMessageService {
     private final ConversationRepository conversationRepository;
 
     public void sendMessageTo(String targetToken, String title, String body) throws IOException {
+        title = "asdfas";
+        body = "asdfsdaf";
         String message = makeMessage(targetToken, title, body);
 
         OkHttpClient client = new OkHttpClient();
@@ -89,7 +91,4 @@ public class FirebaseCloudMessageService {
         googleCredentials.refreshIfExpired();
         return googleCredentials.getAccessToken().getTokenValue();
     }
-
-
-
 }

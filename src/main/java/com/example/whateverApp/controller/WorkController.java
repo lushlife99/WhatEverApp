@@ -2,11 +2,14 @@ package com.example.whateverApp.controller;
 
 
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
 
 @RequestMapping("/api")
 @RequiredArgsConstructor
@@ -34,6 +37,9 @@ public class WorkController {
         return new WorkDto(workService.get(id, request));
     }
 
-
+    @GetMapping("/workList")
+    public List<WorkDto> getWorkList(HttpServletRequest request){
+        return workService.getWorkList(request);
+    }
 
 }

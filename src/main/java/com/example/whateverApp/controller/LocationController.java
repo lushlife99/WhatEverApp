@@ -18,6 +18,7 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.MalformedURLException;
+import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
@@ -41,6 +42,11 @@ public class LocationController {
     @PostMapping("/helperLocation/{workId}")
     public Boolean updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
         return locationService.setHelperLocation(location, workId);
+    }
+
+    @GetMapping("/helperLocation/{workId}")
+    public List<Location> getHelperLocationList(@PathVariable Long workId){
+        return locationService.getHelperLocationList(workId);
     }
 
 //    @PostMapping("/helperLocation/recordStart")

@@ -133,23 +133,21 @@ public class LocationServiceImpl implements LocationService {
         }
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId()).get();
-        helperLocation.getLocationList().add(location);
-        helperLocation.setLocationList(helperLocation.getLocationList());
+
+        List<Location> locationList = helperLocation.getLocationList();
+        locationList.add(location);
+        helperLocation.setLocationList(locationList);
         helperLocationRepository.save(helperLocation);
         return true;
     }
 
-//    public void recordLocation(WorkDto workDto) throws InterruptedException {
-//        Work work = workRepository.findById(workDto.getId()).get();
-//        User helper = work.getHelper();
-//        int count = 0;
-//        while (count < 60) {
-//            simpMessagingTemplate.convertAndSend("/queue/" + helper.getId(), new MessageDto("postLocation", workDto));
-//            if (!workRepository.findById(workDto.getId()).get().isProceeding()) {
-//                break;
-//            }
-//            count++;
-//            Thread.sleep(60000);
-//        }
-//    }
+    public List<Location> getHelperLocationList(Long workId){
+        Work work = workRepository.findById(workId).get();
+        if(!work.isProceeding() && work.getDeadLineTime() != 1)
+            return null;
+
+        HelperLocation helperLocation = helperLocationRepository.findByWorkId(workId).get();
+        return helperLocation.getLocationList();
+    }
+
 }

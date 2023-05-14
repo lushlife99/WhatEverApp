@@ -16,6 +16,9 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class WorkServiceImpl implements WorkService {
@@ -23,7 +26,7 @@ public class WorkServiceImpl implements WorkService {
     private final WorkRepository workRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
-
+    private final HelperLocationRepository helperLocationRepository;
 
 
     public Work Create(WorkDto workDto, HttpServletRequest request) {
@@ -59,11 +62,27 @@ public class WorkServiceImpl implements WorkService {
             User helper = userRepository.findById(workDto.getHelperId()).get();
             work.setHelper(helper);
             work.setProceeding(true);
-            return work;
+            if(work.getDeadLineTime() == 1){
+                HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
+                helperLocationRepository.save(helperLocation);
+            }
+            return workRepository.save(work);
         }
         else{
             return null;
         }
+    }
+
+    public List<WorkDto> getWorkList(HttpServletRequest request){
+        Authentication authentication = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
+        User user = userRepository.findByUserId(authentication.getName()).get();
+        List<Work> workList = workRepository.findByCustomerId(user.getId());
+        List<WorkDto> workDtos = new ArrayList<>();
+        for (Work work : workList) {
+            if(!work.isProceeding() && !work.isFinished())
+            workDtos.add(new WorkDto(work));
+        }
+        return workDtos;
     }
 
     @Override

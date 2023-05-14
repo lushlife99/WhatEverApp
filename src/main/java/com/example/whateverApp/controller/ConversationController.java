@@ -53,7 +53,7 @@ public class ConversationController {
     }
 
 
-    @MessageMapping("/card/{conversationId")
+    @MessageMapping("/card/{conversationId}")
     public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId){
         simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId , conversationService.sendCard(chat, conversationId));
     }
