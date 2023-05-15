@@ -99,6 +99,12 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
+    public Optional<User> getUser(HttpServletRequest request){
+        String accessToken = resolveToken(request);
+        Authentication authentication = getAuthentication(accessToken);
+        return userRepository.findByUserId(authentication.getName());
+    }
+
     // Request Cookie 에서 토큰 정보 추출
     public String resolveToken(HttpServletRequest request) {
         String bearerToken = request.getHeader("Authorization");

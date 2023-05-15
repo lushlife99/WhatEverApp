@@ -3,6 +3,8 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.Enum.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
@@ -46,7 +48,8 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException {
-        User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7)).getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         //현재 위도 좌표 (y 좌표)
         double nowLatitude = location.getLatitude();
@@ -118,8 +121,9 @@ public class LocationServiceImpl implements LocationService {
 
     @Override
     public UserDto setUserLocation(HttpServletRequest request, Location location) {
-        Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User user = userRepository.findByUserId(authorization.getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         user.setLatitude(location.getLatitude());
         user.setLongitude(location.getLongitude());
         return new UserDto(userRepository.save(user));
@@ -128,11 +132,11 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
-        if (work.isProceeding()) {
+        if (work.isProceeding())
             return false;
-        }
 
-        HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId()).get();
+        HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.HELPERLOCATION_NOT_FOUND));
 
         List<Location> locationList = helperLocation.getLocationList();
         locationList.add(location);
@@ -142,11 +146,15 @@ public class LocationServiceImpl implements LocationService {
     }
 
     public List<Location> getHelperLocationList(Long workId){
-        Work work = workRepository.findById(workId).get();
-        if(!work.isProceeding() && work.getDeadLineTime() != 1)
-            return null;
+        Work work = workRepository.findById(workId)
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        HelperLocation helperLocation = helperLocationRepository.findByWorkId(workId).get();
+        if(!work.isProceeding() && work.getDeadLineTime() != 1)
+            throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
+
+        HelperLocation helperLocation = helperLocationRepository.findByWorkId(workId)
+                .orElseThrow(() -> new CustomException(ErrorCode.HELPERLOCATION_NOT_FOUND));
+
         return helperLocation.getLocationList();
     }
 

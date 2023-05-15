@@ -1,6 +1,8 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.Enum.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.entity.User;
@@ -18,6 +20,7 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -32,22 +35,22 @@ public class WorkServiceImpl implements WorkService {
     public Work Create(WorkDto workDto, HttpServletRequest request) {
         // WorkResponseDto to Work
         Work work = new Work().updateWork(workDto);
-        Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User user = userRepository.findByUserId(authorization.getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         work.setCustomer(user);
         return  workRepository.save(work);
     }
 
     @Override
     public Work update(WorkDto workDto){
-        Work work = workRepository.findById(workDto.getId()).get();
+        Work work = workRepository.findById(workDto.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.updateWork(workDto);
-
         return workRepository.save(work);
     }
 
     /**
-     * 23/04/02 chan
      *
      * matchingHelper과 update함수를 구분해 놓은 이유는
      * update는 매번 호출 할 수 있는 함수지만
@@ -57,25 +60,27 @@ public class WorkServiceImpl implements WorkService {
      */
 
     public Work matchingHelper(WorkDto workDto) {
-        Work work = workRepository.findById(workDto.getId()).get();
-        if(!work.isProceeding()) {
-            User helper = userRepository.findById(workDto.getHelperId()).get();
-            work.setHelper(helper);
-            work.setProceeding(true);
-            if(work.getDeadLineTime() == 1){
-                HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
-                helperLocationRepository.save(helperLocation);
-            }
-            return workRepository.save(work);
+        Work work = workRepository.findById(workDto.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        if(!work.isProceeding())
+            throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
+
+        User helper = userRepository.findById(workDto.getHelperId()).get();
+        work.setHelper(helper);
+        work.setProceeding(true);
+
+        if(work.getDeadLineTime() == 1){
+            HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
+            helperLocationRepository.save(helperLocation);
         }
-        else{
-            return null;
-        }
+        return workRepository.save(work);
     }
 
     public List<WorkDto> getWorkList(HttpServletRequest request){
-        Authentication authentication = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User user = userRepository.findByUserId(authentication.getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         List<Work> workList = workRepository.findByCustomerId(user.getId());
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
@@ -92,7 +97,8 @@ public class WorkServiceImpl implements WorkService {
 
     @Override
     public Work get(Long id, HttpServletRequest request) {
-        return workRepository.findById(id).get();
+        return workRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
     }
 
     @Override

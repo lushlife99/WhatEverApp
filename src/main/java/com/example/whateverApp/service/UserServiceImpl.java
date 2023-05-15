@@ -2,6 +2,8 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.Enum.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
@@ -43,20 +45,19 @@ public class UserServiceImpl implements UserService {
     public TokenInfo login(User user, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
 
-        // 2. 실제 검증 (사용자 비밀번호 체크)이 이루어지는 부분
-        // authenticate 매서드가 실행될 때 CustomUserDetailsService 에서 만든 loadUserByUsername 메서드가 실행
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
-
-        // 3. 인증 정보를 기반으로 JWT 토큰 생성
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
-        tokenInfo.setId(userRepository.findByUserId(user.getUserId()).get().getId());
+        User findUser = userRepository.findByUserId(user.getUserId())
+                .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        tokenInfo.setId(findUser.getId());
         return tokenInfo;
     }
 
     public User join(User user) {
-        if (userRepository.findByUserId(user.getUserId()).isPresent()) {
-            return null;
-        }
+        if (userRepository.findByUserId(user.getUserId()).isPresent())
+            throw new CustomException(ErrorCode.DUPLICATE_USER);
+
         user.setRoles(Collections.singletonList("ROLE_USER"));
         user.setImageFileName(UUID.randomUUID());
         return userRepository.save(user);
@@ -64,12 +65,14 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException{
-        Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User findUser = userRepository.findByUserId(authorization.getName()).get();
+        User findUser = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        UserDto userDto = new UserDto(findUser);
+        // 사진파일 보내기.
         Base64.Encoder encoder = Base64.getEncoder();
         byte[] photoEncode;
         File file = new File(fileDir + findUser.getImageFileName());
-        UserDto userDto = new UserDto(findUser);
         if (file.exists()) {
             photoEncode = encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
             userDto.setImage(new String(photoEncode, "UTF8"));
@@ -78,34 +81,34 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
+    @Transactional(rollbackFor = Exception.class)
     public UserDto update(UserDto userDto, HttpServletRequest request) {
-        Authentication authorization = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User findUser = userRepository.findByUserId(authorization.getName()).get();
+        User findUser = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         findUser.updateUserInfo(userDto);
         userRepository.save(findUser);
         return new UserDto(findUser);
     }
 
-    @Transactional
-    public User updateProfileImage(HttpServletRequest request, MultipartFile file) throws IOException {
-        String accessToken = request.getHeader("Authorization").substring(7);
-        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-        String userId = authentication.getName();
-        Optional<User> userOptional = userRepository.findByUserId(userId);
-        User user = userOptional.get();
+    @Transactional(rollbackFor = Exception.class)
+    public User updateProfileImage(HttpServletRequest request, MultipartFile file) throws IOException {;
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         file.transferTo(new File(fileDir + user.getImageFileName()));
-        System.out.println(fileDir + user.getImageFileName());
+
         return user;
     }
 
-    public Resource getUserImage(HttpServletRequest request) throws MalformedURLException {
-        String accessToken = request.getHeader("Authorization").substring(7);
-        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-        String userId = authentication.getName();
-        Optional<User> userOptional = userRepository.findByUserId(userId);
-        User user = userOptional.get();
-        return new UrlResource(fileDir + user.getImageFileName());
-    }
+//    public Resource getUserImage(HttpServletRequest request) throws MalformedURLException {
+//        String accessToken = request.getHeader("Authorization").substring(7);
+//        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
+//        String userId = authentication.getName();
+//        Optional<User> userOptional = userRepository.findByUserId(userId);
+//        User user = userOptional.get();
+//        return new UrlResource(fileDir + user.getImageFileName());
+//    }
 
     /**
      * 이거 될 진 모르겠음. 일단 해보자.
@@ -124,8 +127,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public Location setUserLocation(Location location, HttpServletRequest request){
-        Authentication authentication = jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request));
-        User user = userRepository.findByUserId(authentication.getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         user.setLatitude(location.getLatitude());
         user.setLongitude(location.getLongitude());
         userRepository.save(user);
@@ -133,8 +137,9 @@ public class UserServiceImpl implements UserService {
     }
 
     public String updateNotificationToken(String notificationToken, HttpServletRequest request){
-        Authentication authentication = jwtTokenProvider.getAuthentication(request.getHeader("Authorization").substring(7));
-        User user = userRepository.findByUserId(authentication.getName()).get();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         user.setNotificationToken(notificationToken);
         return notificationToken;
     }

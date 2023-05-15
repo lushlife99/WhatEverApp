@@ -1,6 +1,8 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.FcmMessage;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.Enum.ErrorCode;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.User;
@@ -52,7 +54,8 @@ public class FirebaseCloudMessageService {
     }
 
     public void chatNotification(String conversationId) throws IOException {
-        Conversation conversation = conversationRepository.findById(conversationId).get();
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(()-> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         List<Chat> chatList = conversation.getChatList();
         Chat chat = chatList.get(chatList.size() - 1);
         String title = chat.getReceiverName();

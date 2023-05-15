@@ -23,8 +23,8 @@ public class StompHandler implements ChannelInterceptor {
         if (StompCommand.CONNECT.equals(accessor.getCommand())) {
             String token = Objects.requireNonNull(accessor.getFirstNativeHeader("Authorization")).substring(7);
             if(tokenProvider.validateToken(token)){
-                Authentication authentication = tokenProvider.getAuthentication(token);
-                accessor.setUser(authentication);
+                //Authentication authentication = tokenProvider.getAuthentication(token);
+                //accessor.setUser(authentication);
             }
         }
         return message;

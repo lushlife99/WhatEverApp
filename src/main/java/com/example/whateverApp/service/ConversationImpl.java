@@ -3,6 +3,8 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.Enum.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
@@ -35,12 +37,14 @@ public class ConversationImpl implements ConversationService {
     private final ObjectMapper mapper;
     @Override
     public Conversation openAndMessage(HttpServletRequest request, Long participatorId, WorkDto workDto) {
-        String accessToken = request.getHeader("Authorization").substring(7);
-        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-        User creator = userRepository.findByUserId(authentication.getName()).get();
-        Work work = workRepository.findById(workDto.getId()).get();
-        work.setHelper(userRepository.findById(participatorId).get());
-        User participator = userRepository.findById(participatorId).get();
+        User creator = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Work work = workRepository.findById(workDto.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        User participator = userRepository.findById(participatorId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        work.setHelper(participator);
+
         Conversation conversation = open(creator, participator, work.getId());
         List<Conversation> conversationList = conversationRepository.findAll().stream().filter( c->{
             return c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId());
@@ -76,14 +80,18 @@ public class ConversationImpl implements ConversationService {
     @Override
     @Transactional
     public Conversation sendWork(String conversationId, WorkDto work1) throws JsonProcessingException {
-        Work work = workRepository.findById(work1.getId()).get();
+        Work work = workRepository.findById(work1.getId())
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
         Chat chat = new Chat();
         chat.setMessageType("Work");
         chat.setMessage(mapper.writeValueAsString(work1));
         User sender = userRepository.findById(work1.getCustomerId()).get();
-        Conversation conversation = conversationRepository.findById(conversationId).get();
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         conversation.setWorkId(work.getId());
-        User participant = userRepository.findById(conversation.getParticipantId()).get();
+        User participant = userRepository.findById(conversation.getParticipantId())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         chat.setSenderName(sender.getName());
         chat.setReceiverName(participant.getName());
         conversation.updateChat(chat);
@@ -92,16 +100,18 @@ public class ConversationImpl implements ConversationService {
     }
 
     public List<Conversation> getConversations(HttpServletRequest request){
-        String userId = jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getName();
-        User user = userRepository.findByUserId(userId).get();
-        return conversationRepository.findAll().stream().filter(c -> user.getId().equals(c.getParticipantId())
-        || user.getId().equals(c.getCreatorId())).toList();
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        return conversationRepository.findAll().stream().
+                filter(c -> user.getId().equals(c.getParticipantId()) || user.getId().equals(c.getCreatorId())).toList();
     }
 
     @Override
     public Conversation sendChatting(Chat chat, String conversationId) {
 
-        Conversation conversation = conversationRepository.findById(conversationId).get();
+        Conversation conversation = conversationRepository.findById(conversationId).
+                orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         chat.setMessageType("Chat");
         conversation.updateChat(chat);
         chatRepository.save(chat);
@@ -110,7 +120,8 @@ public class ConversationImpl implements ConversationService {
 
     public Conversation sendCard(Chat chat, String conversationId){
 
-        Conversation conversation = conversationRepository.findById(conversationId).get();
+        Conversation conversation = conversationRepository.findById(conversationId)
+                .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         chat.setMessageType("Card");
         conversation.updateChat(chat);
         chatRepository.save(chat);
