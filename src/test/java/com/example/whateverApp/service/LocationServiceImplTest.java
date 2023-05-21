@@ -25,7 +25,7 @@ class LocationServiceImplTest {
 
     @Autowired private UserRepository userRepository;
     @MockBean private JwtTokenProvider jwtTokenProvider;
-    @Autowired private LocationServiceImpl locationService;
+    @MockBean private LocationServiceImpl locationService;
     @MockBean private LocationController locationController;
     @MockBean private MockHttpServletRequest request;
     @MockBean private UserServiceImpl userService;
@@ -50,14 +50,7 @@ class LocationServiceImplTest {
 //    }
 
     @Test
-    void findHelper() throws MalformedURLException, IOException { // 5km 안에 있는 헬퍼들을 찾아줌. Default = 거리순, 헬퍼 정렬 Option : 1, 거리 2, 별점, 3. 평균 첫 응답시간
-        User user = userRepository.findByUserId("admin").get();
-        ArrayList<String> strings = new ArrayList<>();
-        strings.add("ROLE_ADMIN");
-        user.setRoles(strings);
-        user.setLatitude(0.0);
-        user.setLongitude(0.0);
-        userRepository.save(user);
+    void findHelper() throws MalformedURLException, IOException {
 
     }
 

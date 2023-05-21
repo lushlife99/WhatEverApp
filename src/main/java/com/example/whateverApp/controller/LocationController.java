@@ -28,10 +28,8 @@ public class LocationController {
     private final LocationServiceImpl locationService;
 
     @PutMapping("/findHelper/distance")
-    public Page<UserDto> findHelperByDistance(@PageableDefault(size = 10)Pageable pageable,
-                                              @RequestBody Location location, HttpServletRequest request, HttpServletResponse response) throws MalformedURLException, IOException {
-        response.setContentType("multipart/form-data");
-        return locationService.findHelperByDistance(pageable, location, request);
+    public List<UserDto> findHelperByDistance(@RequestBody Location location, HttpServletRequest request, HttpServletResponse response) throws MalformedURLException, IOException {
+        return locationService.findHelperByDistance(location, request);
     }
 
     @PutMapping("/user")
@@ -49,9 +47,5 @@ public class LocationController {
         return locationService.getHelperLocationList(workId);
     }
 
-//    @PostMapping("/helperLocation/recordStart")
-//    public void locationRecordStart(@RequestBody WorkDto workDto) throws InterruptedException{
-//        locationService.recordLocation(workDto);
-//    }
 
 }

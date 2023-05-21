@@ -37,9 +37,20 @@ public class WorkController {
         return new WorkDto(workService.get(id, request));
     }
 
+    // 현재 끝나지 않은 심부름 리스트를 리턴
     @GetMapping("/workList")
     public List<WorkDto> getWorkList(HttpServletRequest request){
         return workService.getWorkList(request);
     }
 
+    @PutMapping("/work")
+    public WorkDto updateWork(@RequestBody WorkDto workDto){
+        return new WorkDto(workService.update(workDto));
+    }
+
+    // 모든 심부름 리스트를 리턴
+    @GetMapping("/workList/all")
+    public List<WorkDto> getWorkListAll(HttpServletRequest request){
+        return workService.getWorkListAll(request);
+    }
 }

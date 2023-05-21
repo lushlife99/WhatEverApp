@@ -1,10 +1,9 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.MessageDto;
-import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
@@ -17,7 +16,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import java.util.List;

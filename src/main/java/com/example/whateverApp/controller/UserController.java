@@ -36,11 +36,6 @@ public class UserController {
         userService.updateProfileImage(request, image);
     }
 
-//    @GetMapping("/userInfo/image")
-//    public Resource getImage(HttpServletRequest request) throws MalformedURLException {
-//        return userService.getUserImage(request);
-//    }
-
     @GetMapping("/userInfo")
     public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException {
         return userService.getUserInfo(request);

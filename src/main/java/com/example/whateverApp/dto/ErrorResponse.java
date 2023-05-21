@@ -1,6 +1,6 @@
 package com.example.whateverApp.dto;
 
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import lombok.Builder;
 import lombok.Getter;
 import org.springframework.http.ResponseEntity;

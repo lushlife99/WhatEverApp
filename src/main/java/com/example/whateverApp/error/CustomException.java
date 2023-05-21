@@ -1,6 +1,5 @@
 package com.example.whateverApp.error;
 
-import com.example.whateverApp.error.Enum.ErrorCode;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 

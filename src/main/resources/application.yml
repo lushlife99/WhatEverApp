@@ -39,3 +39,8 @@ server:
 
 
 file: C:\Users\82104\userImage\
+
+fcm:
+  key:
+    path: gjgs-fcm.json
+    scope: https://www.googleapis.com/auth/cloud-platform

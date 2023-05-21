@@ -2,25 +2,20 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
-import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
-import org.apache.http.HttpException;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -63,7 +58,7 @@ public class WorkServiceImpl implements WorkService {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        if(!work.isProceeding())
+        if(work.isProceeding())
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
         User helper = userRepository.findById(workDto.getHelperId()).get();
@@ -81,10 +76,23 @@ public class WorkServiceImpl implements WorkService {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        List<Work> workList = workRepository.findByCustomerId(user.getId());
+        List<Work> workList = workRepository.findByCustomer(user);
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
             if(!work.isProceeding() && !work.isFinished())
+            workDtos.add(new WorkDto(work));
+        }
+        return workDtos;
+    }
+
+    public List<WorkDto> getWorkListAll(HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        List<Work> workList = workRepository.findByCustomer(user);
+        workList.addAll(workRepository.findByHelper(user));
+        List<WorkDto> workDtos = new ArrayList<>();
+        for (Work work : workList) {
             workDtos.add(new WorkDto(work));
         }
         return workDtos;

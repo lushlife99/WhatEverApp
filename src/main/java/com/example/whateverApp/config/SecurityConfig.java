@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .and()
                 .authorizeHttpRequests()
                 .requestMatchers("/api/**").hasRole("USER")
+                .requestMatchers("/api/**").hasRole("ADMIN")
+                .requestMatchers("/admin/**").hasRole("ADMIN")
                 .anyRequest().permitAll()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
@@ -48,6 +50,7 @@ public class SecurityConfig {
     public PasswordEncoder passwordEncoder() {
         return PasswordEncoderFactories.createDelegatingPasswordEncoder();
     }
+
     @Bean
     public AuthenticationManager authenticationManager(
             AuthenticationConfiguration authenticationConfiguration

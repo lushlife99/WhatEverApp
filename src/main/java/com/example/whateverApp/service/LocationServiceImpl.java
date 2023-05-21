@@ -1,10 +1,8 @@
 package com.example.whateverApp.service;
 
-import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.UserDto;
-import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
@@ -17,17 +15,14 @@ import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
-import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.util.*;
@@ -47,7 +42,7 @@ public class LocationServiceImpl implements LocationService {
     private String fileDir;
 
     @Override
-    public Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException {
+    public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws MalformedURLException, IOException {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -104,8 +99,7 @@ public class LocationServiceImpl implements LocationService {
         Collections.sort(resultAroundUserList, (u1, u2) -> {
                 return u1.getDistance().compareTo(u2.getDistance());
         });
-        Page<UserDto> page = new PageImpl<>(resultAroundUserList, pageable, resultAroundUserList.size());
-        return page;
+        return resultAroundUserList;
     }
 
 
@@ -132,7 +126,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
-        if (work.isProceeding())
+        if (work.isFinished())
             return false;
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId())

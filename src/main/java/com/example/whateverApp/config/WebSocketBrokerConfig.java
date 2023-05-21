@@ -1,6 +1,5 @@
 package com.example.whateverApp.config;
 
-import com.example.whateverApp.handler.ChatPreHandler;
 import com.example.whateverApp.handler.StompHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
@@ -15,7 +14,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 @RequiredArgsConstructor
 public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
-    //private final StompHandler stompHandler;
+//    private final StompHandler stompHandler;
 
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {

@@ -1,6 +1,6 @@
 package com.example.whateverApp.handler;
 
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.dto.ErrorResponse;
 import com.example.whateverApp.error.CustomException;
 import lombok.extern.slf4j.Slf4j;

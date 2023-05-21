@@ -9,9 +9,10 @@ import org.springframework.data.domain.Pageable;
 
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.List;
 
 public interface LocationService {
-    Page<UserDto> findHelperByDistance(Pageable pageable, Location location, HttpServletRequest request) throws MalformedURLException, IOException;
+    List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws MalformedURLException, IOException;
     UserDto setUserLocation(HttpServletRequest request, Location location);
     Boolean setHelperLocation(Location location, Long workId);
     /**

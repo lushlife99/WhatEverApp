@@ -3,7 +3,7 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.Enum.ErrorCode;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
@@ -14,7 +14,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.core.io.Resource;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -37,7 +36,6 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
-    private final PasswordEncoder passwordEncoder;
 
     @Value("${file:}")
     private String fileDir;
@@ -97,24 +95,8 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         file.transferTo(new File(fileDir + user.getImageFileName()));
-
         return user;
     }
-
-//    public Resource getUserImage(HttpServletRequest request) throws MalformedURLException {
-//        String accessToken = request.getHeader("Authorization").substring(7);
-//        Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
-//        String userId = authentication.getName();
-//        Optional<User> userOptional = userRepository.findByUserId(userId);
-//        User user = userOptional.get();
-//        return new UrlResource(fileDir + user.getImageFileName());
-//    }
-
-    /**
-     * 이거 될 진 모르겠음. 일단 해보자.
-     * 위에 있는 getUserImage 먼저 해보고 잘 되면 아래꺼 해보자.
-     */
-
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
         Cookie[] cookies = request.getCookies();
         String refreshToken = "";
@@ -141,6 +123,7 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         user.setNotificationToken(notificationToken);
+        userRepository.save(user);
         return notificationToken;
     }
 
