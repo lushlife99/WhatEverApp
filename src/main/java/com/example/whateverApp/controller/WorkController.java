@@ -5,6 +5,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.example.whateverApp.service.interfaces.WorkService;
+import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
@@ -53,4 +54,21 @@ public class WorkController {
     public List<WorkDto> getWorkListAll(HttpServletRequest request){
         return workService.getWorkListAll(request);
     }
+
+    @GetMapping("/workList/nearBy")
+    public List<WorkDto> getWorkListByDistance(HttpServletRequest request) {
+        return workService.getWorkListByDistance(request);
+    }
+
+    @DeleteMapping("/work/{workId}")
+    public List<WorkDto> deleteWork(@PathVariable Long workId, HttpServletRequest request){
+        return workService.delete(workId, request);
+    }
+
+    @PutMapping("/work/finish/{workId}")
+    public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) {
+        return new WorkDto(workService.letFinish(workId, request));
+    }
+
+
 }

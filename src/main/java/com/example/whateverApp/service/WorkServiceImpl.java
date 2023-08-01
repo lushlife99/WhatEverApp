@@ -1,5 +1,6 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -9,13 +10,17 @@ import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
+import com.google.api.client.http.HttpStatusCodes;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.core.io.UrlResource;
+import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
+import java.io.File;
+import java.time.LocalDateTime;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -25,7 +30,7 @@ public class WorkServiceImpl implements WorkService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final HelperLocationRepository helperLocationRepository;
-
+    private static final double EARTH_RADIUS = 6371;
 
     public Work Create(WorkDto workDto, HttpServletRequest request) {
         // WorkResponseDto to Work
@@ -61,6 +66,9 @@ public class WorkServiceImpl implements WorkService {
         if(work.isProceeding())
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
+        if(work.isFinished())
+            throw new CustomException(ErrorCode.ALREADY_FINISHED_WORK);
+
         User helper = userRepository.findById(workDto.getHelperId()).get();
         work.setHelper(helper);
         work.setProceeding(true);
@@ -72,6 +80,7 @@ public class WorkServiceImpl implements WorkService {
         return workRepository.save(work);
     }
 
+    @Transactional
     public List<WorkDto> getWorkList(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -99,8 +108,19 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public Work delete(Long workId) {
-        return null;
+    @Transactional
+    public List<WorkDto> delete(Long workId, HttpServletRequest request) {
+        User user = jwtTokenProvider.getUser(request)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Work work = workRepository.findById(workId)
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        if(work.getCustomer().getId().equals(user.getId()))
+            workRepository.deleteById(workId);
+
+        else throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        return getWorkList(request);
     }
 
     @Override
@@ -110,7 +130,52 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public Work success(WorkDto workDto) {
-        return null;
+    public Work letFinish(Long workId, HttpServletRequest request) {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        if(user.getId().equals(work.getCustomer().getId())){
+            work.setFinished(true);
+            return workRepository.save(work);
+        }
+
+        else throw new CustomException(ErrorCode.BAD_REQUEST);
+    }
+
+
+    public List<WorkDto> getWorkListByDistance(HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        double nowLatitude = user.getLatitude();
+        double nowLongitude = user.getLongitude();
+        double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
+        double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
+
+        double maxY = nowLatitude + (5000 * mForLatitude);
+        double minY = nowLatitude - (5000 * mForLatitude);
+        double maxX = nowLongitude + (5000 * mForLongitude);
+        double minX = nowLongitude - (5000 * mForLongitude);
+
+        List<Work> nearByWorkList = workRepository.findAll().stream()
+                .filter(u -> u.getLatitude().compareTo(maxY) <= 0)
+                .filter(u -> u.getLatitude().compareTo(minY) >= 0)
+                .filter(u -> u.getLongitude().compareTo(maxX) <= 0)
+                .filter(u -> u.getLongitude().compareTo(minX) >= 0).toList();
+        List<WorkDto> resultAroundWorkList = new ArrayList<>();
+        WorkDto workDto;
+
+        for (Work work : nearByWorkList) {
+            if(work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
+                double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
+                if (distance < 5000) {
+                    workDto = new WorkDto(work);
+                    if (user.getId() != workDto.getCustomerId()) {
+                        resultAroundWorkList.add(workDto);
+                    }
+                }
+            }
+        }
+
+        return resultAroundWorkList;
     }
 }

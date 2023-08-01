@@ -16,9 +16,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.PageImpl;
-import org.springframework.data.domain.Pageable;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 
@@ -37,12 +34,12 @@ public class LocationServiceImpl implements LocationService {
     private final WorkRepository workRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
-
+    private static final double EARTH_RADIUS = 6371;
     @Value("${file:dir}")
     private String fileDir;
 
     @Override
-    public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws MalformedURLException, IOException {
+    public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
@@ -51,7 +48,6 @@ public class LocationServiceImpl implements LocationService {
         //현재 경도 좌표 (x 좌표)
         double nowLongitude = location.getLongitude();
 
-        double EARTH_RADIUS = 6371;
 
         //m당 y 좌표 이동 값
         double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
@@ -66,19 +62,15 @@ public class LocationServiceImpl implements LocationService {
 
         //해당되는 좌표의 범위 안에 있는 유저 찾기. filter
 
-        List<User> tempAroundHelperList = userRepository.findAll().stream().filter(u -> {
-            return u.getLatitude().compareTo(maxY) <= 0;
-        }).filter(u -> {
-            return u.getLatitude().compareTo(minY) >= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(maxX) <= 0;
-        }).filter(u -> {
-            return u.getLongitude().compareTo(minX) >= 0;
-        }).toList();
+        List<User> tempAroundHelperList = userRepository.findAll().stream()
+                .filter(u -> u.getLatitude().compareTo(maxY) <= 0)
+                .filter(u -> u.getLatitude().compareTo(minY) >= 0)
+                .filter(u -> u.getLongitude().compareTo(maxX) <= 0)
+                .filter(u -> u.getLongitude().compareTo(minX) >= 0).toList();
 
         List<UserDto> resultAroundUserList = new ArrayList<>();
         UserDto userDto;
-        //정확한 거리계산, And 유저 거리저장.
+
         for (User user1 : tempAroundHelperList) {
             double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
             byte[] photoEncode;
@@ -96,9 +88,7 @@ public class LocationServiceImpl implements LocationService {
                 }
             }
         }
-        Collections.sort(resultAroundUserList, (u1, u2) -> {
-                return u1.getDistance().compareTo(u2.getDistance());
-        });
+        Collections.sort(resultAroundUserList, Comparator.comparing(UserDto::getDistance));
         return resultAroundUserList;
     }
 

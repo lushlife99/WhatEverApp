@@ -1,6 +1,8 @@
 package com.example.whateverApp.jwt;
 
 import com.example.whateverApp.dto.TokenInfo;
+import com.example.whateverApp.error.CustomException;
+import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
 import io.jsonwebtoken.*;
@@ -11,6 +13,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseCookie;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -120,28 +123,28 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("Invalid JWT Token", e);
+            throw new CustomException(ErrorCode.INVALID_AUTH_TOKEN);
         } catch (ExpiredJwtException e) {
-            log.info("Expired JWT Token", e);
+            throw new CustomException(ErrorCode.TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
-            log.info("Unsupported JWT Token", e);
+            throw new CustomException(ErrorCode.UNSUPPORTED_JWT);
         } catch (IllegalArgumentException e) {
-            log.info("JWT claims string is empty.", e);
+            throw new CustomException(ErrorCode.JWT_CLAIM_EMPTY);
         }
-        return false;
+
     }
 
 
     //여기 문법 좀 많이 고쳐야됨. 어려움 ㅠㅠ
     @Transactional
     public TokenInfo reissueToken(String refreshToken, HttpServletResponse response) throws RuntimeException{
-        User user=null;
+        User user = null;
         String findRefreshToken;
         //만약 값이 있으면 ? user의 refreshToken과 쿠키의 refreshToken을 비교.
-        Optional<User> finduser = userRepository.findByRefreshToken(refreshToken);
+        Optional<User> findUser = userRepository.findByRefreshToken(refreshToken);
 
-        if(finduser.isPresent()){
-            user = finduser.get();
+        if(findUser.isPresent()){
+            user = findUser.get();
             findRefreshToken = user.getRefreshToken();
         }
         else{

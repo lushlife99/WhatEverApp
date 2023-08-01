@@ -1,6 +1,7 @@
 package com.example.whateverApp.model.entity;
 
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.model.document.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
@@ -30,8 +31,11 @@ public class Work {
      * 기록된 위치정보는 신고서비스에 쓰임.
      */
     private Integer reward;
-    private Double latitude;
-    private Double longitude;
+    private Double latitude = 0.1; //심부름 하는 Location
+    private Double longitude = 0.1;
+    private Double receiveLatitude = 0.0; //심부름 받는 Location
+    private Double receiveLongitude = 0.0;
+
     @ColumnDefault("true")
     private boolean proceeding; //진행중인 심부름 = true, 완료 = false
     @ColumnDefault("true")
@@ -54,8 +58,23 @@ public class Work {
             this.title = workDto.getTitle();
             this.context = workDto.getContext();
             this.deadLineTime = workDto.getDeadLineTime();
-            this.latitude = workDto.getLatitude();
-            this.longitude = workDto.getLongitude();
+            if(workDto.getLatitude().isNaN()){
+                this.latitude = 0.0;
+                this.longitude = 0.0;
+            }
+            else{
+                this.latitude = workDto.getLatitude();
+                this.longitude = workDto.getLongitude();
+            }
+            if(workDto.getReceiveLatitude().isNaN()){
+                this.receiveLatitude = 0.0;
+                this.receiveLongitude = 0.0;
+            }
+            else{
+                this.receiveLatitude = workDto.getReceiveLatitude();
+                this.receiveLongitude = workDto.getReceiveLongitude();
+            }
+
             this.proceeding = workDto.isProceeding();
         }catch (NullPointerException e){
 

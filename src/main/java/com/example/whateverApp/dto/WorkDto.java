@@ -16,6 +16,8 @@ public class WorkDto {
     private Integer reward;
     private Double latitude;
     private Double longitude;
+    private Double receiveLatitude;
+    private Double receiveLongitude;
     private boolean proceeding; //진행중인 심부름 = true, 완료 = false
     private Long customerId;
     private Long helperId;
@@ -29,8 +31,11 @@ public class WorkDto {
         this.reward = work.getReward();
         this.latitude = work.getLatitude();
         this.longitude = work.getLongitude();
+        this.receiveLatitude = work.getReceiveLatitude();
+        this.receiveLongitude = work.getReceiveLongitude();
         this.proceeding = work.isProceeding();
         this.customerId = work.getCustomer().getId();
+        this.finished = work.isFinished();
         try {
             this.helperId = work.getHelper().getId();
         }

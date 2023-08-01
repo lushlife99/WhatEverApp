@@ -52,13 +52,13 @@ public class UserServiceImpl implements UserService {
         return tokenInfo;
     }
 
-    public User join(User user) {
+    public UserDto join(User user) {
         if (userRepository.findByUserId(user.getUserId()).isPresent())
             throw new CustomException(ErrorCode.DUPLICATE_USER);
 
         user.setRoles(Collections.singletonList("ROLE_USER"));
         user.setImageFileName(UUID.randomUUID());
-        return userRepository.save(user);
+        return new UserDto(userRepository.save(user));
     }
 
     @Override

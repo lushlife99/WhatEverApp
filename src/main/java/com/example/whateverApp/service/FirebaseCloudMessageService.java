@@ -24,7 +24,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class FirebaseCloudMessageService {
 
-    private final String API_URL = "https://fcm.googleapis.com/v1/projects/fir-c2b7d/messages:send";
+    private final String API_URL = "https://fcm.googleapis.com/v1/projects/real-d0a66/messages:send";
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;

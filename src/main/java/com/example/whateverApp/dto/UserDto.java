@@ -2,6 +2,7 @@ package com.example.whateverApp.dto;
 
 import com.example.whateverApp.model.entity.User;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import org.springframework.core.io.Resource;
@@ -12,6 +13,7 @@ import java.awt.*;
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
+@Builder
 public class UserDto {
 
     private Long id;

@@ -8,6 +8,7 @@ import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
 import org.springframework.data.mongodb.core.mapping.Document;
+import org.springframework.format.annotation.DateTimeFormat;
 
 import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
@@ -28,6 +29,7 @@ public class Conversation {
     private Long workId;
     private List<Chat> chatList = new ArrayList<>();
 
+    @DateTimeFormat(pattern = "yy-MM-dd HH:mm")
     private LocalDateTime updatedAt;
 
     public List<Chat> updateChat(Chat chat){

@@ -2,7 +2,9 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.repository.UserRepository;
+import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.Test;
+import org.mockito.Mock;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -14,14 +16,16 @@ class UserServiceImplTest {
 
 
     @MockBean
-    UserRepository userRepository;
+    private UserRepository userRepository;
 
-    AuthenticationManager authenticationManagerBuilder;
-    JwtTokenProvider jwtTokenProvider;
+    @MockBean
+    private AuthenticationManager authenticationManagerBuilder;
+    @MockBean
+    private JwtTokenProvider jwtTokenProvider;
 
 
     @Test
-    void loginTest() {
-
+    public void loginTest() {
+        System.out.println("m");
     }
 }

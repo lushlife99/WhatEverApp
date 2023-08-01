@@ -10,18 +10,24 @@ public enum ErrorCode {
     /* 400 BAD_REQUEST : 잘못된 요청 */
     INVALID_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "리프레시 토큰이 유효하지 않습니다"),
     MISMATCH_REFRESH_TOKEN(HttpStatus.BAD_REQUEST, "리프레시 토큰의 유저 정보가 일치하지 않습니다"),
-    CANNOT_FOLLOW_MYSELF(HttpStatus.BAD_REQUEST, "자기 자신은 팔로우 할 수 없습니다"),
     ALREADY_PROCEED_WORK(HttpStatus.BAD_REQUEST, "이미 접수됐거나 완료된 심부름입니다"),
     ALREADY_EXECUTED_REPORT(HttpStatus.BAD_REQUEST, "이미 처리된 신고입니다"),
+    ALREADY_FINISHED_WORK(HttpStatus.BAD_REQUEST, "이미 종료된 심부름입니다"),
+    LACK_REWORD(HttpStatus.BAD_REQUEST, "리워드가 충분하지 않습니다"),
+    BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 접근입니다"),
+
 
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "권한 정보가 없는 토큰입니다"),
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자가 아닙니다"),
+    UNSUPPORTED_JWT(HttpStatus.UNAUTHORIZED, "지원하지 않는 토큰 형식입니다"),
+
 
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
-    TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "만료된 토큰입니다."),
+    TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "만료된 토큰입니다"),
+    JWT_CLAIM_EMPTY(HttpStatus.BAD_REQUEST, "Jwt empty"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),
@@ -33,7 +39,7 @@ public enum ErrorCode {
 
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다"),
-    DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다."),
+    DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
     ;
 
     private final HttpStatus httpStatus;

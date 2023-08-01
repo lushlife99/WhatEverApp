@@ -2,6 +2,7 @@ package com.example.whateverApp.controller;
 
 
 import com.example.whateverApp.dto.TokenInfo;
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
 import jakarta.servlet.http.Cookie;
@@ -22,7 +23,7 @@ public class AuthController {
 
     // 회원가입 API
     @PostMapping("/join")
-    public User join(@Validated @RequestBody User user) {
+    public UserDto join(@Validated @RequestBody User user) {
         return userService.join(user);
     }
 
