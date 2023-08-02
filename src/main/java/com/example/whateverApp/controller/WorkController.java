@@ -8,6 +8,7 @@ import com.example.whateverApp.service.interfaces.WorkService;
 import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -18,6 +19,7 @@ import java.util.List;
 public class WorkController {
 
     private final WorkServiceImpl workService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping("/work")
     public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
@@ -69,6 +71,5 @@ public class WorkController {
     public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) {
         return new WorkDto(workService.letFinish(workId, request));
     }
-
 
 }

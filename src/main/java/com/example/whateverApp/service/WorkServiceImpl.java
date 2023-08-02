@@ -1,11 +1,14 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
+import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
@@ -14,6 +17,8 @@ import com.google.api.client.http.HttpStatusCodes;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.core.io.UrlResource;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.parameters.P;
 import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -30,6 +35,9 @@ public class WorkServiceImpl implements WorkService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final HelperLocationRepository helperLocationRepository;
+    private final AlarmService alarmService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ConversationRepository conversationRepository;
     private static final double EARTH_RADIUS = 6371;
 
     public Work Create(WorkDto workDto, HttpServletRequest request) {
@@ -39,6 +47,8 @@ public class WorkServiceImpl implements WorkService {
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         work.setCustomer(user);
+        Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
+        //alarmService.sendNearByHelper(location);
         return  workRepository.save(work);
     }
 
@@ -47,6 +57,9 @@ public class WorkServiceImpl implements WorkService {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.updateWork(workDto);
+
+        Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
+        //alarmService.sendNearByHelper(location);
         return workRepository.save(work);
     }
 
@@ -77,6 +90,7 @@ public class WorkServiceImpl implements WorkService {
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
         }
+        Conversation conversation = conversationRepository.findByWorkId(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         return workRepository.save(work);
     }
 
@@ -178,4 +192,5 @@ public class WorkServiceImpl implements WorkService {
 
         return resultAroundWorkList;
     }
+
 }

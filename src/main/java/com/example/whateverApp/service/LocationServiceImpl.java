@@ -14,6 +14,7 @@ import com.example.whateverApp.repository.WorkRepository;
 import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.aspectj.apache.bcel.Repository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -34,7 +35,7 @@ public class LocationServiceImpl implements LocationService {
     private final WorkRepository workRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private static final double EARTH_RADIUS = 6371;
+    static final double EARTH_RADIUS = 6371;
     @Value("${file:dir}")
     private String fileDir;
 
@@ -43,36 +44,14 @@ public class LocationServiceImpl implements LocationService {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        //현재 위도 좌표 (y 좌표)
-        double nowLatitude = location.getLatitude();
-        //현재 경도 좌표 (x 좌표)
-        double nowLongitude = location.getLongitude();
+        List<User> tempAroundHelperList = getAroundHelperList(location);
 
-
-        //m당 y 좌표 이동 값
-        double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
-        //m당 x 좌표 이동 값
-        double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
-
-        //현재 위치 기준 검색 거리 좌표
-        double maxY = nowLatitude + (5000 * mForLatitude);
-        double minY = nowLatitude - (5000 * mForLatitude);
-        double maxX = nowLongitude + (5000 * mForLongitude);
-        double minX = nowLongitude - (5000 * mForLongitude);
-
-        //해당되는 좌표의 범위 안에 있는 유저 찾기. filter
-
-        List<User> tempAroundHelperList = userRepository.findAll().stream()
-                .filter(u -> u.getLatitude().compareTo(maxY) <= 0)
-                .filter(u -> u.getLatitude().compareTo(minY) >= 0)
-                .filter(u -> u.getLongitude().compareTo(maxX) <= 0)
-                .filter(u -> u.getLongitude().compareTo(minX) >= 0).toList();
 
         List<UserDto> resultAroundUserList = new ArrayList<>();
         UserDto userDto;
 
         for (User user1 : tempAroundHelperList) {
-            double distance = getDistance(nowLatitude, nowLongitude, user1.getLatitude(), user1.getLongitude());
+            double distance = getDistance(location.getLatitude(), location.getLongitude(), user1.getLatitude(), user1.getLongitude());
             byte[] photoEncode;
             if (distance < 5000) {
                 userDto = new UserDto(user1);
@@ -90,6 +69,26 @@ public class LocationServiceImpl implements LocationService {
         }
         Collections.sort(resultAroundUserList, Comparator.comparing(UserDto::getDistance));
         return resultAroundUserList;
+    }
+
+    public List<User> getAroundHelperList(Location location){
+        double nowLatitude = location.getLatitude();
+        double nowLongitude = location.getLongitude();
+
+        double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
+        double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
+
+        double maxY = nowLatitude + (5000 * mForLatitude);
+        double minY = nowLatitude - (5000 * mForLatitude);
+        double maxX = nowLongitude + (5000 * mForLongitude);
+        double minX = nowLongitude - (5000 * mForLongitude);
+
+
+        return userRepository.findAll().stream()
+                .filter(u -> u.getLatitude().compareTo(maxY) <= 0)
+                .filter(u -> u.getLatitude().compareTo(minY) >= 0)
+                .filter(u -> u.getLongitude().compareTo(maxX) <= 0)
+                .filter(u -> u.getLongitude().compareTo(minX) >= 0).toList();
     }
 
 
@@ -141,5 +140,6 @@ public class LocationServiceImpl implements LocationService {
 
         return helperLocation.getLocationList();
     }
+
 
 }

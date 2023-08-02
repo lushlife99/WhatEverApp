@@ -3,6 +3,9 @@ package com.example.whateverApp.model.entity;
 import com.example.whateverApp.dto.ReportDto;
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.annotations.CreationTimestamp;
+
+import java.time.LocalDateTime;
 
 @Data
 @Entity
@@ -16,10 +19,12 @@ public class Report {
     private Long id;
     private String conversationId;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "work")
     private Work work;
 
-    @OneToOne
+    @ManyToOne
+    @JoinColumn(name = "user")
     private User user;
 
     @Lob
@@ -30,6 +35,9 @@ public class Report {
 
     private boolean isReasonable = false;
     private boolean isFinished = false;
+
+    @CreationTimestamp
+    private LocalDateTime createdTime;
 
     public Report updateReport(ReportDto reportDto){
         this.reportReason = reportDto.getReportReason();

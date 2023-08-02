@@ -112,8 +112,7 @@ public class UserServiceImpl implements UserService {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        user.setLatitude(location.getLatitude());
-        user.setLongitude(location.getLongitude());
+        user.updateLocation(location);
         userRepository.save(user);
         return location;
     }

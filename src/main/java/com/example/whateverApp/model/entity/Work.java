@@ -10,6 +10,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Entity
 @Data
@@ -42,12 +43,15 @@ public class Work {
     private boolean finished;
 
     @ManyToOne
-    @JoinColumn(name = "customer_Id")
+    @JoinColumn(name = "customer")
     private User customer;
 
     @ManyToOne
-    @JoinColumn(name = "helper_Id")
+    @JoinColumn(name = "helper")
     private User helper;
+
+    @OneToMany(mappedBy = "work")
+    private List<Report> reportList;
 
     @CreationTimestamp
     private LocalDateTime createdTime;

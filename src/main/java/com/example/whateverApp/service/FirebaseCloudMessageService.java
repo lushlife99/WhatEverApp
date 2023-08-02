@@ -5,6 +5,9 @@ import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
+import com.example.whateverApp.model.entity.Alarm;
+import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.repository.AlarmRepository;
 import com.example.whateverApp.repository.ConversationRepository;
 import com.example.whateverApp.repository.UserRepository;
 import com.fasterxml.jackson.core.JsonParseException;
@@ -28,8 +31,10 @@ public class FirebaseCloudMessageService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
+    private final AlarmRepository alarmRepository;
 
-    public void sendMessageTo(String targetToken, String title, String body) throws IOException {
+    public void sendMessageTo(User user, String title, String body) throws IOException {
+        String targetToken = user.getNotificationToken();
         String message = makeMessage(targetToken, title, body);
 
         OkHttpClient client = new OkHttpClient();
@@ -43,8 +48,40 @@ public class FirebaseCloudMessageService {
                 .build();
 
         Response response = client.newCall(request).execute();
+
+        if(response.isSuccessful()){
+            Alarm alarm = Alarm.builder()
+                    .user(user)
+                    .title(title)
+                    .body(body)
+                    .build();
+
+            alarmRepository.save(alarm);
+        }
+
         System.out.println(response.body().string());
     }
+
+    /**
+     * sendMessageGroup -> 단체 메시지 전송..
+     * 일단 어려워서 주석처리.
+     * @param conversationId
+     * @throws IOException
+     */
+
+//    public void sendMessageGroup(String[] notificationArray, String title, String body) {
+//        String message = makeMessage(targetToken, title, body);
+//
+//        OkHttpClient client = new OkHttpClient();
+//        RequestBody requestBody = RequestBody.create(message,
+//                MediaType.get("application/json; charset=utf-8"));
+//        Request request = new Request.Builder()
+//                .url(API_URL)
+//                .post(requestBody)
+//                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
+//                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
+//                .build();
+//    }
 
     public void chatNotification(String conversationId) throws IOException {
         Conversation conversation = conversationRepository.findById(conversationId)
@@ -53,14 +90,15 @@ public class FirebaseCloudMessageService {
         Chat chat = chatList.get(chatList.size() - 1);
         String title = chat.getSenderName();
         String body = chat.getMessage();
-        String notificationToken;
+        User findUser;
 
         if(!conversation.getCreatorName().equals(title))
-            notificationToken = userRepository.findById(conversation.getCreatorId()).get().getNotificationToken();
-        else
-            notificationToken = userRepository.findById(conversation.getParticipantId()).get().getNotificationToken();
+            findUser = userRepository.findById(conversation.getCreatorId()).get();
 
-        sendMessageTo(notificationToken, title, body);
+        else
+            findUser = userRepository.findById(conversation.getParticipantId()).get();
+
+        sendMessageTo(findUser, title, body);
     }
 
     private String makeMessage(String targetToken, String title, String body) throws JsonParseException, JsonProcessingException {
@@ -87,4 +125,5 @@ public class FirebaseCloudMessageService {
         googleCredentials.refreshIfExpired();
         return googleCredentials.getAccessToken().getTokenValue();
     }
+
 }

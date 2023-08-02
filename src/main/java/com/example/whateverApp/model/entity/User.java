@@ -38,6 +38,11 @@ public class User implements UserDetails {
     private List<Work> purchaseList = new ArrayList<>();
     @OneToMany(mappedBy = "helper")
     private List<Work> sellList = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<Alarm> alarmList = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<Report> reportList = new ArrayList<>();
+
     private UUID imageFileName;
     @ElementCollection(fetch = FetchType.EAGER)
     @Builder.Default
@@ -49,6 +54,9 @@ public class User implements UserDetails {
 
     private Double longitude = 0.0;
     private String notificationToken;
+
+    private Boolean notification = true;
+
 
     public User updateUserInfo(UserDto user){
         this.password = user.getPassword();

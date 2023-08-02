@@ -12,8 +12,5 @@ public interface UserRepository extends JpaRepository<User, Long> {
 
     Optional<User> findByUserId(String userId);
     Optional<User> findByRefreshToken(String refreshToken);
-
-    Page<User> findAll(Pageable pageable);
-
     Optional<User> findByUserIdAndPassword(String userId, String password);
 }

@@ -13,14 +13,14 @@ import jakarta.servlet.http.HttpServletResponse;
 import jdk.jfr.MemoryAddress;
 import lombok.RequiredArgsConstructor;
 import org.bson.json.JsonObject;
-import org.springframework.messaging.handler.annotation.DestinationVariable;
-import org.springframework.messaging.handler.annotation.MessageMapping;
-import org.springframework.messaging.handler.annotation.SendTo;
+import org.jetbrains.annotations.NotNull;
+import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -32,6 +32,7 @@ public class ConversationController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping("/api/conversation/{participantId}")
+    @NotNull
     public Conversation createChat(@RequestBody WorkDto workDto ,@PathVariable Long participantId, HttpServletRequest request){
         return conversationService.openAndMessage(request, participantId,workDto);
     }
@@ -48,8 +49,9 @@ public class ConversationController {
     }
 
     @MessageMapping("/work/{conversationId}")
-    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException{
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
+    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken) throws JsonProcessingException{
+        System.out.println(jwtToken);
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto, jwtToken));
     }
 
 

@@ -41,6 +41,7 @@ public class ConversationImpl implements ConversationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User participator = userRepository.findById(participatorId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         work.setHelper(participator);
 
         Conversation conversation = open(creator, participator, work.getId());
@@ -77,21 +78,32 @@ public class ConversationImpl implements ConversationService {
 
     @Override
     @Transactional
-    public Conversation sendWork(String conversationId, WorkDto work1) throws JsonProcessingException {
+    public Conversation sendWork(String conversationId, WorkDto work1, String jwtToken) throws JsonProcessingException {
+        User sender = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName())
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         Work work = workRepository.findById(work1.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
 
         Chat chat = new Chat();
         chat.setMessageType("Work");
         chat.setMessage(mapper.writeValueAsString(work1));
-        User sender = userRepository.findById(work1.getCustomerId()).get();
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        User receiver;
+
+        if(conversation.getCreatorId().equals(sender.getId()))
+            receiver = userRepository.findById(conversation.getParticipantId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        else
+            receiver = userRepository.findById(conversation.getCreatorId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+
         conversation.setWorkId(work.getId());
-        User participant = userRepository.findById(conversation.getParticipantId())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         chat.setSenderName(sender.getName());
-        chat.setReceiverName(participant.getName());
+        chat.setReceiverName(receiver.getName());
         conversation.updateChat(chat);
         chatRepository.save(chat);
         return conversationRepository.save(conversation);

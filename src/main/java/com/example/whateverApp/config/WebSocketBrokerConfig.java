@@ -1,5 +1,6 @@
 package com.example.whateverApp.config;
 
+
 import com.example.whateverApp.handler.StompHandler;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Configuration;
