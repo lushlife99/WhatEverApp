@@ -13,7 +13,7 @@ public interface UserService {
     UserDto update(UserDto userDto, HttpServletRequest request); //post update 둘다 이 함수 호출
 
     UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException;
-    User delete(HttpServletRequest request);
+    void delete(HttpServletRequest request);
     User get(HttpServletRequest request);
     User getPurchaseList(HttpServletRequest request);
     User getSellList(HttpServletRequest request);

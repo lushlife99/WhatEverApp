@@ -4,7 +4,10 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
@@ -15,13 +18,16 @@ import java.util.List;
 @Entity
 @Data
 @DynamicInsert
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Work {
 
     @Id @GeneratedValue
     private Long id;
     private String title;
     private String context;
-    private Integer deadLineTime;
+    private Integer deadLineTime = 0;
     /**
      * 23/03/11 chan
      *
@@ -61,6 +67,8 @@ public class Work {
             this.id = workDto.getId();
             this.title = workDto.getTitle();
             this.context = workDto.getContext();
+            this.deadLineTime = workDto.getDeadLineTime();
+
             this.deadLineTime = workDto.getDeadLineTime();
             if(workDto.getLatitude().isNaN()){
                 this.latitude = 0.0;

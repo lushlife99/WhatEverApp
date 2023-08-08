@@ -3,12 +3,16 @@ package com.example.whateverApp.service;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
+import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.UserRepository;
 import com.example.whateverApp.repository.WorkRepository;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -16,7 +20,7 @@ public class PaymentService {
 
     private final UserRepository userRepository;
     private final WorkRepository workRepository;
-
+    private final JwtTokenProvider jwtTokenProvider;
     /**
      * chan
      *
@@ -51,9 +55,11 @@ public class PaymentService {
      */
 
     @Transactional
-    public void beforeWork(WorkDto workDto){
+    public void beforeWork(WorkDto workDto, HttpServletRequest request){
         User customer = userRepository.findById(workDto.getCustomerId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!jwtTokenProvider.getUser(request).equals(customer))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
 
         if(customer.getReward().compareTo(workDto.getReward()) < 0)
             throw new CustomException(ErrorCode.LACK_REWORD);
@@ -63,11 +69,25 @@ public class PaymentService {
     }
 
     @Transactional
-    public void afterWork(WorkDto workDto){
+    public void afterWork(WorkDto workDto, HttpServletRequest request){
         User helper = userRepository.findById(workDto.getHelperId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User customer = userRepository.findById(workDto.getCustomerId())
+                .orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if(!user.equals(customer))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
 
         helper.setReward(helper.getReward() + workDto.getReward());
         userRepository.save(helper);
+    }
+
+    @Transactional
+    public void chargeReward(HttpServletRequest request) {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        user.setReward(user.getReward());
+
     }
 }

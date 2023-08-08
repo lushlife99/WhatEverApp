@@ -1,7 +1,6 @@
 package com.example.whateverApp.service;
 
-import com.example.whateverApp.dto.MessageDto;
-import com.example.whateverApp.dto.UserDto;
+
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -13,17 +12,12 @@ import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
-import com.google.api.client.http.HttpStatusCodes;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.core.io.UrlResource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.parameters.P;
-import org.springframework.security.web.authentication.Http403ForbiddenEntryPoint;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.File;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -40,7 +34,7 @@ public class WorkServiceImpl implements WorkService {
     private final ConversationRepository conversationRepository;
     private static final double EARTH_RADIUS = 6371;
 
-    public Work Create(WorkDto workDto, HttpServletRequest request) {
+    public WorkDto create(WorkDto workDto, HttpServletRequest request) {
         // WorkResponseDto to Work
         Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
@@ -49,18 +43,18 @@ public class WorkServiceImpl implements WorkService {
         work.setCustomer(user);
         Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
         //alarmService.sendNearByHelper(location);
-        return  workRepository.save(work);
+        return new WorkDto(workRepository.save(work));
     }
 
     @Override
-    public Work update(WorkDto workDto){
+    public WorkDto update(WorkDto workDto){
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.updateWork(workDto);
 
         Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
         //alarmService.sendNearByHelper(location);
-        return workRepository.save(work);
+        return new WorkDto(workRepository.save(work));
     }
 
     /**
@@ -138,19 +132,20 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public Work get(Long id, HttpServletRequest request) {
-        return workRepository.findById(id)
-                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+    public WorkDto get(Long id, HttpServletRequest request) {
+        return new WorkDto(workRepository.findById(id)
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND)));
     }
 
     @Override
-    public Work letFinish(Long workId, HttpServletRequest request) {
+    public WorkDto letFinish(Long workId, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
         if(user.getId().equals(work.getCustomer().getId())){
+            work.setProceeding(false);
             work.setFinished(true);
-            return workRepository.save(work);
+            return new WorkDto(workRepository.save(work));
         }
 
         else throw new CustomException(ErrorCode.BAD_REQUEST);

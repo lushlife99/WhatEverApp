@@ -23,7 +23,7 @@ public class WorkController {
 
     @PostMapping("/work")
     public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
-        return new WorkDto(workService.Create(workDto, request));
+        return workService.create(workDto, request);
     }
 
     /**
@@ -37,7 +37,7 @@ public class WorkController {
 
     @GetMapping("/work/{id}")
     public WorkDto getWork(@PathVariable Long id, HttpServletRequest request){
-        return new WorkDto(workService.get(id, request));
+        return workService.get(id, request);
     }
 
     // 현재 끝나지 않은 심부름 리스트를 리턴
@@ -48,7 +48,7 @@ public class WorkController {
 
     @PutMapping("/work")
     public WorkDto updateWork(@RequestBody WorkDto workDto){
-        return new WorkDto(workService.update(workDto));
+        return workService.update(workDto);
     }
 
     // 모든 심부름 리스트를 리턴
@@ -69,7 +69,7 @@ public class WorkController {
 
     @PutMapping("/work/finish/{workId}")
     public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) {
-        return new WorkDto(workService.letFinish(workId, request));
+        return workService.letFinish(workId, request);
     }
 
 }

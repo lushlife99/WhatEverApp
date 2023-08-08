@@ -3,11 +3,14 @@ package com.example.whateverApp.dto;
 
 import com.example.whateverApp.model.entity.Work;
 import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
 @Data
 @AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class WorkDto {
     private Long id;
     private String title;

@@ -9,9 +9,9 @@ import java.util.List;
 
 public interface WorkService {
 
-    Work  Create(WorkDto workDto, HttpServletRequest request);
-    Work update(WorkDto workDto);
+    WorkDto  create(WorkDto workDto, HttpServletRequest request);
+    WorkDto update(WorkDto workDto);
     List<WorkDto> delete(Long workId, HttpServletRequest request);
-    Work get(Long id, HttpServletRequest request);
-    Work letFinish(Long workId, HttpServletRequest request);
+    WorkDto get(Long id, HttpServletRequest request);
+    WorkDto letFinish(Long workId, HttpServletRequest request);
 }

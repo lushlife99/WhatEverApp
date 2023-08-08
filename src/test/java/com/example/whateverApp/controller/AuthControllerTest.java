@@ -12,73 +12,93 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+import jakarta.inject.Inject;
 import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
+import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
+import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.MvcResult;
+import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
 import static com.google.firebase.database.util.JsonMapper.serializeJson;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.cookie;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
 
 @SpringBootTest
-@AutoConfigureMockMvc
 @ExtendWith(SpringExtension.class)
+@AutoConfigureMockMvc
 @Transactional
 class AuthControllerTest{
 
+
+
     @Autowired
     private MockMvc mvc;
+
     @Autowired
     private ObjectMapper objectMapper;
     @Value("${jwt.secret}")
     private String secretKey;
+    @Autowired
+    private UserRepository userRepository;
 
 
     @Test
     @DisplayName("Join Test")
-    void testJoin() throws Exception {
-        User user = User.builder().userId("test").name("test").password("1234").longitude(123.4).latitude(567.8).build();
-        UserDto userDto = new UserDto(user);
-
+    void join() throws Exception {
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("userId", "test");
+        jsonObject.put("password", "1234");
+        jsonObject.put("name", "test");
 
         MvcResult mvcResult = mvc.perform(post("/join")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(serializeJson(userDto)))
+                        .content(jsonObject.toString()))
                 .andExpect(status().isOk())
                 .andReturn();
 
         Object o = JsonMapper.parseJsonValue(mvcResult.getResponse().getContentAsString());
         UserDto resultDto = objectMapper.convertValue(o, UserDto.class);
-        Assertions.assertThat(resultDto.getName()).isEqualTo(userDto.getName());
-        Assertions.assertThat(resultDto.getPassword()).isEqualTo(userDto.getPassword());
+        Assertions.assertThat(resultDto.getName()).isEqualTo(jsonObject.get("name"));
+        Assertions.assertThat(resultDto.getPassword()).isEqualTo(jsonObject.get("password"));
 
     }
+
 
     @Test
     @DisplayName("Login Test")
     void login() throws Exception {
 
-        testJoin();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("userId", "test");
         jsonObject.put("password", "1234");
 
-        MvcResult mvcResult = mvc.perform(post("/login")
+        MvcResult mvcResult = mvc.perform(post("/join")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content(jsonObject.toString()))
+                .andExpect(status().isOk())
+                .andReturn();
+
+        MvcResult mvcResult2 = mvc.perform(post("/login")
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(jsonObject.toString()))
                 .andExpect(status().isOk())
@@ -91,7 +111,7 @@ class AuthControllerTest{
     @DisplayName("Token Expire Test")
     void tokenExpiredTest() throws Exception {
 
-
+        join();
         JSONObject jsonObject = new JSONObject();
         jsonObject.put("userId", "test");
         jsonObject.put("password", "1234");
@@ -99,7 +119,7 @@ class AuthControllerTest{
         String token = Jwts.builder()
                 .signWith(Keys.hmacShaKeyFor(Decoders.BASE64.decode(secretKey)),
                         SignatureAlgorithm.HS256)
-                .setSubject(String.valueOf(1L))
+                .setSubject(String.valueOf(jsonObject.get("userId")))
                 .setExpiration(new Date((new Date()).getTime() - 1))
                 .compact();
 

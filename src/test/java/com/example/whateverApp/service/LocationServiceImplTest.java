@@ -31,6 +31,7 @@ class LocationServiceImplTest {
     @MockBean private UserServiceImpl userService;
     @Autowired private WorkRepository workRepository;
 
+
     @BeforeEach
     @Transactional
       void BeforeEach(){

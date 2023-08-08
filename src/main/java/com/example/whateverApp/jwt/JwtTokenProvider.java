@@ -75,13 +75,14 @@ public class JwtTokenProvider {
 
         User user = userRepository.findByUserId(authentication.getName()).get();
         user.setRefreshToken(refreshToken);
-        userRepository.save(user);
+        //userRepository.save(user);
         return TokenInfo.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
                 .refreshToken("httpOnly")
                 .build();
     }
+
 
     // JWT 토큰을 복호화하여 토큰에 들어있는 정보를 꺼내는 메서드
     public Authentication getAuthentication(String accessToken) {

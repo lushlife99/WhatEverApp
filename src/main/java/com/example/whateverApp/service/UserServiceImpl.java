@@ -127,8 +127,10 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public User delete(HttpServletRequest request) {
-        return null;
+    @Transactional
+    public void delete(HttpServletRequest request) {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        userRepository.delete(user);
     }
 
     @Override
