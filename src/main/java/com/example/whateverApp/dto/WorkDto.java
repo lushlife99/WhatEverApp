@@ -7,6 +7,8 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
+
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
@@ -25,12 +27,13 @@ public class WorkDto {
     private Long customerId;
     private Long helperId;
     private boolean finished;
+    private LocalDateTime createdTime;
+    private LocalDateTime finishedAt;
 
     public WorkDto(Work work){
         this.id = work.getId();
         this.title = work.getTitle();
         this.context = work.getContext();
-        this.deadLineTime = work.getDeadLineTime();
         this.reward = work.getReward();
         this.latitude = work.getLatitude();
         this.longitude = work.getLongitude();
@@ -41,8 +44,13 @@ public class WorkDto {
         this.finished = work.isFinished();
         try {
             this.helperId = work.getHelper().getId();
+            this.createdTime = work.getCreatedTime();
+            this.finishedAt = work.getFinishedAt();
+            this.deadLineTime = work.getDeadLineTime();
         }
         catch (NullPointerException e){
+
         }
+
     }
 }

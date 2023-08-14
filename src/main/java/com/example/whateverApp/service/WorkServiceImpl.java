@@ -8,16 +8,19 @@ import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
+import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.*;
 import com.example.whateverApp.service.interfaces.WorkService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -32,9 +35,11 @@ public class WorkServiceImpl implements WorkService {
     private final AlarmService alarmService;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final ConversationRepository conversationRepository;
+    private final LocationServiceImpl locationService;
+    private final ReviewRepository reviewRepository;
     private static final double EARTH_RADIUS = 6371;
 
-    public WorkDto create(WorkDto workDto, HttpServletRequest request) {
+    public WorkDto create(WorkDto workDto, HttpServletRequest request) throws IOException {
         // WorkResponseDto to Work
         Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
@@ -42,7 +47,7 @@ public class WorkServiceImpl implements WorkService {
 
         work.setCustomer(user);
         Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
-        //alarmService.sendNearByHelper(location);
+        //alarmService.sendNearByHelper(location, work);
         return new WorkDto(workRepository.save(work));
     }
 
@@ -66,6 +71,7 @@ public class WorkServiceImpl implements WorkService {
      * HelperLocation이 1분에 한번씩 저장되는 서비스의 중복 호출을 막기 위해서 딱 한번만 실행하는 함수이다.
      */
 
+    @Transactional
     public Work matchingHelper(WorkDto workDto) {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -85,6 +91,7 @@ public class WorkServiceImpl implements WorkService {
             helperLocationRepository.save(helperLocation);
         }
         Conversation conversation = conversationRepository.findByWorkId(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversation.setWorkId(work.getId());
         return workRepository.save(work);
     }
 
@@ -96,7 +103,7 @@ public class WorkServiceImpl implements WorkService {
         List<Work> workList = workRepository.findByCustomer(user);
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
-            if(!work.isProceeding() && !work.isFinished())
+            if(!work.isProceeding() && !work.isFinished() && work.getFinishedAt().equals(work.getCreatedTime()))
             workDtos.add(new WorkDto(work));
         }
         return workDtos;
@@ -137,13 +144,31 @@ public class WorkServiceImpl implements WorkService {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND)));
     }
 
+    @Transactional
+    public WorkDto successWork(Location location, Long workId, HttpServletRequest request) {
+
+        Work work = workRepository.findById(workId)
+                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!user.getId().equals(work.getHelper().getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        if(LocationServiceImpl.getDistance(location.getLatitude(), location.getLongitude(), work.getLatitude(), work.getLongitude()) > 500)
+            throw new CustomException(ErrorCode.INVALID_LOCATION);
+
+        work.setProceeding(false);
+        work.setFinishedAt(LocalDateTime.now());
+
+        return new WorkDto(work);
+    }
+
     @Override
     public WorkDto letFinish(Long workId, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
         if(user.getId().equals(work.getCustomer().getId())){
-            work.setProceeding(false);
             work.setFinished(true);
             return new WorkDto(workRepository.save(work));
         }
@@ -175,17 +200,33 @@ public class WorkServiceImpl implements WorkService {
 
         for (Work work : nearByWorkList) {
             if(work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
-                double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
-                if (distance < 5000) {
-                    workDto = new WorkDto(work);
-                    if (user.getId() != workDto.getCustomerId()) {
-                        resultAroundWorkList.add(workDto);
+                if (!work.isProceeding() || !work.isFinished()) {
+                    double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
+                    if (distance < 5000) {
+                        workDto = new WorkDto(work);
+                        if (user.getId() != workDto.getCustomerId()) {
+                            resultAroundWorkList.add(workDto);
+                        }
                     }
                 }
             }
         }
 
         return resultAroundWorkList;
+    }
+
+    public void setRating(Long workId, Review review, HttpServletRequest request){
+        User customer = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        if(reviewRepository.findByWork(work).isPresent())
+            throw new CustomException(ErrorCode.DUPLICATE_REVIEW);
+
+        if(!work.getCustomer().equals(customer))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        review.setWork(work);
+        review.setUser(work.getHelper());
+        reviewRepository.save(review);
     }
 
 }

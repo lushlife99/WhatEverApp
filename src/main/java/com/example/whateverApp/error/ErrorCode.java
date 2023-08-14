@@ -15,7 +15,7 @@ public enum ErrorCode {
     ALREADY_FINISHED_WORK(HttpStatus.BAD_REQUEST, "이미 종료된 심부름입니다"),
     LACK_REWORD(HttpStatus.BAD_REQUEST, "리워드가 충분하지 않습니다"),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 접근입니다"),
-
+    INVALID_LOCATION(HttpStatus.BAD_REQUEST, "잘못된 위치 정보입니다"),
 
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
@@ -40,6 +40,7 @@ public enum ErrorCode {
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다"),
     DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
+    DUPLICATE_REVIEW(HttpStatus.CONFLICT, "이미 작성한 Review 입니다.")
     ;
 
     private final HttpStatus httpStatus;

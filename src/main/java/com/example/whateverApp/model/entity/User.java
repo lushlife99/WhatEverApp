@@ -42,6 +42,8 @@ public class User implements UserDetails {
     private List<Alarm> alarmList = new ArrayList<>();
     @OneToMany(mappedBy = "user")
     private List<Report> reportList = new ArrayList<>();
+    @OneToMany(mappedBy = "user")
+    private List<Review> reviewList = new ArrayList<>();
 
     private UUID imageFileName;
     @ElementCollection(fetch = FetchType.EAGER)

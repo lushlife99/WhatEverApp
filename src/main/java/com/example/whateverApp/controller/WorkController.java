@@ -2,15 +2,19 @@ package com.example.whateverApp.controller;
 
 
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.model.document.Location;
+import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.example.whateverApp.service.interfaces.WorkService;
+import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RequestMapping("/api")
@@ -22,7 +26,7 @@ public class WorkController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
+    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws IOException {
         return workService.create(workDto, request);
     }
 
@@ -72,4 +76,13 @@ public class WorkController {
         return workService.letFinish(workId, request);
     }
 
+    @PutMapping("/work/success/{workId}")
+    public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) {
+        return workService.successWork(location, workId, request);
+    }
+
+    @PutMapping("/work/setRating/{workId}")
+    public void setRating(@PathVariable Long workId, @RequestBody Review review, HttpServletRequest request){
+        workService.setRating(workId, review, request);
+    }
 }

@@ -43,10 +43,13 @@ public class Work {
     private Double receiveLatitude = 0.0; //심부름 받는 Location
     private Double receiveLongitude = 0.0;
 
+    @OneToOne
+    private Review review;
+
     @ColumnDefault("true")
     private boolean proceeding; //진행중인 심부름 = true, 완료 = false
     @ColumnDefault("true")
-    private boolean finished;
+    private boolean finished; //
 
     @ManyToOne
     @JoinColumn(name = "customer")
@@ -62,14 +65,23 @@ public class Work {
     @CreationTimestamp
     private LocalDateTime createdTime;
 
+    @CreationTimestamp
+    private LocalDateTime finishedAt;
+
+
+
     public Work updateWork(WorkDto workDto){
         try {
             this.id = workDto.getId();
             this.title = workDto.getTitle();
             this.context = workDto.getContext();
-            this.deadLineTime = workDto.getDeadLineTime();
+            if(deadLineTime.intValue() == 0){
+                this.deadLineTime = 24;
+            }
+            else{
+                this.deadLineTime = workDto.getDeadLineTime();
+            }
 
-            this.deadLineTime = workDto.getDeadLineTime();
             if(workDto.getLatitude().isNaN()){
                 this.latitude = 0.0;
                 this.longitude = 0.0;
