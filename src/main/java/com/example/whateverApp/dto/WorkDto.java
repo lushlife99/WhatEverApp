@@ -42,11 +42,11 @@ public class WorkDto {
         this.proceeding = work.isProceeding();
         this.customerId = work.getCustomer().getId();
         this.finished = work.isFinished();
+        this.deadLineTime = work.getDeadLineTime();
         try {
             this.helperId = work.getHelper().getId();
             this.createdTime = work.getCreatedTime();
             this.finishedAt = work.getFinishedAt();
-            this.deadLineTime = work.getDeadLineTime();
         }
         catch (NullPointerException e){
 

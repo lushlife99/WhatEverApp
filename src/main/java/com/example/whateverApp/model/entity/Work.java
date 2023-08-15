@@ -75,7 +75,7 @@ public class Work {
             this.id = workDto.getId();
             this.title = workDto.getTitle();
             this.context = workDto.getContext();
-            if(deadLineTime.intValue() == 0){
+            if(workDto.getDeadLineTime().intValue() == 0){
                 this.deadLineTime = 24;
             }
             else{

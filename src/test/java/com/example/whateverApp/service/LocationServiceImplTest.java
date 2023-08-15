@@ -2,9 +2,8 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.controller.LocationController;
 import com.example.whateverApp.jwt.JwtTokenProvider;
-import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.repository.WorkRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -15,7 +14,6 @@ import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.net.MalformedURLException;
-import java.util.ArrayList;
 
 
 @SpringBootTest

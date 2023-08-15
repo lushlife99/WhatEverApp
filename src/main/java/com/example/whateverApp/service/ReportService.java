@@ -8,15 +8,13 @@ import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.ConversationRepository;
-import com.example.whateverApp.repository.ReportRepository;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.repository.WorkRepository;
+import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
+import com.example.whateverApp.repository.jpaRepository.ReportRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

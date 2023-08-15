@@ -7,17 +7,14 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
-import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.ConversationRepository;
-import com.example.whateverApp.repository.ReportRepository;
-import com.example.whateverApp.repository.UserRepository;
-import jakarta.servlet.http.HttpServletRequest;
+import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
+import com.example.whateverApp.repository.jpaRepository.ReportRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -25,7 +22,6 @@ import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -45,6 +41,7 @@ public class AdminService {
         for (Report report : list) {
             reportDtoList.add(transformDto(report));
         }
+
         return reportDtoList;
     }
 

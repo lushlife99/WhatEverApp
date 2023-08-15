@@ -1,44 +1,30 @@
 package com.example.whateverApp.controller;
 
-import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
-import com.example.whateverApp.jwt.JwtTokenProvider;
-import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.service.UserServiceImpl;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.firebase.database.util.JsonMapper;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
-import jakarta.inject.Inject;
 import org.assertj.core.api.Assertions;
 import org.json.JSONObject;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
-import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.context.junit.jupiter.SpringExtension;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MockMvcBuilder;
 import org.springframework.test.web.servlet.MvcResult;
-import org.springframework.test.web.servlet.setup.MockMvcBuilders;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Date;
 
-import static com.google.firebase.database.util.JsonMapper.serializeJson;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 

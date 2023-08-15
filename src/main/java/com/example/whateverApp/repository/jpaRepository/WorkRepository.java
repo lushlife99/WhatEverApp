@@ -1,4 +1,4 @@
-package com.example.whateverApp.repository;
+package com.example.whateverApp.repository.jpaRepository;
 
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;

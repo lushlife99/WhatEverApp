@@ -5,14 +5,12 @@ import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.repository.WorkRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

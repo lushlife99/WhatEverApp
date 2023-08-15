@@ -8,13 +8,12 @@ import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.HelperLocationRepository;
-import com.example.whateverApp.repository.UserRepository;
-import com.example.whateverApp.repository.WorkRepository;
+import com.example.whateverApp.repository.mongoRepository.HelperLocationRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.aspectj.apache.bcel.Repository;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -22,7 +21,6 @@ import org.springframework.stereotype.Service;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.util.*;
 
 @Service

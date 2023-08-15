@@ -3,7 +3,7 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.repository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;

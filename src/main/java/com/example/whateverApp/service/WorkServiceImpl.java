@@ -11,9 +11,12 @@ import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.*;
+import com.example.whateverApp.repository.jpaRepository.ReviewRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
+import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
+import com.example.whateverApp.repository.mongoRepository.HelperLocationRepository;
 import com.example.whateverApp.service.interfaces.WorkService;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -47,7 +50,7 @@ public class WorkServiceImpl implements WorkService {
 
         work.setCustomer(user);
         Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
-        //alarmService.sendNearByHelper(location, work);
+        alarmService.sendNearByHelper(location, work);
         return new WorkDto(workRepository.save(work));
     }
 

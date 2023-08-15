@@ -6,15 +6,14 @@ import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.repository.ReviewRepository;
-import com.example.whateverApp.repository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.ReviewRepository;
+import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor

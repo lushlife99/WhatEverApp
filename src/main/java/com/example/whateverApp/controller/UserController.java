@@ -37,7 +37,7 @@ public class UserController {
     }
 
     @GetMapping("/userInfo")
-    public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException {
+    public UserDto getUserInfo(HttpServletRequest request) throws IOException {
         return userService.getUserInfo(request);
     }
 

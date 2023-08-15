@@ -1,10 +1,12 @@
 package com.example.whateverApp.model.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.ColumnDefault;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
@@ -23,7 +25,11 @@ public class Alarm {
 
     @ManyToOne
     @JoinColumn(name = "user")
+    @JsonIgnore
     private User user;
+
+
+    private Boolean seen = false;
 
     @CreationTimestamp
     private LocalDateTime createdTime;
