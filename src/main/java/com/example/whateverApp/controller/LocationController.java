@@ -11,6 +11,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
@@ -28,14 +29,34 @@ public class LocationController {
     private final LocationServiceImpl locationService;
 
     @PutMapping("/findHelper/distance")
-    public List<UserDto> findHelperByDistance(@RequestBody Location location, HttpServletRequest request, HttpServletResponse response) throws MalformedURLException, IOException {
+    public List<UserDto> findHelperByDistance(@RequestBody Location location, HttpServletRequest request) throws IOException {
         return locationService.findHelperByDistance(location, request);
     }
 
+    /**
+     * setUserLocation -> 현재 자신의 위치를 설정하는 컨트롤러.
+     * 여기서 설정된 위치를 기반으로 자신의 helper활동을 할 수 있음.
+     *
+     * @param request
+     * @param location
+     * @return
+     */
+
     @PutMapping("/user")
-    public UserDto setUserLocation(HttpServletRequest request, Location location){
+    public UserDto setUserLocation(HttpServletRequest request, @Validated Location location){
         return locationService.setUserLocation(request, location);
     }
+
+    /**
+     * updateHelperLocaiton
+     *
+     * HelperLocation과 userLocation의 차이?
+     * HelperLocation은 헬퍼의 위치를 추적하고 저장하는 서비스를 사용할 때 저장되는 위치의 이름이다.
+     *
+     * @param location
+     * @param workId
+     * @return
+     */
 
     @PostMapping("/helperLocation/{workId}")
     public Boolean updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){

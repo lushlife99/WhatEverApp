@@ -1,6 +1,7 @@
 package com.example.whateverApp.model.entity;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -23,6 +24,7 @@ public class Review {
     private Work work;
 
     //private User
+    @NotNull(message = "별점을 적어주세요")
     private int rating;
     private String body;
 }

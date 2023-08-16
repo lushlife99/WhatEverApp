@@ -10,8 +10,10 @@ import com.example.whateverApp.service.interfaces.WorkService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -26,7 +28,7 @@ public class WorkController {
     private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws IOException {
+    public WorkDto createWork(@RequestBody @Valid WorkDto workDto, HttpServletRequest request) throws IOException {
         return workService.create(workDto, request);
     }
 
@@ -82,7 +84,7 @@ public class WorkController {
     }
 
     @PutMapping("/work/setRating/{workId}")
-    public void setRating(@PathVariable Long workId, @RequestBody Review review, HttpServletRequest request){
+    public void setRating(@PathVariable Long workId, @RequestBody @Validated Review review, HttpServletRequest request){
         workService.setRating(workId, review, request);
     }
 }

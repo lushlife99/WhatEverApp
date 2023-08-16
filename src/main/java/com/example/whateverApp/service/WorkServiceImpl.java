@@ -43,7 +43,6 @@ public class WorkServiceImpl implements WorkService {
     private static final double EARTH_RADIUS = 6371;
 
     public WorkDto create(WorkDto workDto, HttpServletRequest request) throws IOException {
-        // WorkResponseDto to Work
         Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
