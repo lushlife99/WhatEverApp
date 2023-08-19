@@ -22,7 +22,6 @@ public class ReportService {
 
     private final ReportRepository reportRepository;
     private final WorkRepository workRepository;
-    private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final ConversationRepository conversationRepository;
 

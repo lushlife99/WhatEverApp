@@ -15,5 +15,5 @@ public interface ConversationService {
 
     Conversation openAndMessage(HttpServletRequest request, Long participatorId, WorkDto workDto);
     Conversation sendWork(String conversationId, WorkDto work, String jwtToken) throws JsonProcessingException; //채팅으로 일을 의뢰함.
-    Conversation sendChatting(Chat chat, String conversationId);
+    Conversation sendChatting(Chat chat, String conversationId, String jwtToken);
 }

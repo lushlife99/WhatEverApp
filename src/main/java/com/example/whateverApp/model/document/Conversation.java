@@ -29,6 +29,9 @@ public class Conversation {
     private Long workId;
     private List<Chat> chatList = new ArrayList<>();
 
+    private int seenCountByCreator;
+    private int seenCountByParticipator;
+
     @DateTimeFormat(pattern = "yy-MM-dd HH:mm")
     private LocalDateTime updatedAt;
 

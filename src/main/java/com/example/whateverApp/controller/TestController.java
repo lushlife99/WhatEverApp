@@ -30,13 +30,6 @@ public class TestController {
         return "ok";
     }
 
-    @GetMapping("/fcm")
-    public void fcmTest() throws IOException {
-        List<User> list = new ArrayList<>();
-        User user = userRepository.findByUserId("chan").get();
-        list.add(user);
 
-        firebaseCloudMessageService.test(list, "aaa", "bbb");
-    }
 
 }

@@ -11,8 +11,8 @@ import java.util.List;
 
 public interface WorkService {
 
-    WorkDto  create(WorkDto workDto, HttpServletRequest request) throws IOException;
-    WorkDto update(WorkDto workDto);
+    Work create(WorkDto workDto, HttpServletRequest request) throws IOException;
+    WorkDto update(WorkDto workDto) throws IOException;
     List<WorkDto> delete(Long workId, HttpServletRequest request);
     WorkDto get(Long id, HttpServletRequest request);
     WorkDto letFinish(Long workId, HttpServletRequest request);

@@ -1,7 +1,9 @@
 package com.example.whateverApp.controller;
 
 
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -18,6 +20,12 @@ public class FcmController {
     public ResponseEntity notifyChat(@PathVariable String conversationId) throws IOException{
         firebaseCloudMessageService.chatNotification(conversationId);
         return ResponseEntity.ok().build();
+    }
+
+    @PostMapping("/api/fcm/sendNearbyHelper")
+    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws IOException {
+        System.out.println("FcmController.sendNearbyHelper");
+        firebaseCloudMessageService.sendNearByHelper(workDto);
     }
 
 }

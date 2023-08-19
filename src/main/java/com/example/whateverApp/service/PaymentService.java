@@ -4,16 +4,19 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class PaymentService {
 
     private final UserRepository userRepository;
@@ -48,7 +51,7 @@ public class PaymentService {
      *
      * 2. 진행되는 도중에 stop
      * 제대로 일이 종료가 안된 경우. 그럼 다시 돌려놔야함.
-     * midde -> Customer
+     * middle -> Customer
      *
      */
 
@@ -56,14 +59,16 @@ public class PaymentService {
     public void beforeWork(WorkDto workDto, HttpServletRequest request){
         User customer = userRepository.findById(workDto.getCustomerId())
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!jwtTokenProvider.getUser(request).equals(customer))
+        if(!jwtTokenProvider.getUser(request).equals(customer) || workDto.getWorkProceedingStatus() != WorkProceedingStatus.CREATED.ordinal())
             throw new CustomException(ErrorCode.BAD_REQUEST);
+
 
         if(customer.getReward().compareTo(workDto.getReward()) < 0)
             throw new CustomException(ErrorCode.LACK_REWORD);
 
         customer.setReward(customer.getReward() - workDto.getReward());
         userRepository.save(customer);
+        log.info("Before Work. Customer payed.\n" +workDto);
     }
 
     @Transactional
@@ -79,6 +84,7 @@ public class PaymentService {
 
         helper.setReward(helper.getReward() + workDto.getReward());
         userRepository.save(helper);
+        log.info("After Work. Helper get reward.\n" +workDto);
     }
 
     @Transactional
@@ -86,6 +92,7 @@ public class PaymentService {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         user.setReward(user.getReward());
-
     }
+
+
 }

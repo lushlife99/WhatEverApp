@@ -1,6 +1,7 @@
 package com.example.whateverApp.model.entity;
 
 import com.example.whateverApp.dto.WorkDto;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Location;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
@@ -46,11 +47,6 @@ public class Work {
     @OneToOne
     private Review review;
 
-    @ColumnDefault("true")
-    private boolean proceeding; //진행중인 심부름 = true, 완료 = false
-    @ColumnDefault("true")
-    private boolean finished; //
-
     @ManyToOne
     @JoinColumn(name = "customer")
     private User customer;
@@ -62,10 +58,12 @@ public class Work {
     @OneToMany(mappedBy = "work")
     private List<Report> reportList;
 
+    @Enumerated(EnumType.ORDINAL)
+    private WorkProceedingStatus proceedingStatus;
+
     @CreationTimestamp
     private LocalDateTime createdTime;
 
-    @CreationTimestamp
     private LocalDateTime finishedAt;
 
 
@@ -98,8 +96,6 @@ public class Work {
                 this.receiveLatitude = workDto.getReceiveLatitude();
                 this.receiveLongitude = workDto.getReceiveLongitude();
             }
-
-            this.proceeding = workDto.isProceeding();
         }catch (NullPointerException e){
 
         }

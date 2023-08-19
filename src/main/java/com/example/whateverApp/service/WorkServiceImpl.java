@@ -5,6 +5,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
@@ -36,31 +37,26 @@ public class WorkServiceImpl implements WorkService {
     private final UserRepository userRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final AlarmService alarmService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
+    private final FirebaseCloudMessageService firebaseCloudMessageService;
     private final ConversationRepository conversationRepository;
     private final LocationServiceImpl locationService;
     private final ReviewRepository reviewRepository;
     private static final double EARTH_RADIUS = 6371;
 
-    public WorkDto create(WorkDto workDto, HttpServletRequest request) throws IOException {
+    public Work create(WorkDto workDto, HttpServletRequest request) throws IOException {
         Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
+        work.setProceedingStatus(WorkProceedingStatus.CREATED);
         work.setCustomer(user);
-        Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
-        alarmService.sendNearByHelper(location, work);
-        return new WorkDto(workRepository.save(work));
+        return workRepository.save(work);
     }
 
     @Override
-    public WorkDto update(WorkDto workDto){
+    public WorkDto update(WorkDto workDto) throws IOException {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.updateWork(workDto);
-
-        Location location = new Location(workDto.getLatitude(), workDto.getLongitude());
-        //alarmService.sendNearByHelper(location);
         return new WorkDto(workRepository.save(work));
     }
 
@@ -74,27 +70,32 @@ public class WorkServiceImpl implements WorkService {
      */
 
     @Transactional
-    public Work matchingHelper(WorkDto workDto) {
+    public Work matchingHelper(WorkDto workDto, String conversationId) {
+
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        if(work.isProceeding())
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED))
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
-        if(work.isFinished())
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
             throw new CustomException(ErrorCode.ALREADY_FINISHED_WORK);
 
         User helper = userRepository.findById(workDto.getHelperId()).get();
         work.setHelper(helper);
-        work.setProceeding(true);
+        work.setProceedingStatus(WorkProceedingStatus.STARTED);
 
         if(work.getDeadLineTime() == 1){
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
         }
-        Conversation conversation = conversationRepository.findByWorkId(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        conversation.setWorkId(work.getId());
+
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversation.setWorkId(workDto.getId());
+
+        conversationRepository.save(conversation);
         return workRepository.save(work);
+
     }
 
     @Transactional
@@ -105,7 +106,7 @@ public class WorkServiceImpl implements WorkService {
         List<Work> workList = workRepository.findByCustomer(user);
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
-            if(!work.isProceeding() && !work.isFinished() && work.getFinishedAt().equals(work.getCreatedTime()))
+            if(work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
             workDtos.add(new WorkDto(work));
         }
         return workDtos;
@@ -159,8 +160,7 @@ public class WorkServiceImpl implements WorkService {
         if(LocationServiceImpl.getDistance(location.getLatitude(), location.getLongitude(), work.getLatitude(), work.getLongitude()) > 500)
             throw new CustomException(ErrorCode.INVALID_LOCATION);
 
-        work.setProceeding(false);
-        work.setFinishedAt(LocalDateTime.now());
+        work.setProceedingStatus(WorkProceedingStatus.FINISHED);
 
         return new WorkDto(work);
     }
@@ -171,7 +171,8 @@ public class WorkServiceImpl implements WorkService {
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
         if(user.getId().equals(work.getCustomer().getId())){
-            work.setFinished(true);
+            work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
+            work.setFinishedAt(LocalDateTime.now());
             return new WorkDto(workRepository.save(work));
         }
 
@@ -202,7 +203,7 @@ public class WorkServiceImpl implements WorkService {
 
         for (Work work : nearByWorkList) {
             if(work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
-                if (!work.isProceeding() || !work.isFinished()) {
+                if (work.getProceedingStatus().equals(WorkProceedingStatus.CREATED)) {
                     double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
                     if (distance < 5000) {
                         workDto = new WorkDto(work);
@@ -218,13 +219,14 @@ public class WorkServiceImpl implements WorkService {
     }
 
     public void setRating(Long workId, Review review, HttpServletRequest request){
+
         User customer = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        if(!work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED) || !work.getCustomer().equals(customer))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
         if(reviewRepository.findByWork(work).isPresent())
             throw new CustomException(ErrorCode.DUPLICATE_REVIEW);
-
-        if(!work.getCustomer().equals(customer))
-            throw new CustomException(ErrorCode.BAD_REQUEST);
 
         review.setWork(work);
         review.setUser(work.getHelper());

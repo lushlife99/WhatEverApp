@@ -4,6 +4,7 @@ import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
@@ -113,7 +114,7 @@ public class LocationServiceImpl implements LocationService {
     @Override
     public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
-        if (work.isFinished())
+        if (work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
             return false;
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId())
@@ -130,7 +131,7 @@ public class LocationServiceImpl implements LocationService {
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        if(!work.isProceeding() && work.getDeadLineTime() != 1)
+        if(!work.getProceedingStatus().equals(WorkProceedingStatus.STARTED) && work.getDeadLineTime() != 1)
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(workId)

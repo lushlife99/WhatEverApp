@@ -28,33 +28,8 @@ public class AlarmService {
     private final FirebaseCloudMessageService fcmService;
     private final JwtTokenProvider jwtTokenProvider;
 
-    public void sendNearByHelper(Location location, Work work) throws IOException {
-        String title = "근처에 새로운 심부름이 등록되었습니다.";
-        String body = work.getTitle();
-
-        List<User> aroundHelperList = locationService.getAroundHelperList(location);
-        for (User user : aroundHelperList)
-            if(!user.getNotification())
-                aroundHelperList.remove(user);
-
-        if(aroundHelperList.contains(work.getCustomer()))
-            aroundHelperList.remove(work.getCustomer());
 
 
-        if(fcmService.sendMessageGroup(aroundHelperList, title, body)){
-            List<Alarm> list = new ArrayList<>();
-            for (User user : aroundHelperList) {
-                Alarm alarm = Alarm.builder()
-                        .user(user)
-                        .title(title)
-                        .body(body)
-                        .build();
-
-                list.add(alarm);
-            }
-            alarmRepository.saveAll(list);
-        }
-    }
 
     public List<Alarm> getAlarms(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));

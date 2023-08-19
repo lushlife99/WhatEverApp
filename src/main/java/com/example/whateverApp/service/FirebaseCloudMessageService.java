@@ -2,18 +2,24 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.FcmMessage;
 import com.example.whateverApp.dto.FcmTest;
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
+import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Alarm;
 import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.AlarmRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.firebase.messaging.FcmOptions;
+import com.google.longrunning.Operation;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
@@ -38,6 +44,8 @@ public class FirebaseCloudMessageService {
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
     private final AlarmRepository alarmRepository;
+    private final LocationServiceImpl locationService;
+    private final WorkRepository workRepository;
 
     public void sendMessageTo(User user, String title, String body) throws IOException {
         String targetToken = user.getNotificationToken();
@@ -54,7 +62,6 @@ public class FirebaseCloudMessageService {
                 .build();
 
         Response response = client.newCall(request).execute();
-
         if(response.isSuccessful()){
             Alarm alarm = Alarm.builder()
                     .user(user)
@@ -66,6 +73,34 @@ public class FirebaseCloudMessageService {
         }
 
         System.out.println(response.body().string());
+    }
+
+    public void sendNearByHelper(WorkDto workDto) throws IOException {
+        Work work = workRepository.findById(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        String title = "근처에 새로운 심부름이 등록되었습니다.";
+        String body = work.getTitle();
+
+        List<User> aroundHelperList = new ArrayList<>(locationService.getAroundHelperList(new Location(workDto.getLatitude(), workDto.getLongitude())));
+        for (User user : aroundHelperList)
+            if(!user.getNotification())
+                aroundHelperList.remove(user);
+
+        aroundHelperList.remove(work.getCustomer());
+
+        if(sendMessageGroup(aroundHelperList, title, body)){
+            List<Alarm> list = new ArrayList<>();
+            for (User user : aroundHelperList) {
+                Alarm alarm = Alarm.builder()
+                        .user(user)
+                        .title(title)
+                        .body(body)
+                        .build();
+
+                list.add(alarm);
+            }
+            alarmRepository.saveAll(list);
+        }
     }
 
 
@@ -121,7 +156,7 @@ public class FirebaseCloudMessageService {
 
         Response response2 = client.newCall(request2).execute();
         String responseBody2 = response2.body().string();
-        System.out.println(responseBody2);
+        log.info(responseBody2);
 
         if(response2.isSuccessful())
             return true;
@@ -172,57 +207,5 @@ public class FirebaseCloudMessageService {
         return googleCredentials.getAccessToken().getTokenValue();
     }
 
-    public String test(List<User> userList, String title, String body) throws IOException{
-        List<String> strings = new ArrayList<>();
-        for (User user : userList) {
-            strings.add(user.getNotificationToken());
-        }
-        String to = UUID.randomUUID().toString();
-        String serverKey = "key=AAAAc3C3m2U:APA91bFG4TIhiUxQHWBAILV39VbUdyahZfh3LU8JFWoPDwfK7rmce4uI3nvYrvIK9u3XRQwwLG0jtZrUddYeNtIEpO6T82vMEawHyTOUYctGS99_JWkvikHM6EVKE92hFeV4K5XMNQdQ";
-
-        FcmTest build = FcmTest.builder().operation("create").notification_key_name(to).registration_ids(strings).build();
-        String message = objectMapper.writeValueAsString(build);
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody requestBody = RequestBody.create(message,
-                MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url("https://fcm.googleapis.com/fcm/notification")
-                .post(requestBody)
-                .addHeader(HttpHeaders.AUTHORIZATION, "key=AAAAc3C3m2U:APA91bFG4TIhiUxQHWBAILV39VbUdyahZfh3LU8JFWoPDwfK7rmce4uI3nvYrvIK9u3XRQwwLG0jtZrUddYeNtIEpO6T82vMEawHyTOUYctGS99_JWkvikHM6EVKE92hFeV4K5XMNQdQ")
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-                .addHeader("project_id", "495812320101")
-                .build();
-
-        Response response = client.newCall(request).execute();
-        String responseBody = response.body().string();
-        JSONObject jsonResponse = new JSONObject(responseBody);
-        String notificationKeyName = jsonResponse.optString("notification_key");
-
-
-        // 그룹 메시지 생성
-        JSONObject messageBody = new JSONObject();
-        messageBody.put("to", notificationKeyName);
-        JSONObject data = new JSONObject();
-        data.put("title", "Group Message Title");
-        data.put("body", "This is a group message.");
-        messageBody.put("data", data);
-
-        RequestBody requestBody2 = RequestBody.create(messageBody.toString(),
-                MediaType.get("application/json; charset=utf-8"));
-
-        Request request2 = new Request.Builder()
-                .url("https://fcm.googleapis.com/fcm/send")
-                .post(requestBody2)
-                .addHeader(HttpHeaders.AUTHORIZATION, serverKey)
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-                .build();
-
-        Response response2 = client.newCall(request2).execute();
-        String responseBody2 = response2.body().string();
-        System.out.println(responseBody2);
-        return "ok";
-
-    }
 
 }

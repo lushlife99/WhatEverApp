@@ -1,5 +1,6 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.ConversationDto;
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
@@ -21,6 +22,8 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
 
@@ -112,26 +115,35 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
-    public List<Conversation> getConversations(HttpServletRequest request){
+    public List<ConversationDto> getConversations(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        return conversationRepository.findAll().stream().
+        List<Conversation> list = conversationRepository.findAll().stream().
                 filter(c -> user.getId().equals(c.getParticipantId()) || user.getId().equals(c.getCreatorId())).toList();
+        List<ConversationDto> conversationDtoList = new ArrayList<>();
+
+        for (Conversation conversation : list)
+            conversationDtoList.add(new ConversationDto(conversation));
+        return conversationDtoList;
     }
 
     @Override
-    public Conversation sendChatting(Chat chat, String conversationId) {
+    public Conversation sendChatting(Chat chat, String conversationId, String jwtToken) {
+
 
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         chat.setMessageType("Chat");
         conversation.updateChat(chat);
         chatRepository.save(chat);
+
+
         return conversationRepository.save(conversation);
+
     }
 
-    public Conversation sendCard(Chat chat, String conversationId){
+    public Conversation sendCard(Chat chat, String conversationId, String jwtToken){
 
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -139,5 +151,38 @@ public class ConversationImpl implements ConversationService {
         conversation.updateChat(chat);
         chatRepository.save(chat);
         return conversationRepository.save(conversation);
+    }
+
+    public void setConversationSeenCount(HttpServletRequest request, String conversationId){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        if(conversation.getCreatorId().equals(user.getId())){
+            conversation.setSeenCountByCreator(conversation.getChatList().size());
+        } else if(conversation.getParticipantId().equals(user.getId())){
+            conversation.setSeenCountByParticipator(conversation.getChatList().size());
+        } else throw new CustomException(ErrorCode.BAD_REQUEST);
+
+    }
+
+    public int sendTotalSeenCount(User user){
+        Optional<List<Conversation>> createdConv = conversationRepository.findByCreatorId(user.getId());
+        Optional<List<Conversation>> participatedConv = conversationRepository.findByParticipantId(user.getId());
+        int totalSeenCount = 0;
+        if(createdConv.isPresent()){
+            List<Conversation> conversationList = createdConv.get();
+            for (Conversation conversation : conversationList) {
+                totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByCreator();
+            }
+        }
+
+        if(participatedConv.isPresent()){
+            List<Conversation> conversationList = participatedConv.get();
+            for (Conversation conversation : conversationList) {
+                totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByParticipator();
+            }
+        }
+
+        return totalSeenCount;
     }
 }

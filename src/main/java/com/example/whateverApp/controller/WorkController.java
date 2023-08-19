@@ -25,20 +25,19 @@ import java.util.List;
 public class WorkController {
 
     private final WorkServiceImpl workService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody @Valid WorkDto workDto, HttpServletRequest request) throws IOException {
-        return workService.create(workDto, request);
+    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws IOException {
+        return new WorkDto(workService.create(workDto, request));
     }
 
     /**
      *
      * 이거 상태코드 내려주는거 따로 공부해서 수정하기. 만약 일이 진행중이라면 상태코드 잘 내려주기 ㅇㅇ.
      */
-    @PutMapping("/work/matching")
-    public WorkDto matchWork(@RequestBody WorkDto workDto){
-        return new WorkDto(workService.matchingHelper(workDto));
+    @PutMapping("/work/matching/{conversationId}")
+    public WorkDto matchWork(@RequestBody WorkDto workDto, @PathVariable String conversationId){
+        return new WorkDto(workService.matchingHelper(workDto, conversationId));
     }
 
     @GetMapping("/work/{id}")
@@ -53,7 +52,7 @@ public class WorkController {
     }
 
     @PutMapping("/work")
-    public WorkDto updateWork(@RequestBody WorkDto workDto){
+    public WorkDto updateWork(@RequestBody WorkDto workDto) throws IOException {
         return workService.update(workDto);
     }
 

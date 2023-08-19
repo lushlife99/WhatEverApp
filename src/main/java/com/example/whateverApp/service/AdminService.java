@@ -7,6 +7,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
@@ -30,7 +31,6 @@ public class AdminService {
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
     private final ReportRepository reportRepository;
-    private final ConversationRepository conversationRepository;
     private final AuthenticationManager authenticationManagerBuilder;
     public List<ReportDto> getReportList(){
         List<Report> list = reportRepository.findAll().stream().filter(report -> {
@@ -65,7 +65,10 @@ public class AdminService {
 
             userRepository.save(customer);
             userRepository.save(helper);
-            work.setFinished(true);
+            /**
+             * 돈 이동하게 만들기. ㅇㅇ
+             */
+            work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
         }
 
         report.setFinished(true);
