@@ -12,9 +12,7 @@ public class Location {
     @Id
     private String _id;
 
-    @NotNull(message = "location must not be null")
     private Double latitude;
-    @NotNull(message = "location must not be null")
     private Double longitude;
 
     public Location(Double latitude, Double longitude){

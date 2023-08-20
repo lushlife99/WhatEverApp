@@ -6,6 +6,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.User;
@@ -39,6 +40,15 @@ public class ConversationImpl implements ConversationService {
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final WorkRepository workRepository;
     private final ObjectMapper mapper;
+
+    /**
+     *
+     * @param request
+     * @param participatorId
+     * @param workDto
+     * @return conversation
+     * message to
+     */
     @Override
     public Conversation openAndMessage(HttpServletRequest request, Long participatorId, WorkDto workDto) {
         User creator = jwtTokenProvider.getUser(request)
@@ -47,69 +57,61 @@ public class ConversationImpl implements ConversationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User participator = userRepository.findById(participatorId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!work.getProceedingStatus().equals(WorkProceedingStatus.CREATED)) //채팅방을 열 시점에, work가 이미 다른사람과 체결된 경우
+            throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
-        work.setHelper(participator);
 
-        Conversation conversation = open(creator, participator, work.getId());
-        List<Conversation> conversationList = conversationRepository.findAll().stream().filter( c->{
-            return c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId());
-        }).toList();
-        simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", conversationList));
-        simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", conversationList));
+        List<Conversation> findConvList = conversationRepository.findAll().stream()
+                .filter(c -> c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId()))
+                .filter(c -> c.getCreatorId().equals(participator.getId()) || c.getParticipantId().equals(participator.getId())).toList();
+
+        for (Conversation conversation : findConvList) {
+            if(conversation.getFinished().equals(Boolean.FALSE))
+                throw new CustomException(ErrorCode.OTHER_WORK_IS_PROCEEDING);
+        }
+
+        Conversation conversation = open(creator, participator);
+        List<ConversationDto> convByCreator = getConversations(request);
+        List<Conversation> convByParticipator = conversationRepository.findAll().stream()
+                .filter( c-> c.getCreatorId().equals(participator.getId()) || c.getParticipantId().equals(participator.getId()))
+                .filter( c -> c.getFinished().equals(Boolean.FALSE)).toList();
+        simpMessagingTemplate.convertAndSend("/queue/" + creator.getId() , new MessageDto("OpenChat", convByCreator));
+        simpMessagingTemplate.convertAndSend("/queue/" + participatorId , new MessageDto("OpenChat", convByParticipator));
         return conversation;
-
     }
 
     @Transactional
-    public Conversation open(User creator, User participator, Long workId){
-        Optional<Conversation> findConv = conversationRepository.findByCreatorIdAndParticipantId(creator.getId(), participator.getId());
-        if(findConv.isPresent()){
-            /**
-             * 나중에 수정하기.
-             * work가 이미 진행중이면 예외처리해주고
-             * work가 만약 끝났다면 work를 새로운 work로 set해주기.
-             */
-            Conversation conversation = findConv.get();
-            return findConv.get();
-        }
+    public Conversation open(User creator, User participator){
+
         Conversation conversation = new Conversation();
         conversation.setCreatorId(creator.getId());
         conversation.setParticipantId(participator.getId());
-        conversation.setWorkId(workId);
         conversation.setCreatorName(creator.getName());
         conversation.setParticipatorName(participator.getName());
+        conversation.setSeenCountByParticipator(0);
+        conversation.setSeenCountByParticipator(0);
+        conversation.setFinished(false);
         return conversationRepository.save(conversation);
     }
 
 
     @Override
     @Transactional
-    public Conversation sendWork(String conversationId, WorkDto work1, String jwtToken) throws JsonProcessingException {
-        User sender = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    public Conversation sendWork(String conversationId, WorkDto workDto, String jwtToken) throws JsonProcessingException {
 
-        Work work = workRepository.findById(work1.getId())
+        Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-
-        Chat chat = new Chat();
-        chat.setMessageType("Work");
-        chat.setMessage(mapper.writeValueAsString(work1));
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        User receiver;
 
-        if(conversation.getCreatorId().equals(sender.getId()))
-            receiver = userRepository.findById(conversation.getParticipantId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Chat chat = Chat.builder()
+                .messageType("Work")
+                .message(mapper.writeValueAsString(workDto))
+                .senderName(conversation.getCreatorName())
+                .receiverName(conversation.getParticipatorName())
+                .build();
 
-        else
-            receiver = userRepository.findById(conversation.getCreatorId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-
-        conversation.setWorkId(work.getId());
-
-        chat.setSenderName(sender.getName());
-        chat.setReceiverName(receiver.getName());
         conversation.updateChat(chat);
         chatRepository.save(chat);
         return conversationRepository.save(conversation);
@@ -119,8 +121,9 @@ public class ConversationImpl implements ConversationService {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        List<Conversation> list = conversationRepository.findAll().stream().
-                filter(c -> user.getId().equals(c.getParticipantId()) || user.getId().equals(c.getCreatorId())).toList();
+        List<Conversation> list = conversationRepository.findAll().stream()
+                .filter(c -> user.getId().equals(c.getParticipantId()) || user.getId().equals(c.getCreatorId()))
+                .filter(c -> c.getFinished().equals(Boolean.FALSE)).toList();
         List<ConversationDto> conversationDtoList = new ArrayList<>();
 
         for (Conversation conversation : list)
@@ -131,13 +134,11 @@ public class ConversationImpl implements ConversationService {
     @Override
     public Conversation sendChatting(Chat chat, String conversationId, String jwtToken) {
 
-
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         chat.setMessageType("Chat");
         conversation.updateChat(chat);
         chatRepository.save(chat);
-
 
         return conversationRepository.save(conversation);
 

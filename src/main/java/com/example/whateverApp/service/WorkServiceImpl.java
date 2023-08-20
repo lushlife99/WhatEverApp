@@ -81,19 +81,18 @@ public class WorkServiceImpl implements WorkService {
         if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
             throw new CustomException(ErrorCode.ALREADY_FINISHED_WORK);
 
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversation.setWorkId(work.getId());
         User helper = userRepository.findById(workDto.getHelperId()).get();
         work.setHelper(helper);
         work.setProceedingStatus(WorkProceedingStatus.STARTED);
+        conversationRepository.save(conversation);
 
         if(work.getDeadLineTime() == 1){
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
         }
 
-        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        conversation.setWorkId(workDto.getId());
-
-        conversationRepository.save(conversation);
         return workRepository.save(work);
 
     }
@@ -169,12 +168,15 @@ public class WorkServiceImpl implements WorkService {
     public WorkDto letFinish(Long workId, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-
+        Conversation conversation = conversationRepository.findByWorkId(workId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversation.setFinished(true);
+        conversationRepository.save(conversation);
         if(user.getId().equals(work.getCustomer().getId())){
             work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
             work.setFinishedAt(LocalDateTime.now());
             return new WorkDto(workRepository.save(work));
         }
+
 
         else throw new CustomException(ErrorCode.BAD_REQUEST);
     }

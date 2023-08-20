@@ -31,6 +31,7 @@ public class Conversation {
 
     private int seenCountByCreator;
     private int seenCountByParticipator;
+    private Boolean finished = false;
 
     @DateTimeFormat(pattern = "yy-MM-dd HH:mm")
     private LocalDateTime updatedAt;

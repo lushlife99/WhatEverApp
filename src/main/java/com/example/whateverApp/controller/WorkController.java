@@ -4,15 +4,9 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Review;
-import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.WorkServiceImpl;
-import com.example.whateverApp.service.interfaces.WorkService;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.google.api.Http;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -74,6 +68,7 @@ public class WorkController {
 
     @PutMapping("/work/finish/{workId}")
     public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) {
+        System.out.println("WorkController.finishWork");
         return workService.letFinish(workId, request);
     }
 

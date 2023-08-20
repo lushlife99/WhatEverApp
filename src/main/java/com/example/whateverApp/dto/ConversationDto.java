@@ -26,6 +26,7 @@ public class ConversationDto {
     private Long workId;
     private List<Chat> chatList = new ArrayList<>();
     private LocalDateTime updatedAt;
+    private Boolean finished;
 
     public ConversationDto(Conversation conversation){
         this._id = conversation.get_id();
@@ -36,5 +37,6 @@ public class ConversationDto {
         this.workId = conversation.getWorkId();
         this.chatList = conversation.getChatList();
         this.updatedAt = conversation.getUpdatedAt();
+        this.finished = conversation.getFinished();
     }
 }

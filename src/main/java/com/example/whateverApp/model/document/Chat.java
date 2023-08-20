@@ -2,7 +2,10 @@ package com.example.whateverApp.model.document;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.CreatedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
 import org.springframework.data.mongodb.config.EnableMongoAuditing;
@@ -14,6 +17,9 @@ import java.util.Date;
 
 @Data
 @Document("chats")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Chat {
 
     @Id

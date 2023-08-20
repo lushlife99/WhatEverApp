@@ -124,6 +124,9 @@ public class LocationServiceImpl implements LocationService {
         locationList.add(location);
         helperLocation.setLocationList(locationList);
         helperLocationRepository.save(helperLocation);
+        if(locationList.size() > 60)
+            return false;
+
         return true;
     }
 
