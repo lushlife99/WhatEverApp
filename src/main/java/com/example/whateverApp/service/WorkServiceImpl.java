@@ -41,6 +41,7 @@ public class WorkServiceImpl implements WorkService {
     private final ConversationRepository conversationRepository;
     private final LocationServiceImpl locationService;
     private final ReviewRepository reviewRepository;
+    private final UserServiceImpl userService;
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request) throws IOException {
@@ -70,7 +71,9 @@ public class WorkServiceImpl implements WorkService {
      */
 
     @Transactional
-    public Work matchingHelper(WorkDto workDto, String conversationId) {
+    public Work matchingHelper(WorkDto workDto, String conversationId, HttpServletRequest request) {
+        User requestUser = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
 
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -91,6 +94,10 @@ public class WorkServiceImpl implements WorkService {
         if(work.getDeadLineTime() == 1){
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
+        }
+
+        if(requestUser.getId().equals(work.getHelper().getId())){ //심부름 요청서
+            userService.setAvgReactTime(work, conversation);
         }
 
         return workRepository.save(work);
@@ -254,5 +261,6 @@ public class WorkServiceImpl implements WorkService {
         }
         return workDtoList;
     }
+
 
 }

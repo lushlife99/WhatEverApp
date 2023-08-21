@@ -22,7 +22,7 @@ public class UserDto {
     private String introduce;
     private Double distance; //m
     private Double rating;
-    private Integer avgReactTime;
+    private Long avgReactTime;
     private Double latitude;
     private Double longitude;
     private String image;

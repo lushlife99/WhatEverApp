@@ -5,15 +5,19 @@ import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.service.interfaces.UserService;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cglib.core.Local;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -25,6 +29,9 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.time.Duration;
+import java.time.LocalDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.*;
 
 
@@ -35,6 +42,7 @@ public class UserServiceImpl implements UserService {
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
+    private final WorkRepository workRepository;
 
     @Value("${file:}")
     private String fileDir;
@@ -145,6 +153,24 @@ public class UserServiceImpl implements UserService {
     public void delete(HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         userRepository.delete(user);
+    }
+
+    public void setAvgReactTime(Work work, Conversation conversation){
+        User helper = work.getHelper();
+        List<Work> workListByHelper = workRepository.findByHelper(helper);
+        int totalSize = workListByHelper.size() + 1;
+        LocalDateTime sendTime = conversation.getChatList().get(0).getSendTime();
+
+        if(workListByHelper.size() == 1){
+            helper.setAvgReactTime(ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now()));
+        }
+        else {
+            Long avgReactTime = (helper.getAvgReactTime() * workListByHelper.size() + ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now())) / totalSize;
+            helper.setAvgReactTime(avgReactTime);
+        }
+
+        userRepository.save(helper);
+
     }
 
     @Override
