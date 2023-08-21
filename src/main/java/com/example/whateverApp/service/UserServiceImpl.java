@@ -61,12 +61,27 @@ public class UserServiceImpl implements UserService {
     }
 
     @Override
-    public UserDto getUserInfo(HttpServletRequest request) throws MalformedURLException, IOException{
+    public UserDto getMyInfo(HttpServletRequest request) throws MalformedURLException, IOException{
         User findUser = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         UserDto userDto = new UserDto(findUser);
         // 사진파일 보내기.
+        Base64.Encoder encoder = Base64.getEncoder();
+        byte[] photoEncode;
+        File file = new File(fileDir + findUser.getImageFileName());
+        if (file.exists()) {
+            photoEncode = encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
+            userDto.setImage(new String(photoEncode, "UTF8"));
+        }
+        return userDto;
+    }
+
+    public UserDto getUserInfo(Long userId) throws IOException {
+
+        User findUser = userRepository.findById(userId)
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        UserDto userDto = new UserDto(findUser);
         Base64.Encoder encoder = Base64.getEncoder();
         byte[] photoEncode;
         File file = new File(fileDir + findUser.getImageFileName());

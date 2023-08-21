@@ -38,6 +38,7 @@ public class WorkDto {
     private LocalDateTime finishedAt;
     private int workProceedingStatus;
 
+
     public WorkDto(Work work){
         this.id = work.getId();
         this.title = work.getTitle();

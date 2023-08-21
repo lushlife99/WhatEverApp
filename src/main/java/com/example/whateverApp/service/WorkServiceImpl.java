@@ -235,4 +235,24 @@ public class WorkServiceImpl implements WorkService {
         reviewRepository.save(review);
     }
 
+    public List<WorkDto> getWorkListByHelper(Long helperId) {
+        User user = userRepository.findById(helperId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        List<Work> byHelper = workRepository.findByHelper(user);
+        List<WorkDto> workDtoList = new ArrayList<>();
+        for (Work work : byHelper) {
+            workDtoList.add(new WorkDto(work));
+        }
+        return workDtoList;
+    }
+
+    public List<WorkDto> getWorkListByCustomer (Long customerId) {
+        User user = userRepository.findById(customerId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        List<Work> byHelper = workRepository.findByCustomer(user);
+        List<WorkDto> workDtoList = new ArrayList<>();
+        for (Work work : byHelper) {
+            workDtoList.add(new WorkDto(work));
+        }
+        return workDtoList;
+    }
+
 }

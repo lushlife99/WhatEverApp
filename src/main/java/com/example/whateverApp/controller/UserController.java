@@ -37,8 +37,8 @@ public class UserController {
     }
 
     @GetMapping("/userInfo")
-    public UserDto getUserInfo(HttpServletRequest request) throws IOException {
-        return userService.getUserInfo(request);
+    public UserDto getMyInfo(HttpServletRequest request) throws IOException {
+        return userService.getMyInfo(request);
     }
 
     @PutMapping("/userLocation")
@@ -51,5 +51,12 @@ public class UserController {
         userService.updateNotificationToken(token, request);
         return ResponseEntity.ok().build();
     }
+
+    @GetMapping("/user/{userId}")
+    public UserDto getUserInfo(@PathVariable Long userId) throws IOException {
+        return userService.getUserInfo(userId);
+    }
+
+
 
 }

@@ -20,7 +20,6 @@ public class WhatEverAppApplication {
     }
 
     public static void main(String[] args) {
-        System.out.println(LocalDateTime.now());
         SpringApplication.run(WhatEverAppApplication.class, args);
     }
 

@@ -81,4 +81,14 @@ public class WorkController {
     public void setRating(@PathVariable Long workId, @RequestBody @Validated Review review, HttpServletRequest request){
         workService.setRating(workId, review, request);
     }
+
+    @GetMapping("/workList/byHelper/{helperId}")
+    public List<WorkDto> getWorkListByHelper(@PathVariable Long helperId){
+        return workService.getWorkListByHelper(helperId);
+    }
+
+    @GetMapping("/workList/byCustomer/{customerId}")
+    public List<WorkDto> getWorkListByCustomer(@PathVariable Long customerId) {
+        return workService.getWorkListByCustomer(customerId);
+    }
 }
