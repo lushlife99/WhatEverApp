@@ -154,7 +154,7 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
-    public void setConversationSeenCount(HttpServletRequest request, String conversationId){
+    public List<ConversationDto> setConversationSeenCount(HttpServletRequest request, String conversationId){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
@@ -164,26 +164,28 @@ public class ConversationImpl implements ConversationService {
             conversation.setSeenCountByParticipator(conversation.getChatList().size());
         } else throw new CustomException(ErrorCode.BAD_REQUEST);
 
+        return sendTotalSeenCount(user);
     }
 
-    public int sendTotalSeenCount(User user){
-        Optional<List<Conversation>> createdConv = conversationRepository.findByCreatorId(user.getId());
-        Optional<List<Conversation>> participatedConv = conversationRepository.findByParticipantId(user.getId());
+    public List<ConversationDto> sendTotalSeenCount(User user){
+        List<Conversation> list = conversationRepository.findAll().stream()
+                .filter(c -> c.getFinished().equals(Boolean.FALSE))
+                .filter(c -> c.getCreatorId().equals(user.getId()) || c.getParticipantId().equals(user.getId())).toList();
+
+        List<ConversationDto> convDtoList = new ArrayList<>();
         int totalSeenCount = 0;
-        if(createdConv.isPresent()){
-            List<Conversation> conversationList = createdConv.get();
-            for (Conversation conversation : conversationList) {
+        for (Conversation conversation : list) {
+            if(conversation.getCreatorId().equals(user.getId()))
                 totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByCreator();
-            }
-        }
 
-        if(participatedConv.isPresent()){
-            List<Conversation> conversationList = participatedConv.get();
-            for (Conversation conversation : conversationList) {
-                totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByParticipator();
-            }
+            else totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByParticipator();
         }
+        for (Conversation conversation : list)
+            convDtoList.add(new ConversationDto(conversation));
 
-        return totalSeenCount;
+        simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
+        return convDtoList;
     }
 }
+
+

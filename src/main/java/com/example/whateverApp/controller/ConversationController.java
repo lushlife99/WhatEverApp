@@ -70,5 +70,10 @@ public class ConversationController {
         simpMessagingTemplate.convertAndSend("/queue/"+participantId, new ConversationDto(conversationService.openAndMessage(request, participantId,workDto)));
     }
 
+    @PostMapping("/api/conversation/seen/{conversationId}")
+    public List<ConversationDto> setSeenConversationCount(@PathVariable String conversationId, HttpServletRequest request){
+        return conversationService.setConversationSeenCount(request, conversationId);
+    }
+
 
 }

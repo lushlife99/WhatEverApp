@@ -23,9 +23,6 @@ import java.util.List;
 public class AlarmService {
 
     private final AlarmRepository alarmRepository;
-    private final UserRepository userRepository;
-    private final LocationServiceImpl locationService;
-    private final FirebaseCloudMessageService fcmService;
     private final JwtTokenProvider jwtTokenProvider;
 
 
