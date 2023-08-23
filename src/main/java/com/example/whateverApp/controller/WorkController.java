@@ -5,6 +5,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.service.WorkServiceImpl;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.validation.annotation.Validated;
@@ -21,7 +22,7 @@ public class WorkController {
     private final WorkServiceImpl workService;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws IOException {
+    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws FirebaseMessagingException {
         return new WorkDto(workService.create(workDto, request));
     }
 
@@ -46,7 +47,7 @@ public class WorkController {
     }
 
     @PutMapping("/work")
-    public WorkDto updateWork(@RequestBody WorkDto workDto) throws IOException {
+    public WorkDto updateWork(@RequestBody WorkDto workDto) throws FirebaseMessagingException {
         return workService.update(workDto);
     }
 

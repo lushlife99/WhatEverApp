@@ -20,11 +20,8 @@ import com.example.whateverApp.repository.mongoRepository.HelperLocationReposito
 import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
-import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -36,15 +33,13 @@ public class WorkServiceImpl implements WorkService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final HelperLocationRepository helperLocationRepository;
-    private final AlarmService alarmService;
-    private final FirebaseCloudMessageService firebaseCloudMessageService;
     private final ConversationRepository conversationRepository;
     private final LocationServiceImpl locationService;
     private final ReviewRepository reviewRepository;
     private final UserServiceImpl userService;
     private static final double EARTH_RADIUS = 6371;
 
-    public Work create(WorkDto workDto, HttpServletRequest request) throws IOException {
+    public Work create(WorkDto workDto, HttpServletRequest request){
         Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -54,7 +49,7 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
-    public WorkDto update(WorkDto workDto) throws IOException {
+    public WorkDto update(WorkDto workDto) {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.updateWork(workDto);

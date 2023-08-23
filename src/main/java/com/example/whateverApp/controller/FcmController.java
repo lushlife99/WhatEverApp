@@ -3,6 +3,7 @@ package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
+import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
@@ -23,7 +24,7 @@ public class FcmController {
     }
 
     @PostMapping("/api/fcm/sendNearbyHelper")
-    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws IOException {
+    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws FirebaseMessagingException, IOException {
         System.out.println("FcmController.sendNearbyHelper");
         firebaseCloudMessageService.sendNearByHelper(workDto);
     }
