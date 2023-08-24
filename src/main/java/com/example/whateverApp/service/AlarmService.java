@@ -12,6 +12,7 @@ import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
 
 import java.io.IOException;
 import java.util.ArrayList;
@@ -30,7 +31,12 @@ public class AlarmService {
 
     public List<Alarm> getAlarms(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        List<Alarm> alarmList = user.getAlarmList();
+        for (Alarm alarm : alarmList) {
+            alarm.setSeen(true);
+        }
 
+        alarmRepository.saveAll(alarmList);
         return user.getAlarmList();
     }
 
@@ -49,4 +55,17 @@ public class AlarmService {
 
         alarmRepository.saveAll(list);
     }
+
+    public int getSeenCount(HttpServletRequest request) {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        List<Alarm> alarmList = user.getAlarmList();
+        int totalCount = 0;
+        for (Alarm alarm : alarmList) {
+            if(alarm.getSeen().equals(Boolean.FALSE))
+                totalCount++;
+        }
+
+        return totalCount;
+    }
+
 }

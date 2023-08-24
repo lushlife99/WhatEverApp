@@ -71,8 +71,13 @@ public class ConversationController {
     }
 
     @PostMapping("/api/conversation/seen/{conversationId}")
-    public List<ConversationDto> setSeenConversationCount(@PathVariable String conversationId, HttpServletRequest request){
+    public ConversationDto setSeenConversationCount(@PathVariable String conversationId, HttpServletRequest request){
         return conversationService.setConversationSeenCount(request, conversationId);
+    }
+
+    @GetMapping("/api/conversation/seen")
+    public int getSeenCount(HttpServletRequest request){
+        return conversationService.sendTotalSeenCount(request);
     }
 
 

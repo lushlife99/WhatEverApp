@@ -1,6 +1,7 @@
 package com.example.whateverApp.controller;
 
 
+import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Review;
@@ -76,11 +77,6 @@ public class WorkController {
     @PutMapping("/work/success/{workId}")
     public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) {
         return workService.successWork(location, workId, request);
-    }
-
-    @PutMapping("/work/setRating/{workId}")
-    public void setRating(@PathVariable Long workId, @RequestBody @Validated Review review, HttpServletRequest request){
-        workService.setRating(workId, review, request);
     }
 
     @GetMapping("/workList/byHelper/{helperId}")

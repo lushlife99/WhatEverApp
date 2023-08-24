@@ -99,8 +99,8 @@ public class FirebaseCloudMessageService {
                     .user(user)
                     .title(title)
                     .body(body)
+                    .seen(false)
                     .build();
-
             list.add(alarm);
         }
         alarmRepository.saveAll(list);

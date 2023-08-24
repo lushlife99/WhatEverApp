@@ -4,10 +4,7 @@ import com.example.whateverApp.model.entity.Alarm;
 import com.example.whateverApp.service.AlarmService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
@@ -27,4 +24,10 @@ public class AlarmController {
     public void setSeenTrue(HttpServletRequest request){
         alarmService.setSeenTrue(request);
     }
+
+    @GetMapping("/seenCount")
+    public int getSeenCount(HttpServletRequest request){
+        return alarmService.getSeenCount(request);
+    }
+
 }

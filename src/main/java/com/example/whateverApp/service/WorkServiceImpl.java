@@ -1,6 +1,7 @@
 package com.example.whateverApp.service;
 
 
+import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -220,21 +221,6 @@ public class WorkServiceImpl implements WorkService {
         }
 
         return resultAroundWorkList;
-    }
-
-    public void setRating(Long workId, Review review, HttpServletRequest request){
-
-        User customer = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-        if(!work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED) || !work.getCustomer().equals(customer))
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-
-        if(reviewRepository.findByWork(work).isPresent())
-            throw new CustomException(ErrorCode.DUPLICATE_REVIEW);
-
-        review.setWork(work);
-        review.setUser(work.getHelper());
-        reviewRepository.save(review);
     }
 
     public List<WorkDto> getWorkListByHelper(Long helperId) {

@@ -28,8 +28,7 @@ public class Alarm {
     @JsonIgnore
     private User user;
 
-
-    private Boolean seen = false;
+    private Boolean seen;
 
     @CreationTimestamp
     private LocalDateTime createdTime;

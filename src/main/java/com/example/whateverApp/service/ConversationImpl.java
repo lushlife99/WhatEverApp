@@ -154,7 +154,7 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
-    public List<ConversationDto> setConversationSeenCount(HttpServletRequest request, String conversationId){
+    public ConversationDto setConversationSeenCount(HttpServletRequest request, String conversationId){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
@@ -164,10 +164,13 @@ public class ConversationImpl implements ConversationService {
             conversation.setSeenCountByParticipator(conversation.getChatList().size());
         } else throw new CustomException(ErrorCode.BAD_REQUEST);
 
-        return sendTotalSeenCount(user);
+        conversationRepository.save(conversation);
+        sendTotalSeenCount(request);
+        return new ConversationDto(conversation);
     }
 
-    public List<ConversationDto> sendTotalSeenCount(User user){
+    public int sendTotalSeenCount(HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         List<Conversation> list = conversationRepository.findAll().stream()
                 .filter(c -> c.getFinished().equals(Boolean.FALSE))
                 .filter(c -> c.getCreatorId().equals(user.getId()) || c.getParticipantId().equals(user.getId())).toList();
@@ -184,8 +187,10 @@ public class ConversationImpl implements ConversationService {
             convDtoList.add(new ConversationDto(conversation));
 
         simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
-        return convDtoList;
+        return totalSeenCount;
     }
+
+
 }
 
 

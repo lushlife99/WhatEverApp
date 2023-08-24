@@ -27,6 +27,8 @@ public class ConversationDto {
     private List<Chat> chatList = new ArrayList<>();
     private LocalDateTime updatedAt;
     private Boolean finished;
+    private int seenCountByCreator;
+    private int seenCountByParticipator;
 
     public ConversationDto(Conversation conversation){
         this._id = conversation.get_id();
@@ -38,5 +40,7 @@ public class ConversationDto {
         this.chatList = conversation.getChatList();
         this.updatedAt = conversation.getUpdatedAt();
         this.finished = conversation.getFinished();
+        this.seenCountByCreator = conversation.getSeenCountByCreator();
+        this.seenCountByParticipator = conversation.getSeenCountByParticipator();
     }
 }
