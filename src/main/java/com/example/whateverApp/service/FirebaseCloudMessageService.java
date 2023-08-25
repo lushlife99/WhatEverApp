@@ -4,10 +4,12 @@ import com.example.whateverApp.dto.FcmMessage;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Alarm;
+import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.AlarmRepository;
@@ -44,7 +46,7 @@ public class FirebaseCloudMessageService {
     private final ObjectMapper objectMapper;
     private final UserRepository userRepository;
     private final ConversationRepository conversationRepository;
-    private final AlarmRepository alarmRepository;
+    private final AlarmService alarmService;
     private final LocationServiceImpl locationService;
     private final WorkRepository workRepository;
 
@@ -66,17 +68,7 @@ public class FirebaseCloudMessageService {
                 .build();
 
         Response response = client.newCall(request).execute();
-        if(response.isSuccessful()){
-            Alarm alarm = Alarm.builder()
-                    .user(user)
-                    .title(title)
-                    .body(body)
-                    .build();
-
-            alarmRepository.save(alarm);
-        }
-
-        System.out.println(response.body().string());
+        log.info(response.body().string());
     }
 
     public void sendNearByHelper(WorkDto workDto) throws FirebaseMessagingException, IOException {
@@ -93,18 +85,9 @@ public class FirebaseCloudMessageService {
         aroundHelperList.remove(work.getCustomer());
 
         sendMessageGroup(aroundHelperList, title, body);
-        List<Alarm> list = new ArrayList<>();
-        for (User user : aroundHelperList) {
-            Alarm alarm = Alarm.builder()
-                    .user(user)
-                    .title(title)
-                    .body(body)
-                    .seen(false)
-                    .build();
-            list.add(alarm);
-        }
-        alarmRepository.saveAll(list);
+        alarmService.sendGroup(aroundHelperList, title, body);
     }
+
 
     public String sendGroupTest(List<User> userList, String title, String body) throws FirebaseMessagingException, IOException {
         List<String> strings = new ArrayList<>();
@@ -146,6 +129,9 @@ public class FirebaseCloudMessageService {
 
 
     public void sendMessageGroup(List<User> userList, String title, String body) throws FirebaseMessagingException {
+        if(userList.size() == 0)
+            return;
+
         List<String> strings = new ArrayList<>();
         for (User user : userList) {
             strings.add(user.getNotificationToken());
@@ -185,6 +171,30 @@ public class FirebaseCloudMessageService {
             findUser = userRepository.findById(conversation.getParticipantId()).get();
 
         sendMessageTo(findUser, title, body);
+    }
+
+    public void sendWorkProceeding(Work work, User user) throws IOException {
+        String title = "";
+        String body = "";
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED)){
+            title = "심부름이 수락되었습니다. 진행상황을 확인해보세요";
+            body = "심부름 정보 : " + work.getTitle();
+        } else if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED)){
+            title = "헬퍼가 심부름을 완료했어요. 심부름 완료 상태를 확인해주세요";
+            body = "심부름 정보 : " + work.getTitle();
+        } else if(work.getProceedingStatus().equals(WorkProceedingStatus.PAYED_REWORD)){
+            title = "심부름완료가 확인되었어요. 심부름비가 전송되었습니다.";
+            body = "심부름비 : "+ work.getReward();
+        }
+        sendMessageTo(user, title, body);
+        alarmService.send(user, title, body);
+    }
+    public void sendReviewUpload(Review review) throws IOException {
+        String title = "리뷰가 등록되었어요";
+        String body = "별점 : "+ review.getRating();
+
+        sendMessageTo(review.getUser(), title, body);
+        alarmService.send(review.getUser(), title, body);
     }
 
     private String makeMessage(String targetToken, String title, String body) throws JsonProcessingException {

@@ -16,7 +16,7 @@ import java.time.LocalDateTime;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-public class Alarm {
+public class Alarm implements Cloneable {
 
     @Id @GeneratedValue
     private Long id;
@@ -33,4 +33,8 @@ public class Alarm {
     @CreationTimestamp
     private LocalDateTime createdTime;
 
+    @Override
+    public Alarm clone() throws CloneNotSupportedException {
+        return (Alarm) super.clone();
+    }
 }

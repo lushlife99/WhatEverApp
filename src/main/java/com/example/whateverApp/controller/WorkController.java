@@ -32,7 +32,7 @@ public class WorkController {
      * 이거 상태코드 내려주는거 따로 공부해서 수정하기. 만약 일이 진행중이라면 상태코드 잘 내려주기 ㅇㅇ.
      */
     @PutMapping("/work/matching/{conversationId}")
-    public WorkDto matchWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request){
+    public WorkDto matchWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request) throws IOException {
         return new WorkDto(workService.matchingHelper(workDto, conversationId, request));
     }
 
@@ -69,13 +69,13 @@ public class WorkController {
     }
 
     @PutMapping("/work/finish/{workId}")
-    public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) {
+    public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) throws IOException {
         System.out.println("WorkController.finishWork");
         return workService.letFinish(workId, request);
     }
 
     @PutMapping("/work/success/{workId}")
-    public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) {
+    public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) throws IOException {
         return workService.successWork(location, workId, request);
     }
 

@@ -23,6 +23,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -35,8 +37,7 @@ public class WorkServiceImpl implements WorkService {
     private final UserRepository userRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final ConversationRepository conversationRepository;
-    private final LocationServiceImpl locationService;
-    private final ReviewRepository reviewRepository;
+    private final FirebaseCloudMessageService fcmService;
     private final UserServiceImpl userService;
     private static final double EARTH_RADIUS = 6371;
 
@@ -67,7 +68,7 @@ public class WorkServiceImpl implements WorkService {
      */
 
     @Transactional
-    public Work matchingHelper(WorkDto workDto, String conversationId, HttpServletRequest request) {
+    public Work matchingHelper(WorkDto workDto, String conversationId, HttpServletRequest request) throws IOException {
         User requestUser = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
 
@@ -87,6 +88,7 @@ public class WorkServiceImpl implements WorkService {
         work.setProceedingStatus(WorkProceedingStatus.STARTED);
         conversationRepository.save(conversation);
 
+
         if(work.getDeadLineTime() == 1){
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
@@ -96,6 +98,7 @@ public class WorkServiceImpl implements WorkService {
             userService.setAvgReactTime(work, conversation);
         }
 
+        fcmService.sendWorkProceeding(work, helper);
         return workRepository.save(work);
 
     }
@@ -150,7 +153,7 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Transactional
-    public WorkDto successWork(Location location, Long workId, HttpServletRequest request) {
+    public WorkDto successWork(Location location, Long workId, HttpServletRequest request) throws IOException {
 
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -163,12 +166,13 @@ public class WorkServiceImpl implements WorkService {
             throw new CustomException(ErrorCode.INVALID_LOCATION);
 
         work.setProceedingStatus(WorkProceedingStatus.FINISHED);
+        fcmService.sendWorkProceeding(work, work.getCustomer());
 
         return new WorkDto(work);
     }
 
     @Override
-    public WorkDto letFinish(Long workId, HttpServletRequest request) {
+    public WorkDto letFinish(Long workId, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         Conversation conversation = conversationRepository.findByWorkId(workId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -177,10 +181,9 @@ public class WorkServiceImpl implements WorkService {
         if(user.getId().equals(work.getCustomer().getId())){
             work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
             work.setFinishedAt(LocalDateTime.now());
+            fcmService.sendWorkProceeding(work, work.getHelper());
             return new WorkDto(workRepository.save(work));
         }
-
-
         else throw new CustomException(ErrorCode.BAD_REQUEST);
     }
 

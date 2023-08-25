@@ -8,6 +8,7 @@ import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -28,7 +29,7 @@ public class ReviewController {
     }
 
     @PostMapping("/{workId}")
-    public void setRating(@PathVariable Long workId, @RequestBody @Validated ReviewDto reviewDto, HttpServletRequest request){
+    public void setRating(@PathVariable Long workId, @RequestBody @Validated ReviewDto reviewDto, HttpServletRequest request) throws IOException {
         reviewService.setRating(workId, reviewDto, request);
     }
 

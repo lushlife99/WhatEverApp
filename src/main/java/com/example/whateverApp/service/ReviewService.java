@@ -15,6 +15,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -26,6 +27,7 @@ public class ReviewService {
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
     private final WorkRepository workRepository;
+    private final FirebaseCloudMessageService fcmService;
 
     public List<ReviewDto> getReviewList(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -52,7 +54,7 @@ public class ReviewService {
         return reviewDtos;
     }
 
-    public void setRating(Long workId, ReviewDto reviewDto, HttpServletRequest request){
+    public void setRating(Long workId, ReviewDto reviewDto, HttpServletRequest request) throws IOException {
         User customer = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
@@ -66,6 +68,8 @@ public class ReviewService {
         review.updateReview(reviewDto);
         review.setUser(customer);
         review.setWork(work);
+
+        fcmService.sendReviewUpload(review);
         reviewRepository.save(review);
     }
 

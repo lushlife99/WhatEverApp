@@ -26,15 +26,9 @@ public class AlarmService {
     private final AlarmRepository alarmRepository;
     private final JwtTokenProvider jwtTokenProvider;
 
-
-
-
     public List<Alarm> getAlarms(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         List<Alarm> alarmList = user.getAlarmList();
-        for (Alarm alarm : alarmList) {
-            alarm.setSeen(true);
-        }
 
         alarmRepository.saveAll(alarmList);
         return user.getAlarmList();
@@ -68,4 +62,22 @@ public class AlarmService {
         return totalCount;
     }
 
+    public Alarm send(User user, String title, String body){
+        Alarm alarm = Alarm.builder().title(title).body(body).seen(Boolean.FALSE).user(user).build();
+        return alarmRepository.save(alarm);
+    }
+
+    public List<Alarm> sendGroup(List<User> userList, String title, String body) {
+        List<Alarm> list = new ArrayList<>();
+        for (User user : userList) {
+            Alarm alarm = Alarm.builder()
+                    .user(user)
+                    .title(title)
+                    .body(body)
+                    .seen(false)
+                    .build();
+            list.add(alarm);
+        }
+        return alarmRepository.saveAll(list);
+    }
 }

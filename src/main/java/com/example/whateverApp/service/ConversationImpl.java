@@ -96,11 +96,7 @@ public class ConversationImpl implements ConversationService {
 
 
     @Override
-    @Transactional
     public Conversation sendWork(String conversationId, WorkDto workDto, String jwtToken) throws JsonProcessingException {
-
-        Work work = workRepository.findById(workDto.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -112,9 +108,11 @@ public class ConversationImpl implements ConversationService {
                 .receiverName(conversation.getParticipatorName())
                 .build();
 
-        conversation.updateChat(chat);
-        chatRepository.save(chat);
-        return conversationRepository.save(conversation);
+        conversation = updateConv(conversation, chat, "Work");
+
+        User user = userRepository.findById(conversation.getParticipantId()).orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
+        sendTotalSeenCount(user);
+        return conversation;
     }
 
     public List<ConversationDto> getConversations(HttpServletRequest request){
@@ -134,24 +132,70 @@ public class ConversationImpl implements ConversationService {
     @Override
     public Conversation sendChatting(Chat chat, String conversationId, String jwtToken) {
 
+        User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        chat.setMessageType("Chat");
-        conversation.updateChat(chat);
-        chatRepository.save(chat);
 
-        return conversationRepository.save(conversation);
+        conversation = updateConv(conversation, chat, "Chat");
+
+        Long receiverId  = 0L;
+        if(conversation.getCreatorId().equals(requestUser.getId()))
+            receiverId = conversation.getParticipantId();
+
+        else receiverId = conversation.getCreatorId();
+
+        User user = userRepository.findById(receiverId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        sendTotalSeenCount(user);
+        return conversation;
+
+    }
+
+    /**
+     * 테스트 끝나면 지우기
+     * @param chat
+     * @param conversationId
+     * @return
+     */
+    public Conversation sendChatting1(Chat chat, String conversationId, HttpServletRequest request) {
+
+        User requestUser = jwtTokenProvider.getUser(request).get();
+
+        Conversation conversation = conversationRepository.findById(conversationId).
+                orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        conversation = updateConv(conversation, chat, "Chat");
+
+        Long receiverId  = 0L;
+        if(conversation.getCreatorId().equals(requestUser.getId()))
+            receiverId = conversation.getParticipantId();
+
+        else receiverId = conversation.getCreatorId();
+
+        User user = userRepository.findById(receiverId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        sendTotalSeenCount(user);
+        return conversation;
 
     }
 
     public Conversation sendCard(Chat chat, String conversationId, String jwtToken){
 
-        Conversation conversation = conversationRepository.findById(conversationId)
-                .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        chat.setMessageType("Card");
-        conversation.updateChat(chat);
-        chatRepository.save(chat);
-        return conversationRepository.save(conversation);
+        User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Conversation conversation = conversationRepository.findById(conversationId).
+                orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        conversation = updateConv(conversation, chat, "Card");
+
+        Long receiverId  = 0L;
+        if(conversation.getCreatorId().equals(requestUser.getId()))
+            receiverId = conversation.getParticipantId();
+
+        else receiverId = conversation.getCreatorId();
+
+        User user = userRepository.findById(receiverId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        sendTotalSeenCount(user);
+        return conversation;
     }
 
     public ConversationDto setConversationSeenCount(HttpServletRequest request, String conversationId){
@@ -168,6 +212,8 @@ public class ConversationImpl implements ConversationService {
         sendTotalSeenCount(request);
         return new ConversationDto(conversation);
     }
+
+
 
     public int sendTotalSeenCount(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -188,6 +234,34 @@ public class ConversationImpl implements ConversationService {
 
         simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
         return totalSeenCount;
+    }
+
+    public int sendTotalSeenCount(User user){
+        List<Conversation> list = conversationRepository.findAll().stream()
+                .filter(c -> c.getFinished().equals(Boolean.FALSE))
+                .filter(c -> c.getCreatorId().equals(user.getId()) || c.getParticipantId().equals(user.getId())).toList();
+
+        List<ConversationDto> convDtoList = new ArrayList<>();
+        int totalSeenCount = 0;
+        for (Conversation conversation : list) {
+            if(conversation.getCreatorId().equals(user.getId()))
+                totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByCreator();
+
+            else totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByParticipator();
+        }
+        for (Conversation conversation : list)
+            convDtoList.add(new ConversationDto(conversation));
+
+        simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
+        return totalSeenCount;
+    }
+
+    @Transactional
+    public Conversation updateConv(Conversation conversation, Chat chat, String messageType){
+        chat.setMessageType(messageType);
+        conversation.updateChat(chat);
+        chatRepository.save(chat);
+        return conversationRepository.save(conversation);
     }
 
 

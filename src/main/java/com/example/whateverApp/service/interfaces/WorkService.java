@@ -16,5 +16,5 @@ public interface WorkService {
     WorkDto update(WorkDto workDto) throws IOException, FirebaseMessagingException;
     List<WorkDto> delete(Long workId, HttpServletRequest request);
     WorkDto get(Long id, HttpServletRequest request);
-    WorkDto letFinish(Long workId, HttpServletRequest request);
+    WorkDto letFinish(Long workId, HttpServletRequest request) throws IOException;
 }
