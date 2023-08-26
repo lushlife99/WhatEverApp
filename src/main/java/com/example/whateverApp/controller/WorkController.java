@@ -48,7 +48,7 @@ public class WorkController {
     }
 
     @PutMapping("/work")
-    public WorkDto updateWork(@RequestBody WorkDto workDto) throws FirebaseMessagingException {
+    public WorkDto updateWork(@RequestBody WorkDto workDto)  {
         return workService.update(workDto);
     }
 

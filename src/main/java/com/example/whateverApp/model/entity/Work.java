@@ -66,6 +66,9 @@ public class Work {
 
     private LocalDateTime finishedAt;
 
+    @OneToOne
+    @JoinColumn(name = "paymentsInfoId")
+    private PaymentsInfo paymentsInfo;
 
 
     public Work updateWork(WorkDto workDto){

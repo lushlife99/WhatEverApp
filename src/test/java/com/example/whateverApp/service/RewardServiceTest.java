@@ -10,10 +10,10 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 @ExtendWith(MockitoExtension.class)
-class PaymentServiceTest {
+class RewardServiceTest {
 
     @InjectMocks
-    private PaymentService paymentService;
+    private RewardService rewardService;
 
     @Mock
     private UserRepository userRepository;

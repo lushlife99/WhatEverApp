@@ -1,7 +1,5 @@
 package com.example.whateverApp.service;
 
-
-import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -10,10 +8,8 @@ import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
-import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.jpaRepository.ReviewRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
@@ -179,7 +175,7 @@ public class WorkServiceImpl implements WorkService {
         conversation.setFinished(true);
         conversationRepository.save(conversation);
         if(user.getId().equals(work.getCustomer().getId())){
-            work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
+            work.setProceedingStatus(WorkProceedingStatus.REWARDED);
             work.setFinishedAt(LocalDateTime.now());
             fcmService.sendWorkProceeding(work, work.getHelper());
             return new WorkDto(workRepository.save(work));
@@ -244,6 +240,10 @@ public class WorkServiceImpl implements WorkService {
             workDtoList.add(new WorkDto(work));
         }
         return workDtoList;
+    }
+
+    public Work get(Long workId){
+        return workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
     }
 
 

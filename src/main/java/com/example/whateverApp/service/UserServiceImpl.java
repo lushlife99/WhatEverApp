@@ -68,6 +68,14 @@ public class UserServiceImpl implements UserService {
         return new UserDto(userRepository.save(user));
     }
 
+    public User get(Long userId){
+        return userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    public User get(String userId){
+        return userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
     @Override
     public UserDto getMyInfo(HttpServletRequest request) throws MalformedURLException, IOException{
         User findUser = jwtTokenProvider.getUser(request)

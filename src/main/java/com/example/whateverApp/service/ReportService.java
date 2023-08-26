@@ -16,6 +16,8 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @RequiredArgsConstructor
 public class ReportService {
@@ -45,6 +47,17 @@ public class ReportService {
         reportRepository.save(report);
         return reportDto;
     }
+
+    public List<Report> findNotFinishedReportList(){
+        return reportRepository.findAll().stream().filter(report -> {
+            return !report.isFinished();
+        }).toList();
+    }
+
+    public Report get(Long reportId){
+        return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+    }
+
 
 
 }

@@ -182,10 +182,12 @@ public class FirebaseCloudMessageService {
         } else if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED)){
             title = "헬퍼가 심부름을 완료했어요. 심부름 완료 상태를 확인해주세요";
             body = "심부름 정보 : " + work.getTitle();
-        } else if(work.getProceedingStatus().equals(WorkProceedingStatus.PAYED_REWORD)){
-            title = "심부름완료가 확인되었어요. 심부름비가 전송되었습니다.";
+        } else if(work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED)){
+            title = "심부름 검토가 완료되었어요. 심부름비가 전송되었습니다.";
             body = "심부름비 : "+ work.getReward();
         }
+        else return;
+
         sendMessageTo(user, title, body);
         alarmService.send(user, title, body);
     }

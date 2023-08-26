@@ -58,7 +58,7 @@ public class ReviewService {
         User customer = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        if(!work.getProceedingStatus().equals(WorkProceedingStatus.PAYED_REWORD) || !work.getCustomer().getId().equals(customer.getId()))
+        if(!work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED) || !work.getCustomer().getId().equals(customer.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
         if(reviewRepository.findByWork(work).isPresent())
@@ -72,5 +72,4 @@ public class ReviewService {
         fcmService.sendReviewUpload(review);
         reviewRepository.save(review);
     }
-
 }

@@ -30,12 +30,11 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ReportRepository reportRepository;
+    private final ReportService reportService;
     private final AuthenticationManager authenticationManagerBuilder;
+    private final ReportRepository reportRepository;
     public List<ReportDto> getReportList(){
-        List<Report> list = reportRepository.findAll().stream().filter(report -> {
-            return !report.isFinished();
-        }).toList();
+        List<Report> list = reportService.findNotFinishedReportList();
 
         List<ReportDto> reportDtoList = new ArrayList<>();
         for (Report report : list) {
@@ -49,8 +48,7 @@ public class AdminService {
         if(reportDto.isFinished())
             throw new CustomException(ErrorCode.ALREADY_EXECUTED_REPORT);
 
-        Report report = reportRepository.findById(reportDto.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+        Report report = reportService.get(reportDto.getId());
 
         if(reportDto.isReasonable()){
             report = report.updateReport(reportDto);
@@ -68,7 +66,7 @@ public class AdminService {
             /**
              * 돈 이동하게 만들기. ㅇㅇ
              */
-            work.setProceedingStatus(WorkProceedingStatus.PAYED_REWORD);
+            work.setProceedingStatus(WorkProceedingStatus.REWARDED);
         }
 
         report.setFinished(true);
@@ -77,8 +75,7 @@ public class AdminService {
     }
 
     public ReportDto transformDto(Report report){
-        return ReportDto.builder()//.conversation(conversationRepository.findById(report.getConversationId()).get())
-                        //.orElseThrow(()->new CustomException(ErrorCode.CONVERSATION_NOT_FOUND)))
+        return ReportDto.builder()
                 .work(new WorkDto(report.getWork()))
                 .user(new UserDto(report.getUser()))
                 .id(report.getId())
