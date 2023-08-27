@@ -3,15 +3,17 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
+import com.example.whateverApp.service.RewardService;
 import com.google.firebase.messaging.FirebaseMessagingException;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.ui.Model;
+import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Enumeration;
+import java.util.Iterator;
 import java.util.List;
 
 @RestController
@@ -20,6 +22,7 @@ public class TestController {
 
     private final UserRepository userRepository;
     private final FirebaseCloudMessageService firebaseCloudMessageService;
+    private final RewardService rewardService;
     @PostMapping("/test/user")
     public String addUser(@RequestBody User user){
         userRepository.save(user);
@@ -43,6 +46,19 @@ public class TestController {
         return firebaseCloudMessageService.sendGroupTest(userDtos, "title", "body");
     }
 
+    @GetMapping("/transfer")
+    public String transferTest(@RequestParam("amount") int amount, HttpServletRequest request) throws IOException {
+        return rewardService.transfer(amount, request);
+    }
 
+    @PostMapping("/testA")
+    public void testt(HttpServletRequest request){
+        Enumeration<String> headerNames = request.getHeaderNames();
+        while(headerNames.hasMoreElements()){
+            System.out.println(headerNames.nextElement());
 
+        }
+
+        System.out.println("TestController.testt");
+    }
 }

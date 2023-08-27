@@ -17,6 +17,11 @@ import java.util.List;
 import java.util.UUID;
 import java.util.stream.Collectors;
 
+/**
+ * Entity
+ * bankAccount -> 계좌번호. 금융결제원의 오픈 api사용을 허가받는 절차가 지금 현재 상황으론 거의 불가능하므로 테스트용 농협은행 어카운트 계좌를 default로 사용.
+ */
+
 @Data
 @Entity
 @NoArgsConstructor
@@ -32,7 +37,7 @@ public class User implements UserDetails {
     private String name;
     private String introduce;
     private Double rating;
-    private Integer reward;
+    private Integer reward = 10000;
     private Long avgReactTime;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
     private List<Work> purchaseList = new ArrayList<>();
@@ -60,12 +65,14 @@ public class User implements UserDetails {
     private String notificationToken;
 
     private Boolean notification = true;
-
+    private Long bankAccount = 3020000008694L;
+    private Long birthDay = 19990205L;
 
     public User updateUserInfo(UserDto user){
         this.password = user.getPassword();
         this.name = user.getName();
         this.introduce = user.getIntroduce();
+        this.bankAccount = user.getBankAccount();
         return this;
     }
 

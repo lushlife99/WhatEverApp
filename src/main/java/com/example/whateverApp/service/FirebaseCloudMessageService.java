@@ -94,7 +94,6 @@ public class FirebaseCloudMessageService {
         for (User user : userList) {
             strings.add(user.getNotificationToken());
         }
-        String to = UUID.randomUUID().toString();
 
         Base64.Encoder encoder = Base64.getEncoder();
         byte[] photoEncode;
@@ -110,7 +109,7 @@ public class FirebaseCloudMessageService {
                 .addAllTokens(strings)
                 .build();
         BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-        System.out.println("success count = " + response.getSuccessCount());
+        log.info("success count = " + response.getSuccessCount());
         if (response.getFailureCount() > 0) {
             List<SendResponse> responses = response.getResponses();
             List<String> failedTokens = new ArrayList<>();
@@ -121,7 +120,7 @@ public class FirebaseCloudMessageService {
                 }
             }
 
-            System.out.println("List of tokens that caused failures: " + failedTokens);
+            log.info("List of tokens that caused failures: " + failedTokens);
         }
         return "ok";
     }
@@ -142,7 +141,7 @@ public class FirebaseCloudMessageService {
                 .addAllTokens(strings)
                 .build();
         BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-        System.out.println("success count = " + response.getSuccessCount());
+        log.info("success count = " + response.getSuccessCount());
         if (response.getFailureCount() > 0) {
             List<SendResponse> responses = response.getResponses();
             List<String> failedTokens = new ArrayList<>();
@@ -151,7 +150,7 @@ public class FirebaseCloudMessageService {
                     failedTokens.add(strings.get(i));
                 }
             }
-            System.out.println("List of tokens that caused failures: " + failedTokens);
+            log.info("List of tokens that caused failures: " + failedTokens);
         }
     }
 

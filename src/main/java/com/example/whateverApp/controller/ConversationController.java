@@ -11,6 +11,7 @@ import com.example.whateverApp.service.ConversationImpl;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.example.whateverApp.service.interfaces.ConversationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.mongodb.CreateIndexCommitQuorum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import jdk.jfr.MemoryAddress;
@@ -30,11 +31,8 @@ import java.util.Map;
 @CrossOrigin
 public class ConversationController {
 
-    private final WorkServiceImpl workService;
     private final ConversationImpl conversationService;
     private final SimpMessagingTemplate simpMessagingTemplate;
-
-    private final JwtTokenProvider jwtTokenProvider;
 
     @PostMapping("/api/conversation/{participantId}")
     @NotNull
@@ -50,12 +48,14 @@ public class ConversationController {
 
     @MessageMapping("/chat/{conversationId}")
     public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",new ConversationDto(conversationService.sendChatting(chat, conversationId, jwtToken))));
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",conversationService.sendChatting(chat, conversationId, jwtToken)));
+        conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     @MessageMapping("/work/{conversationId}")
     public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken) throws JsonProcessingException{
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",new ConversationDto(conversationService.sendWork(conversationId, workDto, jwtToken))));
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",conversationService.sendWork(conversationId, workDto, jwtToken)));
+        conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     /**
@@ -73,7 +73,8 @@ public class ConversationController {
 
     @MessageMapping("/card/{conversationId}")
     public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
-        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId , new MessageDto("Conversation", new ConversationDto(conversationService.sendCard(chat, conversationId, jwtToken))));
+        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId , new MessageDto("Conversation", conversationService.sendCard(chat, conversationId, jwtToken)));
+        conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     @GetMapping("/api/conversations")
@@ -88,7 +89,9 @@ public class ConversationController {
 
     @PostMapping("/api/conversation/seen/{conversationId}")
     public ConversationDto setSeenConversationCount(@PathVariable String conversationId, HttpServletRequest request){
-        return conversationService.setConversationSeenCount(request, conversationId);
+        ConversationDto conversationDto = conversationService.setConversationSeenCount(request, conversationId);
+        conversationService.sendTotalSeenCount(request);
+        return conversationDto;
     }
 
     @GetMapping("/api/conversation/seen")

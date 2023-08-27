@@ -8,11 +8,20 @@ import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import okhttp3.*;
+import org.json.JSONObject;
+import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.io.CharConversionException;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 @Service
 @RequiredArgsConstructor
@@ -22,6 +31,12 @@ public class RewardService {
     private final UserRepository userRepository;
     private final WorkRepository workRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final ObjectMapper objectMapper;
+    private final String BANK_API_URL = "https://developers.nonghyup.com/ReceivedTransferAccountNumber.nh";
+    private final String accessToken = "5dd9ada786f5df42a9459ab1220c8d46ee377f402f78036d630854146f9b6b8b";
+    private final String FinAcno = "00820100019960000000000015422";
+    private final String iscd = "001996";
+    private int isTuno = 300;
     /**
      * chan
      *
@@ -92,6 +107,71 @@ public class RewardService {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         user.setReward(user.getReward());
+    }
+
+    /**
+     * 230827 chan
+     * transfer method
+     * 금율결제원의 오픈뱅킹 api를 지금 우리 상황에서 쓰려면 거의 불가능에 가까움.
+     * 오픈뱅킹 api를 사용하려면 보안점검을 받아야하고, 받는데만 초기비용이 엄청나게 많이 듦.(천만원 이상)
+     * 테스트용 url은 금융결제원에서 제공하긴 하지만, 애초에 AccessToken을 발급받지 못함.
+     * 그래서 일단 일단 테스트 용도로 농협 api를 이용해서 reward를 출금하는 함수를 만들어놓음.
+     *
+     * 하지만 이 함수가 동작하려면 몇가지 제한사항이 있음.
+     * 1. 고객의 계좌가 농협api에서 등록한 테스트용 가상계좌여야 함.
+     * 2. 고객 계좌의 존재 여부를 파악하지 못함. 정확히는 농협api에서 계좌조회 서비스를 제공하고 있긴 하지만. 이는 테스트용일 뿐이고 배포하려면 똑같이 보안점검을 받아야 하기 때문에 초기비용이 많이 듦.
+     *
+     * 제한사항 1,2를 해결할 수 없음.
+     *
+     * 결론적으로 이 함수의 제한사항.
+     * 위에서 설명한 문제 때문에 고객의 계좌를 농협에서 등록한 테스트용 가상계좌로 고정해놔야 한다.
+     * 그래서 requestBody에 추가되는 Bncd -> 이건 은행 식별번호인데 농협을 가르키는 011로 고정한다.
+     * 고객의 계좌를 농협api 테스트용 가상계좌로 고정한다.
+     *
+     * 나중에 제한사항이 해결된다면 user Entity에 있는 생년월일 정보를 바탕으로 유저의 계좌를 조회해서 송금할 수 있는듯.
+     * 일단 이렇게 송금 테스트함수는 마무리.
+     * @param request
+     */
+    @Transactional
+    public String transfer(int amount, HttpServletRequest request) throws IOException {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(amount > user.getReward())
+            throw new CustomException(ErrorCode.AMOUNT_IS_MORE_THAN_REWARD);
+
+        OkHttpClient client = new OkHttpClient();
+        JSONObject jsonObject2 = new JSONObject();
+        jsonObject2.put("ApiNm", "ReceivedTransferAccountNumber");
+        jsonObject2.put("FintechApsno", "001");
+        jsonObject2.put("Tsymd", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        jsonObject2.put("Trtm", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss")));
+        jsonObject2.put("Iscd", iscd);
+        jsonObject2.put("ApiSvcCd", "DrawingTransferA");
+        jsonObject2.put("IsTuno", Integer.toString(isTuno++));
+        jsonObject2.put("AccessToken", accessToken);
+
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("Header", jsonObject2);
+        jsonObject.put("Bncd", "011");
+        jsonObject.put("Acno", user.getBankAccount());
+        jsonObject.put("Tram", amount);
+        RequestBody requestBody = RequestBody.create(jsonObject.toString(), MediaType.get("application/json; charset=utf-8"));
+        log.info(jsonObject.toString());
+        Request getFinNoRequest = new Request.Builder()
+                .url(BANK_API_URL)
+                .post(requestBody)
+                .build();
+
+        log.info(getFinNoRequest.toString());
+        Response response = client.newCall(getFinNoRequest).execute();
+        String string = response.body().string();
+
+        if(string.contains("정상처리 되었습니다")){
+            user.setReward(user.getReward() - amount);
+        }
+        else throw new CustomException(ErrorCode.TRANSFER_ERROR);
+
+        log.info(string);
+        return string;
     }
 
 

@@ -25,6 +25,7 @@ public class UserDto {
     private Long avgReactTime;
     private Double latitude;
     private Double longitude;
+    private Long bankAccount;
     private String image;
 
     public UserDto(User user){
@@ -35,6 +36,7 @@ public class UserDto {
         rating = user.getRating();
         avgReactTime = user.getAvgReactTime();
         latitude = user.getLatitude();
+        bankAccount = user.getBankAccount();
         longitude = user.getLongitude();
     }
 }
