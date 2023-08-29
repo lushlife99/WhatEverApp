@@ -1,5 +1,6 @@
 package com.example.whateverApp.controller;
 
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
@@ -47,7 +48,7 @@ public class TestController {
     }
 
     @GetMapping("/transfer")
-    public String transferTest(@RequestParam("amount") int amount, HttpServletRequest request) throws IOException {
+    public UserDto transferTest(@RequestParam("amount") int amount, HttpServletRequest request) throws IOException {
         return rewardService.transfer(amount, request);
     }
 

@@ -154,10 +154,19 @@ public class FirebaseCloudMessageService {
         }
     }
 
+    /**
+     * card, work Notification 만들기.
+     * @param conversationId
+     * @throws IOException
+     */
+
     public void chatNotification(String conversationId) throws IOException {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(()-> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         List<Chat> chatList = conversation.getChatList();
+        if(chatList.size() == 0)
+            return;
+
         Chat chat = chatList.get(chatList.size() - 1);
         String title = chat.getSenderName();
         String body = chat.getMessage();

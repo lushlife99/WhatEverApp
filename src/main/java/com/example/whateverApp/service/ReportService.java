@@ -58,6 +58,4 @@ public class ReportService {
         return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
     }
 
-
-
 }

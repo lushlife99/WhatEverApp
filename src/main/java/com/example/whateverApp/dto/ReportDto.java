@@ -17,6 +17,7 @@ public class ReportDto {
     WorkDto work;
     UserDto user;
     String reportReason;
+
     String executeDetail;
     boolean isReasonable;
     boolean isFinished;

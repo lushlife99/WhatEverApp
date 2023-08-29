@@ -1,5 +1,6 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -133,7 +134,7 @@ public class RewardService {
      * @param request
      */
     @Transactional
-    public String transfer(int amount, HttpServletRequest request) throws IOException {
+    public UserDto transfer(int amount, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         if(amount > user.getReward())
             throw new CustomException(ErrorCode.AMOUNT_IS_MORE_THAN_REWARD);
@@ -171,7 +172,7 @@ public class RewardService {
         else throw new CustomException(ErrorCode.TRANSFER_ERROR);
 
         log.info(string);
-        return string;
+        return new UserDto(user);
     }
 
 

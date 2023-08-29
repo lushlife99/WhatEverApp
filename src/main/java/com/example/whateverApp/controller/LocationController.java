@@ -43,7 +43,7 @@ public class LocationController {
      */
 
     @PutMapping("/user")
-    public UserDto setUserLocation(HttpServletRequest request, @Validated Location location){
+    public UserDto setUserLocation(HttpServletRequest request, Location location){
         return locationService.setUserLocation(request, location);
     }
 

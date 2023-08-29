@@ -118,6 +118,7 @@ public class User implements UserDetails {
     public boolean isEnabled() {
         return true;
     }
+
     /**
      * 23.03.11 - chan
      *

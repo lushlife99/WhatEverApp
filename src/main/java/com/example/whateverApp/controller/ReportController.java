@@ -4,10 +4,7 @@ import com.example.whateverApp.dto.ReportDto;
 import com.example.whateverApp.service.ReportService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -20,5 +17,11 @@ public class ReportController {
     public ReportDto createReport(@RequestBody ReportDto reportDto, HttpServletRequest request){
         return reportService.createReport(reportDto, request);
     }
+
+//    @PostMapping("/report/execute")
+//    public ReportDto executeReport(@RequestBody ReportDto reportDto, HttpServletRequest request){
+//
+//    }
+
 
 }

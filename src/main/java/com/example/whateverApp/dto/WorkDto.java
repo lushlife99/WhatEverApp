@@ -33,7 +33,6 @@ public class WorkDto {
     private Double receiveLongitude;
     private Long customerId;
     private Long helperId;
-    private boolean finished;
     private LocalDateTime createdTime;
     private LocalDateTime finishedAt;
     private int workProceedingStatus;
@@ -51,6 +50,8 @@ public class WorkDto {
         this.customerId = work.getCustomer().getId();
         this.deadLineTime = work.getDeadLineTime();
         this.workProceedingStatus = work.getProceedingStatus().ordinal();
+        this.createdTime = work.getCreatedTime();
+        this.finishedAt = work.getFinishedAt();
         try {
             this.helperId = work.getHelper().getId();
             this.createdTime = work.getCreatedTime();

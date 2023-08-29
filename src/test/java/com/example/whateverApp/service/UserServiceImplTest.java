@@ -24,4 +24,5 @@ class UserServiceImplTest {
     public void loginTest() {
         System.out.println("m");
     }
+
 }
