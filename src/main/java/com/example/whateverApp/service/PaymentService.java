@@ -1,5 +1,6 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.entity.PaymentsInfo;
@@ -23,7 +24,7 @@ public class PaymentService {
 
 
     /**
-     * 은행이름에 따른 코드들을 반환해줌<br>
+     * 은행이름에 따른 코드들을 반환해줌
      * KG이니시스 기준.
      */
     public String code(String bankName) {
@@ -77,6 +78,22 @@ public class PaymentService {
                 .build();
 
         paymentRepository.save(paymentsInfo);
+    }
+
+    /**
+     *
+     * 결제 시스템 로직. 현 상황에서 금융결제원 api 사용하지 못하므로 return true가 default.
+     *
+     * 실제로 함수를 구현한다면...
+     * 1. 서버계좌 -> 고객 계좌
+     * 2. 만약 이미 심부름이 검증되어 헬퍼에게 돈이 가버린 상태라면 환불이 안됨.
+     *
+     * 1 -> return true
+     * 2 -> return false
+     */
+    public Boolean refund(Work work){
+
+        return true;
     }
 
 //

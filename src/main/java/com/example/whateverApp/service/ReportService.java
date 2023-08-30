@@ -1,9 +1,13 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.ReportDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.AccountStatus;
+import com.example.whateverApp.model.ReportExecuteCode;
+import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
@@ -12,10 +16,15 @@ import com.example.whateverApp.repository.mongoRepository.ConversationRepository
 import com.example.whateverApp.repository.jpaRepository.ReportRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
+import com.google.firebase.database.core.Repo;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -28,34 +37,65 @@ public class ReportService {
     private final ConversationRepository conversationRepository;
 
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
-        Work work = workRepository.findById(reportDto.getWork().getId()).orElseThrow(() ->
+        Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.WORK_NOT_FOUND));
-        User user = jwtTokenProvider.getUser(request).orElseThrow(()->
+        User reportUser = jwtTokenProvider.getUser(request).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        Conversation conversation = conversationRepository.findByWorkId(reportDto.getWork().getId()).orElseThrow(() ->
+        User reportedUser;
+
+        if(work.getCustomer().getId().equals(reportUser.getId()))
+            reportedUser = work.getHelper();
+        else reportedUser = work.getCustomer();
+
+        Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
 
         Report report = Report.builder().reportReason(reportDto.getReportReason())
                 .conversationId(conversation.get_id())
                 .work(work)
-                .user(user)
-                .isFinished(false)
-                .isReasonable(false)
+                .reportUser(reportUser)
+                .reportedUser(reportedUser)
+                .reportExecuteCode(ReportExecuteCode.BEFORE_EXECUTE)
                 .build();
 
         reportRepository.save(report);
-        return reportDto;
+        return new ReportDto(report);
     }
 
-    public List<Report> findNotFinishedReportList(){
-        return reportRepository.findAll().stream().filter(report -> {
-            return !report.isFinished();
-        }).toList();
+    @Transactional
+    public void deleteReport(Long reportId, HttpServletRequest request){
+        Report report = reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!report.getReportUser().getId().equals(user.getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        reportRepository.deleteById(reportId);
     }
 
-    public Report get(Long reportId){
-        return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+    @Transactional
+    public void modifyReport(ReportDto reportDto, HttpServletRequest request){
+        Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!report.getReportUser().getId().equals(user.getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        report.updateReport(reportDto);
+
+        reportRepository.save(report);
     }
+
+    public List<ReportDto> getMyReportList(HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        List<ReportDto> reportDtoList = new ArrayList<>();
+        for (Report report : user.getReportList())
+            reportDtoList.add(new ReportDto(report));
+
+        return reportDtoList;
+    }
+
+
+
+
 
 }

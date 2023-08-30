@@ -66,7 +66,7 @@ public class ReviewService {
 
         Review review = new Review();
         review.updateReview(reviewDto);
-        review.setUser(customer);
+        review.setUser(work.getHelper());
         review.setWork(work);
 
         fcmService.sendReviewUpload(review);

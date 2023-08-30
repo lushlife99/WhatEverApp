@@ -1,6 +1,7 @@
 package com.example.whateverApp.model.entity;
 
 import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.document.Location;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -11,6 +12,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 import org.springframework.security.core.userdetails.UserDetails;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
@@ -45,8 +47,11 @@ public class User implements UserDetails {
     private List<Work> sellList = new ArrayList<>();
     @OneToMany(mappedBy = "user")
     private List<Alarm> alarmList = new ArrayList<>();
-    @OneToMany(mappedBy = "user")
+    @OneToMany(mappedBy = "reportUser")
     private List<Report> reportList = new ArrayList<>();
+    @OneToMany(mappedBy = "reportedUser")
+    private List<Report> reportedList = new ArrayList<>();
+
     @OneToMany(mappedBy = "user")
     private List<Review> reviewList = new ArrayList<>();
     @OneToMany(mappedBy = "user")
@@ -57,6 +62,8 @@ public class User implements UserDetails {
     @Builder.Default
     private List<String> roles = new ArrayList<>();
 
+    private boolean proceedingWork = false;
+
     private String refreshToken;
 
     private Double latitude = 0.0;
@@ -66,7 +73,13 @@ public class User implements UserDetails {
 
     private Boolean notification = true;
     private Long bankAccount = 3020000008694L;
-    private Long birthDay = 19990205L;
+
+    @Enumerated(EnumType.ORDINAL)
+    private AccountStatus accountStatus;
+    private LocalDateTime accountReleaseTime;
+
+    @OneToOne
+    private Report punishingDetail;
 
     public User updateUserInfo(UserDto user){
         this.password = user.getPassword();
@@ -106,6 +119,9 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
+        if(accountStatus.equals(AccountStatus.BAN))
+            return false;
+
         return true;
     }
 
