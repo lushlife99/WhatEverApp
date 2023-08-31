@@ -26,6 +26,7 @@ public class ReportDto {
     public ReportDto(Report report){
         this.reportTitle = report.getReportTitle();
         this.id = report.getId();
+        this.workId = report.getWork().getId();
         this.conversationId = report.getConversationId();
         this.reportUserId = report.getReportUser().getId();
         this.reportedUserId = report.getReportedUser().getId();
@@ -33,5 +34,4 @@ public class ReportDto {
         this.executeDetail = report.getExecuteDetail();
         this.reportExecuteCode = report.getReportExecuteCode().ordinal();
     }
-
 }

@@ -39,6 +39,7 @@ public class ReportService {
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.WORK_NOT_FOUND));
+
         User reportUser = jwtTokenProvider.getUser(request).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         User reportedUser;
