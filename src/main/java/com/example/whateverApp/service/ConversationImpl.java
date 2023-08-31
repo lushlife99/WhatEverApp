@@ -93,6 +93,19 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
+    public ConversationDto getConversation(String conversationId, HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        if(!conversation.getCreatorId().equals(user.getId()) || !conversation.getParticipantId().equals(user.getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        if(conversation.getFinished())
+            throw new CustomException(ErrorCode.FINISHED_CONVERSATION);
+
+        return new ConversationDto(conversation);
+    }
+
 
     @Override
     @Transactional

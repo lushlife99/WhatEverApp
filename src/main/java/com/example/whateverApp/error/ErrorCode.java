@@ -45,6 +45,7 @@ public enum ErrorCode {
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다"),
     DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
     DUPLICATE_REVIEW(HttpStatus.CONFLICT, "이미 작성한 Review 입니다."),
+    FINISHED_CONVERSATION(HttpStatus.CONFLICT, "심부름이 종료되었기 때문에 대화창도 종료되었어요"),
 
     /* 500 */
     TRANSFER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "송금 오류"),

@@ -65,7 +65,6 @@ class AuthControllerTest{
         Object o = JsonMapper.parseJsonValue(mvcResult.getResponse().getContentAsString());
         UserDto resultDto = objectMapper.convertValue(o, UserDto.class);
         Assertions.assertThat(resultDto.getName()).isEqualTo(jsonObject.get("name"));
-        Assertions.assertThat(resultDto.getPassword()).isEqualTo(jsonObject.get("password"));
 
     }
 

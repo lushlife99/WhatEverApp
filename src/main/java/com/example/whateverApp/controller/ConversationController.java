@@ -99,5 +99,9 @@ public class ConversationController {
         return conversationService.sendTotalSeenCount(request);
     }
 
+    @GetMapping("/api/conversation/{conversationId}")
+    public ConversationDto getConversation(@PathVariable String conversationId, HttpServletRequest request){
+        return conversationService.getConversation(conversationId, request);
+    }
 
 }

@@ -251,7 +251,8 @@ public class AdminService {
     }
 
     public void banUserAccountTest(Long userId){
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException());
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         banUserAccount(user, 30);
+
     }
 }
