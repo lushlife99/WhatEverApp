@@ -55,6 +55,7 @@ public class ReportService {
         Report report = Report.builder().reportReason(reportDto.getReportReason())
                 .conversationId(conversation.get_id())
                 .work(work)
+                .reportTitle(reportDto.getReportTitle())
                 .reportUser(reportUser)
                 .reportedUser(reportedUser)
                 .reportExecuteCode(ReportExecuteCode.BEFORE_EXECUTE)

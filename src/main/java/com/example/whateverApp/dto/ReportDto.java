@@ -7,6 +7,8 @@ import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import lombok.*;
 
+import java.time.LocalDateTime;
+
 @Getter
 @NoArgsConstructor
 @AllArgsConstructor
@@ -21,6 +23,7 @@ public class ReportDto {
     String reportTitle;
     String reportReason;
     String executeDetail;
+    LocalDateTime createdTime;
     int reportExecuteCode;
 
     public ReportDto(Report report){
@@ -33,5 +36,6 @@ public class ReportDto {
         this.reportReason = report.getReportReason();
         this.executeDetail = report.getExecuteDetail();
         this.reportExecuteCode = report.getReportExecuteCode().ordinal();
+        this.createdTime = report.getCreatedTime();
     }
 }
