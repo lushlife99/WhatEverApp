@@ -70,4 +70,10 @@ public class AdminController {
     public void freeAllUser(){
         adminService.freeAllUser();
     }
+
+    @PostMapping("/ban/{userId}")
+    public void banUser(@PathVariable Long userId){
+        adminService.banUserAccountTest(userId);
+    }
+
 }

@@ -249,4 +249,9 @@ public class AdminService {
         if(!byUserId.isPresent())
             userRepository.save(admin);
     }
+
+    public void banUserAccountTest(Long userId){
+        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException());
+        banUserAccount(user, 30);
+    }
 }
