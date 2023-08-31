@@ -60,7 +60,7 @@ public class AdminService {
 
     public Boolean adminCheck(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!user.getRoles().contains("ROLE_ADMIN"))
+        if(!user.getRoles().toString().contains("ROLE_ADMIN"))
             throw new CustomException(ErrorCode.UNAUTHORIZED_ADMIN);
 
         return true;
