@@ -24,40 +24,45 @@ public class AdminController {
         return adminService.login(user, response);
     }
 
-    @GetMapping("/api/admin/conversation/{conversationId}")
+    @GetMapping("/admin/conversation/{conversationId}")
     public ConversationDto getConv(@PathVariable String conversationId, HttpServletRequest request){
         return adminService.getConv(conversationId, request);
     }
 
-    @GetMapping("/api/admin/work/{workId}")
+    @GetMapping("/admin/work/{workId}")
     public WorkDto getWork(@PathVariable Long workId, HttpServletRequest request){
         return adminService.getWork(workId, request);
     }
 
-    @GetMapping("/api/admin/user/{userId}")
+    @GetMapping("/admin/user/{userId}")
     public UserDto getUserInfo(@PathVariable Long userId, HttpServletRequest request){
         return adminService.getUserInfo(userId, request);
     }
 
 
-    @GetMapping("/api/admin/punishReportList/{userId}")
+    @GetMapping("/admin/punishReportList/{userId}")
     public List<ReportDto> userPunishReportList(@PathVariable Long userId, HttpServletRequest request){
         return adminService.getUserPunishList(userId, request);
     }
 
 
-    @PutMapping("/api/admin/report/execute")
+    @PutMapping("/admin/report/execute")
     public ReportDto executeReport(@RequestBody ReportDto reportDto, HttpServletRequest request){
-        adminService.executeReport(reportDto, request);
+        return adminService.executeReport(reportDto, request);
     }
 
-    @GetMapping("/api/admin/reportList/writeByHelper")
+    @GetMapping("/admin/reportList/writeByHelper")
     public List<ReportDto> getReportListWriteByHelper(HttpServletRequest request){
         return adminService.getReportListWriteByHelper(request);
     }
 
-    @GetMapping("/api/admin/reportList/writeByCustomer")
+    @GetMapping("/admin/reportList/writeByCustomer")
     public List<ReportDto> getReportListWriteByCustomer(HttpServletRequest request){
         return adminService.getReportListWriteByCustomer(request);
+    }
+
+    @PostMapping("/joinAdmin")
+    public void joinAdmin(){
+        adminService.joinAdmin();
     }
 }

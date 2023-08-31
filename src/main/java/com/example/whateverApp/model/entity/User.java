@@ -119,7 +119,7 @@ public class User implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        if(accountStatus.equals(AccountStatus.BAN))
+        if(accountStatus.equals(AccountStatus.BAN) || accountStatus.equals(AccountStatus.PERMANENT_BAN))
             return false;
 
         return true;

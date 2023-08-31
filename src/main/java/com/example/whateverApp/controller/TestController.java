@@ -3,6 +3,7 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
+import com.example.whateverApp.service.AdminService;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
 import com.example.whateverApp.service.RewardService;
 import com.google.firebase.messaging.FirebaseMessagingException;
@@ -24,6 +25,8 @@ public class TestController {
     private final UserRepository userRepository;
     private final FirebaseCloudMessageService firebaseCloudMessageService;
     private final RewardService rewardService;
+    private final AdminService adminService;
+
     @PostMapping("/test/user")
     public String addUser(@RequestBody User user){
         userRepository.save(user);
@@ -61,5 +64,10 @@ public class TestController {
         }
 
         System.out.println("TestController.testt");
+    }
+
+    @GetMapping("/adminTest")
+    public Boolean adminTest(HttpServletRequest request){
+        return adminService.adminCheck(request);
     }
 }

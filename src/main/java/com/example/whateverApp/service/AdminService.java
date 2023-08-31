@@ -27,8 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
-import java.util.ArrayList;
-import java.util.List;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -45,15 +44,15 @@ public class AdminService {
     private final PaymentService paymentService;
 
     public TokenInfo login(User user, HttpServletResponse response){
+
         User admin = userRepository.findByUserIdAndPassword(user.getUserId(),user.getPassword()).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
+        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
 
-        if(!user.getRoles().contains("ROLE_ADMIN"))
+        if(!authentication.getAuthorities().toString().contains("ROLE_ADMIN"))
             throw new CustomException(ErrorCode.UNAUTHORIZED_ADMIN);
 
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
-
-        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         tokenInfo.setId(admin.getId());
         return tokenInfo;
@@ -220,5 +219,21 @@ public class AdminService {
         user.setAccountStatus(AccountStatus.PERMANENT_BAN);
         simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
         userRepository.save(user);
+    }
+
+    public void joinAdmin(){
+        User admin = User.builder()
+                .userId("admin")
+                .password("1234")
+                .name("admin")
+                .roles(Collections.singletonList("ROLE_ADMIN"))
+                .imageFileName(UUID.randomUUID())
+                .longitude(0.0)
+                .latitude(0.0)
+                .accountStatus(AccountStatus.USING)
+                .build();
+        Optional<User> byUserId = userRepository.findByUserId("admin");
+        if(!byUserId.isPresent())
+            userRepository.save(admin);
     }
 }

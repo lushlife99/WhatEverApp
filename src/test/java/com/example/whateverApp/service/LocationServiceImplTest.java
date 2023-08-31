@@ -2,6 +2,8 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.controller.LocationController;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.AccountStatus;
+import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import org.junit.jupiter.api.BeforeEach;
@@ -14,6 +16,10 @@ import org.springframework.test.context.TestConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import java.io.IOException;
 import java.net.MalformedURLException;
+import java.util.Collections;
+import java.util.List;
+import java.util.Optional;
+import java.util.UUID;
 
 
 @SpringBootTest
@@ -21,13 +27,13 @@ import java.net.MalformedURLException;
 class LocationServiceImplTest {
 
 
-    @Autowired private UserRepository userRepository;
     @MockBean private JwtTokenProvider jwtTokenProvider;
     @MockBean private LocationServiceImpl locationService;
     @MockBean private LocationController locationController;
     @MockBean private MockHttpServletRequest request;
     @MockBean private UserServiceImpl userService;
     @Autowired private WorkRepository workRepository;
+    @Autowired private UserRepository userRepository;
 
 
     @BeforeEach
@@ -65,5 +71,24 @@ class LocationServiceImplTest {
     @Test
     void setSellerLocation() {
     }
+
+    @Test
+    void joinAdmin(){
+        User admin = User.builder()
+                .userId("admin")
+                .password("1234")
+                .name("admin")
+                .roles(Collections.singletonList("ROLE_ADMIN"))
+                .imageFileName(UUID.randomUUID())
+                .longitude(0.0)
+                .latitude(0.0)
+                .accountStatus(AccountStatus.USING)
+                .build();
+        Optional<User> byUserId = userRepository.findByUserId("admin");
+        if(!byUserId.isPresent())
+            userRepository.save(admin);
+
+    }
+
 
 }

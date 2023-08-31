@@ -5,6 +5,7 @@ import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
@@ -49,7 +50,6 @@ public class UserServiceImpl implements UserService {
 
     public TokenInfo login(User user, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
-
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         User findUser = userRepository.findByUserId(user.getUserId())
@@ -64,6 +64,7 @@ public class UserServiceImpl implements UserService {
             throw new CustomException(ErrorCode.DUPLICATE_USER);
 
         user.setRoles(Collections.singletonList("ROLE_USER"));
+        user.setAccountStatus(AccountStatus.USING);
         user.setImageFileName(UUID.randomUUID());
         return new UserDto(userRepository.save(user));
     }
