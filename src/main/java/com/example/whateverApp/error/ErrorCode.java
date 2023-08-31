@@ -30,7 +30,8 @@ public enum ErrorCode {
 
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
     TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "만료된 토큰입니다"),
-    JWT_CLAIM_EMPTY(HttpStatus.BAD_REQUEST, "Jwt empty"),
+    JWT_CLAIM_EMPTY(HttpStatus.FORBIDDEN, "Jwt empty"),
+    ACCOUNT_IS_BANNED(HttpStatus.FORBIDDEN, "정지된 계정입니다"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),

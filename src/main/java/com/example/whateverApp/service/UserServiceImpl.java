@@ -54,6 +54,8 @@ public class UserServiceImpl implements UserService {
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         User findUser = userRepository.findByUserId(user.getUserId())
                 .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(findUser.isAccountNonLocked())
+            throw new CustomException(ErrorCode.ACCOUNT_IS_BANNED);
 
         tokenInfo.setId(findUser.getId());
         return tokenInfo;

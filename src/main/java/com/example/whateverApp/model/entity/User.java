@@ -82,7 +82,6 @@ public class User implements UserDetails {
     private Report punishingDetail;
 
     public User updateUserInfo(UserDto user){
-        this.password = user.getPassword();
         this.name = user.getName();
         this.introduce = user.getIntroduce();
         this.bankAccount = user.getBankAccount();
