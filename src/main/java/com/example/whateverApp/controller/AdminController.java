@@ -65,4 +65,9 @@ public class AdminController {
     public void joinAdmin(){
         adminService.joinAdmin();
     }
+
+    @PostMapping("/freeAllUser")
+    public void freeAllUser(){
+        adminService.freeAllUser();
+    }
 }

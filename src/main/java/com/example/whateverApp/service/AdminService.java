@@ -24,6 +24,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -60,7 +61,7 @@ public class AdminService {
 
     public Boolean adminCheck(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!user.getRoles().toString().contains("ROLE_ADMIN"))
+        if(!jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getAuthorities().toString().contains("ROLE_ADMIN"))
             throw new CustomException(ErrorCode.UNAUTHORIZED_ADMIN);
 
         return true;
@@ -221,6 +222,18 @@ public class AdminService {
         userRepository.save(user);
     }
 
+    /**
+     * 아래부터 테스트용 함수. 배포할 땐 지우기
+     */
+
+    public void freeAllUser(){
+        List<User> all = userRepository.findAll();
+        for (User user : all) {
+            user.setAccountStatus(AccountStatus.USING);
+        }
+
+        userRepository.saveAll(all);
+    }
     public void joinAdmin(){
         User admin = User.builder()
                 .userId("admin")
