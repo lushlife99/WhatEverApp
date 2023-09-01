@@ -76,7 +76,9 @@ public class WorkController {
 
     @PutMapping("/work/success/{workId}")
     public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) throws IOException {
-        return workService.successWork(location, workId, request);
+        WorkDto workDto = workService.successWork(location, workId, request);
+        workService.executeUserAfterWork(workId);
+        return workDto;
     }
 
     @GetMapping("/workList/byHelper/{helperId}")

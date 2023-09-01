@@ -23,6 +23,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -36,6 +37,8 @@ public class ReportService {
     private final JwtTokenProvider jwtTokenProvider;
     private final FirebaseCloudMessageService fcmService;
     private final ConversationRepository conversationRepository;
+    private final UserRepository userRepository;
+    private final SimpMessagingTemplate simpMessagingTemplate;
 
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
@@ -95,7 +98,70 @@ public class ReportService {
 
         return reportDtoList;
     }
+    public ReportDto executeReport(ReportDto reportDto) throws IOException {
 
+        Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
+        Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        User reportUser = userRepository.findById(reportDto.getReportUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User reportedUser = userRepository.findById(reportDto.getReportedUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if(report.isExecuted())
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        switch (reportDto.getReportExecuteCode()){
+            case 3 :
+                if(reportedUser.isProceedingWork())
+                    reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                else {
+                    banUserAccount(reportedUser, 3);
+                    report.setExecuted(true);
+                }
+                break;
+            case 4 :
+                if(reportedUser.isProceedingWork())
+                    reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                else {
+                    banUserAccount(reportedUser, 7);
+                    report.setExecuted(true);
+                }
+                break;
+            case 5 :
+                if(reportedUser.isProceedingWork())
+                    reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                else {
+                    banUserAccount(reportedUser, 30);
+                    report.setExecuted(true);
+                }
+                break;
+            case 6 :
+                if(reportedUser.isProceedingWork())
+                    reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                else {
+                    permanentBanUserAccount(reportedUser);
+                    report.setExecuted(true);
+                }
+                break;
+            default:
+                throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
+        report.updateReport(reportDto);
+        reportRepository.save(report);
+        fcmService.sendReportExecuted(report);
+        return new ReportDto((report));
+    }
+
+    public void banUserAccount(User user, int amountDayOfBan){
+        user.setAccountStatus(AccountStatus.BAN);
+        user.setAccountReleaseTime(LocalDateTime.now().plusDays(amountDayOfBan));
+        simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
+        userRepository.save(user);
+    }
+
+    public void permanentBanUserAccount(User user){
+        user.setAccountStatus(AccountStatus.PERMANENT_BAN);
+        simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
+        userRepository.save(user);
+    }
 
 
 

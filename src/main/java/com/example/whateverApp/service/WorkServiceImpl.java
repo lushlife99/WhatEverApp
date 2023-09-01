@@ -1,5 +1,7 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.MessageDto;
+import com.example.whateverApp.dto.ReportDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -9,8 +11,10 @@ import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
 import com.example.whateverApp.model.document.Location;
+import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
+import com.example.whateverApp.repository.jpaRepository.ReportRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
@@ -18,6 +22,7 @@ import com.example.whateverApp.repository.mongoRepository.HelperLocationReposito
 import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -36,6 +41,7 @@ public class WorkServiceImpl implements WorkService {
     private final ConversationRepository conversationRepository;
     private final FirebaseCloudMessageService fcmService;
     private final UserServiceImpl userService;
+    private final ReportService reportService;
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request){
@@ -250,6 +256,34 @@ public class WorkServiceImpl implements WorkService {
     public Work get(Long workId){
         return workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
     }
+
+    public void executeUserAfterWork(Long workId) throws IOException {
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+
+        User customer = work.getCustomer();
+        User helper = work.getHelper();
+
+        if(customer.getAccountStatus().equals(AccountStatus.WILL_BAN)){
+            List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(customer, customer).stream()
+                    .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
+            if(proceedingWorkList.size() == 0) {
+                Report customerPunishingDetail = customer.getPunishingDetail();
+                reportService.executeReport(new ReportDto(customerPunishingDetail));
+            }
+
+        }
+
+        if(helper.getAccountStatus().equals(AccountStatus.WILL_BAN)){
+            List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(helper, helper).stream()
+                    .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
+            if(proceedingWorkList.size() == 0) {
+                Report customerPunishingDetail = helper.getPunishingDetail();
+                reportService.executeReport(new ReportDto(customerPunishingDetail));
+            }
+        }
+    }
+
+
 
 
 }

@@ -39,12 +39,6 @@ public class ConversationController {
     public ConversationDto createChat(@RequestBody WorkDto workDto , @PathVariable Long participantId, HttpServletRequest request){
         return new ConversationDto(conversationService.openAndMessage(request, participantId,workDto));
     }
-//
-//    @MessageMapping("/work/{conversationId}")
-//    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId) throws JsonProcessingException {
-//        System.out.println("ConversationController.sendWork");
-//        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , conversationService.sendWork(conversationId, workDto));
-//    }
 
     @MessageMapping("/chat/{conversationId}")
     public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
@@ -57,19 +51,6 @@ public class ConversationController {
         simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",conversationService.sendWork(conversationId, workDto, jwtToken)));
         conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
-
-    /**
-     * 테스트 해보고 지우기
-     * @param chat
-     * @param conversationId
-     * @param request
-     */
-
-    @PostMapping("/api/conversation/chat/{conversationId}")
-    public void sendChatTest(@RequestBody Chat chat, @PathVariable String conversationId, HttpServletRequest request){
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation", new ConversationDto(conversationService.sendChatting1(chat, conversationId, request))));
-    }
-
 
     @MessageMapping("/card/{conversationId}")
     public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
@@ -103,5 +84,4 @@ public class ConversationController {
     public ConversationDto getConversation(@PathVariable String conversationId, HttpServletRequest request){
         return conversationService.getConversation(conversationId, request);
     }
-
 }

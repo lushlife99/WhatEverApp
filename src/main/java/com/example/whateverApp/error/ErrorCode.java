@@ -20,8 +20,8 @@ public enum ErrorCode {
     OTHER_WORK_IS_PROCEEDING(HttpStatus.BAD_REQUEST, "이미 진행되고 있는 일이 있습니다"),
     UNVERIFIED_REWARD_AMOUNT(HttpStatus.BAD_REQUEST, "결제 금액이 다릅니다"),
     REFUND_AMOUNT_IS_DIFFERENT(HttpStatus.BAD_REQUEST, "환불가능 금액과 결제했던 금액이 일치하지 않습니다"),
-    AMOUNT_IS_MORE_THAN_REWARD(HttpStatus.BAD_REQUEST, "출금 금액이 reward보다 많습니다"),
-    PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방의 계정이 곧 정지당할 계정입니다"),
+    AMOUNT_IS_MORE_THAN_REWARD(HttpStatus.BAD_REQUEST, "출금 금액이 reward 보다 많습니다"),
+    PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방이 대화할 수 없는 상태입니다"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "권한 정보가 없는 토큰입니다"),
@@ -48,7 +48,7 @@ public enum ErrorCode {
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다"),
     DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
     DUPLICATE_REVIEW(HttpStatus.CONFLICT, "이미 작성한 Review 입니다."),
-    FINISHED_CONVERSATION(HttpStatus.CONFLICT, "심부름이 종료되었기 때문에 대화창도 종료되었어요"),
+    FINISHED_CONVERSATION(HttpStatus.CONFLICT, "심부름이 종료되어서 대화창을 불러올 수 없습니다"),
 
     /* 500 */
     TRANSFER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "송금 오류"),

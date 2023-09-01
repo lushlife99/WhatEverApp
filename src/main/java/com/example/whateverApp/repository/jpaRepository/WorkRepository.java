@@ -10,5 +10,5 @@ public interface WorkRepository extends JpaRepository<Work, Long> {
 
     List<Work> findByCustomer(User customer);
     List<Work> findByHelper(User helper);
-
+    List<Work> findByCustomerOrHelper(User customer, User helper);
 }

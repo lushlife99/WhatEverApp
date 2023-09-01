@@ -57,9 +57,8 @@ public class ConversationImpl implements ConversationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User participator = userRepository.findById(participatorId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!work.getProceedingStatus().equals(WorkProceedingStatus.CREATED)) //채팅방을 열 시점에, work가 이미 다른사람과 체결된 경우
+        if(!work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
-
 
         List<Conversation> findConvList = conversationRepository.findAll().stream()
                 .filter(c -> c.getCreatorId().equals(creator.getId()) || c.getParticipantId().equals(creator.getId()))
@@ -158,29 +157,9 @@ public class ConversationImpl implements ConversationService {
 
     }
 
-    /**
-     * 테스트 끝나면 지우기
-     * @param chat
-     * @param conversationId
-     * @return
-     */
-    public Conversation sendChatting1(Chat chat, String conversationId, HttpServletRequest request) {
-
-        User requestUser = jwtTokenProvider.getUser(request).get();
-
-        Conversation conversation = conversationRepository.findById(conversationId).
-                orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-
-        conversation = updateConv(conversation, chat, "Chat");
-        return conversation;
-
-    }
 
     @Transactional
     public ConversationDto sendCard(Chat chat, String conversationId, String jwtToken){
-
-        User requestUser = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
@@ -269,7 +248,6 @@ public class ConversationImpl implements ConversationService {
         simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
         return totalSeenCount;
     }
-
     @Transactional
     public Conversation updateConv(Conversation conversation, Chat chat, String messageType){
         chat.setMessageType(messageType);
@@ -277,9 +255,4 @@ public class ConversationImpl implements ConversationService {
         chatRepository.save(chat);
         return conversationRepository.save(conversation);
     }
-
-
-
 }
-
-
