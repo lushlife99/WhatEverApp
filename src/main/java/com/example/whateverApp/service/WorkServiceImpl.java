@@ -178,6 +178,7 @@ public class WorkServiceImpl implements WorkService {
             work.setProceedingStatus(WorkProceedingStatus.REWARDED);
             work.setFinishedAt(LocalDateTime.now());
             fcmService.sendWorkProceeding(work, work.getHelper());
+            fcmService.sendWorkProceeding(work, work.getCustomer());
             return new WorkDto(workRepository.save(work));
         }
         else throw new CustomException(ErrorCode.BAD_REQUEST);
