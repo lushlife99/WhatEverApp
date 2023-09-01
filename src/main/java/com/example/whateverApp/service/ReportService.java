@@ -34,6 +34,7 @@ public class ReportService {
     private final ReportRepository reportRepository;
     private final WorkRepository workRepository;
     private final JwtTokenProvider jwtTokenProvider;
+    private final FirebaseCloudMessageService fcmService;
     private final ConversationRepository conversationRepository;
 
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
@@ -60,7 +61,6 @@ public class ReportService {
                 .reportedUser(reportedUser)
                 .reportExecuteCode(ReportExecuteCode.BEFORE_EXECUTE)
                 .build();
-
         reportRepository.save(report);
         return new ReportDto(report);
     }

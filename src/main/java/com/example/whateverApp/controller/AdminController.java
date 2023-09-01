@@ -10,6 +10,7 @@ import lombok.RequiredArgsConstructor;
 import org.apache.el.parser.Token;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -47,7 +48,7 @@ public class AdminController {
 
 
     @PutMapping("/admin/report/execute")
-    public ReportDto executeReport(@RequestBody ReportDto reportDto, HttpServletRequest request){
+    public ReportDto executeReport(@RequestBody ReportDto reportDto, HttpServletRequest request) throws IOException {
         return adminService.executeReport(reportDto, request);
     }
 

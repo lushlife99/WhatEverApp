@@ -9,10 +9,7 @@ import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
-import com.example.whateverApp.model.entity.Alarm;
-import com.example.whateverApp.model.entity.Review;
-import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.model.entity.Work;
+import com.example.whateverApp.model.entity.*;
 import com.example.whateverApp.repository.jpaRepository.AlarmRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
@@ -225,11 +222,18 @@ public class FirebaseCloudMessageService {
         alarmService.send(user, notificationTitle, body);
     }
     public void sendReviewUpload(Review review) throws IOException {
-        String title = "리뷰가 등록되었어요";
-        String body = "별점 : "+ review.getRating();
+        String body = "리뷰가 등록되었어요. 리뷰를 확인해보세요";
 
-        sendMessageTo(review.getUser(), title, body, null);
-        alarmService.send(review.getUser(), title, body);
+        FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MY_REVIEW_VIEW.getDetail()).build();
+        sendMessageTo(review.getUser(), notificationTitle, body, data);
+        alarmService.send(review.getUser(), notificationTitle, body);
+    }
+
+    public void sendReportExecuted(Report report) throws IOException {
+        String body = "신고가 처리되었어요. 결과를 확인해보세요";
+
+        FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.REPORT_VIEW.getDetail()).build();
+        sendMessageTo(report.getReportUser(), notificationTitle, body, data);
     }
 
     private String makeMessage(String targetToken, String title, String body, FcmMessage.Data data) throws JsonProcessingException {

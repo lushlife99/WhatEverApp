@@ -27,6 +27,7 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
 
@@ -36,13 +37,13 @@ public class AdminService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ReportService reportService;
     private final AuthenticationManager authenticationManagerBuilder;
     private final ReportRepository reportRepository;
     private final ConversationRepository conversationRepository;
     private final WorkRepository workRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     private final PaymentService paymentService;
+    private final FirebaseCloudMessageService fcmService;
 
     public TokenInfo login(User user, HttpServletResponse response){
 
@@ -60,7 +61,6 @@ public class AdminService {
     }
 
     public Boolean adminCheck(HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         if(!jwtTokenProvider.getAuthentication(jwtTokenProvider.resolveToken(request)).getAuthorities().toString().contains("ROLE_ADMIN"))
             throw new CustomException(ErrorCode.UNAUTHORIZED_ADMIN);
 
@@ -149,7 +149,7 @@ public class AdminService {
         return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
     }
 
-    public ReportDto executeReport(ReportDto reportDto, HttpServletRequest request){
+    public ReportDto executeReport(ReportDto reportDto, HttpServletRequest request) throws IOException {
         adminCheck(request);
 
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
@@ -204,8 +204,8 @@ public class AdminService {
                 throw new CustomException(ErrorCode.BAD_REQUEST);
         }
         report.updateReport(reportDto);
-
         reportRepository.save(report);
+        fcmService.sendReportExecuted(report);
         return new ReportDto((report));
     }
 
