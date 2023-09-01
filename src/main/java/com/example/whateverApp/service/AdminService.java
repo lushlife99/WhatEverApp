@@ -46,7 +46,6 @@ public class AdminService {
     private final FirebaseCloudMessageService fcmService;
 
     public TokenInfo login(User user, HttpServletResponse response){
-
         User admin = userRepository.findByUserIdAndPassword(user.getUserId(),user.getPassword()).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());

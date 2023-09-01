@@ -1,5 +1,6 @@
 package com.example.whateverApp.error;
 
+import com.google.api.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;
@@ -20,6 +21,7 @@ public enum ErrorCode {
     UNVERIFIED_REWARD_AMOUNT(HttpStatus.BAD_REQUEST, "결제 금액이 다릅니다"),
     REFUND_AMOUNT_IS_DIFFERENT(HttpStatus.BAD_REQUEST, "환불가능 금액과 결제했던 금액이 일치하지 않습니다"),
     AMOUNT_IS_MORE_THAN_REWARD(HttpStatus.BAD_REQUEST, "출금 금액이 reward보다 많습니다"),
+    PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방의 계정이 곧 정지당할 계정입니다"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "권한 정보가 없는 토큰입니다"),
@@ -32,6 +34,7 @@ public enum ErrorCode {
     TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "만료된 토큰입니다"),
     JWT_CLAIM_EMPTY(HttpStatus.FORBIDDEN, "Jwt empty"),
     ACCOUNT_IS_BANNED(HttpStatus.FORBIDDEN, "정지된 계정입니다"),
+    WILL_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "현재 상태로는 서비스 이용이 제한됩니다"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),

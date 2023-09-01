@@ -6,6 +6,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
@@ -81,6 +82,11 @@ public class ConversationImpl implements ConversationService {
 
     @Transactional
     public Conversation open(User creator, User participator){
+        if(creator.getAccountStatus().equals(AccountStatus.WILL_BAN))
+            throw new CustomException(ErrorCode.WILL_BANNED_ACCOUNT);
+
+        if(participator.getAccountStatus().equals(AccountStatus.WILL_BAN))
+            throw new CustomException(ErrorCode.PARTICIPATOR_ACCOUNT_WILL_BAN);
 
         Conversation conversation = new Conversation();
         conversation.setCreatorId(creator.getId());
@@ -97,7 +103,7 @@ public class ConversationImpl implements ConversationService {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
-        if(!conversation.getCreatorId().equals(user.getId()) || !conversation.getParticipantId().equals(user.getId()))
+        if(!conversation.getCreatorId().equals(user.getId()) && !conversation.getParticipantId().equals(user.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
         if(conversation.getFinished())

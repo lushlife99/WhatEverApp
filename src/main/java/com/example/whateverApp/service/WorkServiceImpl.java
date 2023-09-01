@@ -4,6 +4,7 @@ import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
+import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.HelperLocation;
@@ -38,9 +39,12 @@ public class WorkServiceImpl implements WorkService {
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request){
-        Work work = new Work().updateWork(workDto);
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(user.getAccountStatus().equals(AccountStatus.WILL_BAN))
+            throw new CustomException(ErrorCode.WILL_BANNED_ACCOUNT);
+
+        Work work = new Work().updateWork(workDto);
         work.setProceedingStatus(WorkProceedingStatus.CREATED);
         work.setCustomer(user);
         return workRepository.save(work);
