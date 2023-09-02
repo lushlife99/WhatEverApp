@@ -106,6 +106,8 @@ public class WorkServiceImpl implements WorkService {
         }
 
         fcmService.sendWorkProceeding(work, helper);
+        helper.setProceedingWork(true);
+        requestUser.setProceedingWork(true);
         return workRepository.save(work);
 
     }
@@ -286,28 +288,24 @@ public class WorkServiceImpl implements WorkService {
 
         User customer = work.getCustomer();
         User helper = work.getHelper();
+        List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(customer, customer).stream()
+                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
 
-        if(customer.getAccountStatus().equals(AccountStatus.WILL_BAN)){
-            List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(customer, customer).stream()
-                    .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
-            if(proceedingWorkList.size() == 0) {
-                Report customerPunishingDetail = customer.getPunishingDetail();
-                reportService.executeReport(new ReportDto(customerPunishingDetail));
+        if(proceedingWorkList.size() == 0){
+            customer.setProceedingWork(false);
+            if(customer.getAccountStatus().equals(AccountStatus.WILL_BAN)) {
+                reportService.executeReport(new ReportDto(customer.getPunishingDetail()), customer);
             }
-
         }
 
-        if(helper.getAccountStatus().equals(AccountStatus.WILL_BAN)){
-            List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(helper, helper).stream()
-                    .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
-            if(proceedingWorkList.size() == 0) {
-                Report customerPunishingDetail = helper.getPunishingDetail();
-                reportService.executeReport(new ReportDto(customerPunishingDetail));
+        proceedingWorkList = workRepository.findByCustomerOrHelper(helper, helper).stream()
+                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
+
+        if(proceedingWorkList.size() == 0){
+            helper.setProceedingWork(false);
+            if(helper.getAccountStatus().equals(AccountStatus.WILL_BAN)) {
+                reportService.executeReport(new ReportDto(helper.getPunishingDetail()), helper);
             }
         }
     }
-
-
-
-
 }

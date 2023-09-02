@@ -103,12 +103,11 @@ public class ReportService {
 
         return reportDtoList;
     }
-    public ReportDto executeReport(ReportDto reportDto) throws IOException {
+    public ReportDto executeReport(ReportDto reportDto, User reportedUser) throws IOException {
 
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User reportUser = userRepository.findById(reportDto.getReportUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        User reportedUser = userRepository.findById(reportDto.getReportedUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         if(report.isExecuted())
             throw new CustomException(ErrorCode.BAD_REQUEST);
