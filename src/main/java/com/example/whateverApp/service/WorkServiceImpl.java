@@ -43,6 +43,7 @@ public class WorkServiceImpl implements WorkService {
     private final UserServiceImpl userService;
     private final ReportService reportService;
     private final RewardService rewardService;
+    private final SimpMessagingTemplate simpMessagingTemplate;
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request){
@@ -77,7 +78,6 @@ public class WorkServiceImpl implements WorkService {
     @Transactional
     public Work matchingHelper(WorkDto workDto, String conversationId, HttpServletRequest request) throws IOException {
         User requestUser = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
 
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -192,9 +192,12 @@ public class WorkServiceImpl implements WorkService {
             rewardService.afterWork(work);
             fcmService.sendWorkProceeding(work, work.getHelper());
             fcmService.sendWorkProceeding(work, work.getCustomer());
+            System.out.println("WorkServiceImpl.letFinish");
             return new WorkDto(workRepository.save(work));
         }
-        else throw new CustomException(ErrorCode.BAD_REQUEST);
+        else {
+            System.out.println("WorkServiceImpl.letFinish2222222");
+            throw new CustomException(ErrorCode.BAD_REQUEST);}
     }
 
     /**

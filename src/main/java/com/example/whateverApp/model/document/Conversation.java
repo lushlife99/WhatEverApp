@@ -33,7 +33,7 @@ public class Conversation {
     private int seenCountByParticipator;
     private Boolean finished = false;
 
-    @DateTimeFormat(pattern = "yy-MM-dd HH:mm")
+    private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 
     public List<Chat> updateChat(Chat chat){

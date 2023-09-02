@@ -178,10 +178,10 @@ public class UserServiceImpl implements UserService {
         LocalDateTime sendTime = conversation.getChatList().get(0).getSendTime();
 
         if(workListByHelper.size() == 1){
-            helper.setAvgReactTime(ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now()));
+            helper.setAvgReactTime(ChronoUnit.MINUTES.between(LocalDateTime.now(), sendTime));
         }
         else {
-            Long avgReactTime = (helper.getAvgReactTime() * workListByHelper.size() + ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now())) / totalSize;
+            Long avgReactTime = (helper.getAvgReactTime() * workListByHelper.size() + ChronoUnit.MINUTES.between(LocalDateTime.now(), sendTime)) / totalSize;
             helper.setAvgReactTime(avgReactTime);
         }
 

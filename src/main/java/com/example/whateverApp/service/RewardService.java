@@ -91,7 +91,6 @@ public class RewardService {
     @Transactional
     public void afterWork(Work work){
         work.getHelper().setReward(work.getHelper().getReward() + work.getReward());
-        log.info("After Work. Helper get reward.\n" + work);
     }
 
     @Transactional

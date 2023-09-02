@@ -25,6 +25,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -94,6 +95,7 @@ public class ConversationImpl implements ConversationService {
         conversation.setParticipatorName(participator.getName());
         conversation.setSeenCountByParticipator(0);
         conversation.setSeenCountByParticipator(0);
+        conversation.setCreatedAt(LocalDateTime.now());
         conversation.setFinished(false);
         return conversationRepository.save(conversation);
     }
@@ -127,7 +129,7 @@ public class ConversationImpl implements ConversationService {
                 .build();
 
         updateConv(conversation, chat, "Work");
-        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversationId);
+        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
         return conversationDto;
     }
 
@@ -152,7 +154,7 @@ public class ConversationImpl implements ConversationService {
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         updateConv(conversation, chat, "Chat");
-        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversationId);
+        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
         return conversationDto;
 
     }
@@ -164,11 +166,10 @@ public class ConversationImpl implements ConversationService {
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         updateConv(conversation, chat, "Card");
-        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversationId);
+        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
         return conversationDto;
     }
 
-    @Transactional
     public ConversationDto setConversationSeenCount(HttpServletRequest request, String conversationId){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -179,13 +180,11 @@ public class ConversationImpl implements ConversationService {
             conversation.setSeenCountByParticipator(conversation.getChatList().size());
         } else throw new CustomException(ErrorCode.BAD_REQUEST);
 
-        return new ConversationDto(conversation);
+        return new ConversationDto(conversationRepository.save(conversation));
     }
 
-    @Transactional
-    public ConversationDto setConversationSeenCount(String jwtToken, String conversationId){
+    public ConversationDto setConversationSeenCount(String jwtToken, Conversation conversation){
         User user = userRepository.findByUserId(jwtTokenProvider.getAuthentication(jwtToken.substring(7)).getName()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(conversation.getCreatorId().equals(user.getId())){
             conversation.setSeenCountByCreator(conversation.getChatList().size());
@@ -193,7 +192,7 @@ public class ConversationImpl implements ConversationService {
             conversation.setSeenCountByParticipator(conversation.getChatList().size());
         } else throw new CustomException(ErrorCode.BAD_REQUEST);
 
-        return new ConversationDto(conversation);
+        return new ConversationDto(conversationRepository.save(conversation));
     }
 
 
@@ -204,7 +203,6 @@ public class ConversationImpl implements ConversationService {
                 .filter(c -> c.getFinished().equals(Boolean.FALSE))
                 .filter(c -> c.getCreatorId().equals(user.getId()) || c.getParticipantId().equals(user.getId())).toList();
 
-        List<ConversationDto> convDtoList = new ArrayList<>();
         int totalSeenCount = 0;
         for (Conversation conversation : list) {
             if(conversation.getCreatorId().equals(user.getId()))
@@ -212,9 +210,6 @@ public class ConversationImpl implements ConversationService {
 
             else totalSeenCount += conversation.getChatList().size() - conversation.getSeenCountByParticipator();
         }
-        for (Conversation conversation : list)
-            convDtoList.add(new ConversationDto(conversation));
-
         simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
         return totalSeenCount;
     }
@@ -248,7 +243,6 @@ public class ConversationImpl implements ConversationService {
         simpMessagingTemplate.convertAndSend("/queue/" + user.getId() , new MessageDto("SetConvSeenCount", totalSeenCount));
         return totalSeenCount;
     }
-    @Transactional
     public Conversation updateConv(Conversation conversation, Chat chat, String messageType){
         chat.setMessageType(messageType);
         conversation.updateChat(chat);

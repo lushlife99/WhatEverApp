@@ -9,6 +9,7 @@ import com.example.whateverApp.service.WorkServiceImpl;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

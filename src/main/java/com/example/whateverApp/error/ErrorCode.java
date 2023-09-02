@@ -16,7 +16,7 @@ public enum ErrorCode {
     ALREADY_FINISHED_WORK(HttpStatus.BAD_REQUEST, "이미 종료된 심부름입니다"),
     LACK_REWORD(HttpStatus.BAD_REQUEST, "리워드가 충분하지 않습니다"),
     BAD_REQUEST(HttpStatus.BAD_REQUEST, "잘못된 접근입니다"),
-    INVALID_LOCATION(HttpStatus.BAD_REQUEST, "잘못된 위치 정보입니다"),
+    INVALID_LOCATION(HttpStatus.BAD_REQUEST, "심부름 완료 장소에서 500m 이내에서만 심부름을 완료할 수 있습니다"),
     OTHER_WORK_IS_PROCEEDING(HttpStatus.BAD_REQUEST, "이미 진행되고 있는 일이 있습니다"),
     UNVERIFIED_REWARD_AMOUNT(HttpStatus.BAD_REQUEST, "결제 금액이 다릅니다"),
     REFUND_AMOUNT_IS_DIFFERENT(HttpStatus.BAD_REQUEST, "환불가능 금액과 결제했던 금액이 일치하지 않습니다"),
