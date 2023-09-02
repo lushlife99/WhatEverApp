@@ -78,6 +78,7 @@ public class ScheduleService {
                     .filter(c -> c.getWorkId().longValue() == 0)
                     .filter(c -> c.getCreatedAt().plusDays(1).isBefore(now))
                     .toList();
+        }
 
         for (Conversation conversation : list)
             simpMessagingTemplate.convertAndSend("/topic/chat/" + conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
