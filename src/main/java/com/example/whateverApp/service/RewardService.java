@@ -7,6 +7,7 @@ import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.User;
+import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -88,19 +89,9 @@ public class RewardService {
     }
 
     @Transactional
-    public void afterWork(WorkDto workDto, HttpServletRequest request){
-        User helper = userRepository.findById(workDto.getHelperId())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        User customer = userRepository.findById(workDto.getCustomerId())
-                .orElseThrow(() -> new CustomException(ErrorCode.BAD_REQUEST));
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
-        if(!user.equals(customer))
-            throw new CustomException(ErrorCode.BAD_REQUEST);
-
-        helper.setReward(helper.getReward() + workDto.getReward());
-        userRepository.save(helper);
-        log.info("After Work. Helper get reward.\n" +workDto);
+    public void afterWork(Work work){
+        work.getHelper().setReward(work.getHelper().getReward() + work.getReward());
+        log.info("After Work. Helper get reward.\n" + work);
     }
 
     @Transactional

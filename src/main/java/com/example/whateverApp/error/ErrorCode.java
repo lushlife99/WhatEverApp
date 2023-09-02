@@ -22,6 +22,7 @@ public enum ErrorCode {
     REFUND_AMOUNT_IS_DIFFERENT(HttpStatus.BAD_REQUEST, "환불가능 금액과 결제했던 금액이 일치하지 않습니다"),
     AMOUNT_IS_MORE_THAN_REWARD(HttpStatus.BAD_REQUEST, "출금 금액이 reward 보다 많습니다"),
     PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방이 대화할 수 없는 상태입니다"),
+    ALREADY_REPORT_THIS_WORK(HttpStatus.BAD_REQUEST, "이미 신고했던 심부름입니다. 신고내역을 확인해주세요"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "권한 정보가 없는 토큰입니다"),

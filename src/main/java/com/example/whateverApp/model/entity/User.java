@@ -76,7 +76,7 @@ public class User implements UserDetails {
 
     @Enumerated(EnumType.ORDINAL)
     private AccountStatus accountStatus;
-    private LocalDateTime accountReleaseTime;
+    private LocalDateTime accountReleaseTime = LocalDateTime.MIN;
 
     @OneToOne
     private Report punishingDetail;

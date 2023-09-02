@@ -54,30 +54,10 @@ public class FirebaseCloudMessageService {
 
     @Value("${file:}")
     private String fileDir;
-
-    /**
-     * 테스트함수. 테스트 끝나면 삭제
-     */
-
-    public void sendMessageToTest(User user, String title, String body, FcmMessage.Data data) throws IOException {
-        String targetToken = user.getNotificationToken();
-        String message = makeMessage(targetToken, title, body, data);
-
-        OkHttpClient client = new OkHttpClient();
-        RequestBody requestBody = RequestBody.create(message,
-                MediaType.get("application/json; charset=utf-8"));
-        Request request = new Request.Builder()
-                .url(API_URL + "messages:send")
-                .post(requestBody)
-                .addHeader(HttpHeaders.AUTHORIZATION, "Bearer " + getAccessToken())
-                .addHeader(HttpHeaders.CONTENT_TYPE, "application/json; UTF-8")
-                .build();
-
-        Response response = client.newCall(request).execute();
-        log.info(response.body().string());
-    }
-
     public void sendMessageTo(User user, String title, String body, FcmMessage.Data data) throws IOException {
+        if(user.isAccountNonLocked() == false)
+            return;
+
         String targetToken = user.getNotificationToken();
         String message = makeMessage(targetToken, title, body, data);
 
@@ -156,6 +136,7 @@ public class FirebaseCloudMessageService {
 
         List<String> strings = new ArrayList<>();
         for (User user : userList) {
+            if(user.isAccountNonLocked() == true)
             strings.add(user.getNotificationToken());
         }
 

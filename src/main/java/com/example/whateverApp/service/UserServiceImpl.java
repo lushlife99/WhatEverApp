@@ -21,6 +21,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cglib.core.Local;
 import org.springframework.core.io.UrlResource;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
@@ -56,7 +57,10 @@ public class UserServiceImpl implements UserService {
                 .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         if(!findUser.isAccountNonLocked())
-            throw new CustomException(ErrorCode.ACCOUNT_IS_BANNED);
+            if(findUser.getAccountStatus().equals(AccountStatus.BAN))
+                throw new LockedException("계정이 잠겼습니다. " + user.getAccountReleaseTime() + "이후에 이용 가능 합니다.");
+            else throw new LockedException("계정이 영구 정지 당했습니다. ");
+
 
         tokenInfo.setId(findUser.getId());
         return tokenInfo;
@@ -182,8 +186,17 @@ public class UserServiceImpl implements UserService {
         }
 
         userRepository.save(helper);
-
     }
+
+    public UserDto modifyPassword(String password, HttpServletRequest request){
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        user.setPassword(password);
+        userRepository.save(user);
+
+        return new UserDto(user);
+    }
+
+
 
     @Override
     public User get(HttpServletRequest request) {

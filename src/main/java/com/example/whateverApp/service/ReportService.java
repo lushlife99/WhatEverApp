@@ -27,6 +27,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -46,6 +47,10 @@ public class ReportService {
 
         User reportUser = jwtTokenProvider.getUser(request).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        if(reportRepository.findByWorkAndReportUser(work, reportUser).isPresent())
+            throw new CustomException(ErrorCode.ALREADY_REPORT_THIS_WORK);
+
         User reportedUser;
 
         if(work.getCustomer().getId().equals(reportUser.getId()))
@@ -151,7 +156,13 @@ public class ReportService {
     }
 
     public void banUserAccount(User user, int amountDayOfBan){
+        LocalDateTime localDateTime = LocalDateTime.now().plusDays(amountDayOfBan);
+        if(localDateTime.getMinute() != 0){
+            localDateTime.plusMinutes(60 - localDateTime.getMinute());
+        }
+
         user.setAccountStatus(AccountStatus.BAN);
+        user.setAccountReleaseTime(localDateTime);
         user.setAccountReleaseTime(LocalDateTime.now().plusDays(amountDayOfBan));
         simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
         userRepository.save(user);

@@ -21,11 +21,6 @@ public class RewardController {
         rewardService.beforeWork(workDto, request);
     }
 
-    @PostMapping("/reward/afterWork")
-    public void AfterWork(WorkDto workDto, HttpServletRequest request) {
-        rewardService.afterWork(workDto, request);
-    }
-
     /**
      *
      * 음.. 이거 충전할 때도 검증이 필요함..

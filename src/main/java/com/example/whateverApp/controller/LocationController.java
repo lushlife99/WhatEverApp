@@ -11,6 +11,9 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.web.PageableDefault;
+import org.springframework.messaging.handler.annotation.DestinationVariable;
+import org.springframework.messaging.handler.annotation.Header;
+import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
@@ -63,10 +66,19 @@ public class LocationController {
         return locationService.setHelperLocation(location, workId);
     }
 
-    @GetMapping("/helperLocation/{workId}")
+    @GetMapping("/helperLocations/{workId}")
     public List<Location> getHelperLocationList(@PathVariable Long workId){
-        return locationService.getHelperLocationList(workId);
+        return locationService.getHelperLocationLists(workId);
     }
 
+    @GetMapping("/helperLocation/{workId}")
+    public void getHelperLocation(@PathVariable Long workId){
+        locationService.getHelperLocation(workId);
+    }
+
+    @MessageMapping("/location/{workId}")
+    public void sendHelperLocationToCustomer(@DestinationVariable Long workId, @RequestBody Location location, @Header("Authorization") String jwtToken){
+        locationService.sendHelperLocationToCustomer(workId, location, jwtToken);
+    }
 
 }

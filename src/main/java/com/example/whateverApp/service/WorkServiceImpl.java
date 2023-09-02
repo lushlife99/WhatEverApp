@@ -42,6 +42,7 @@ public class WorkServiceImpl implements WorkService {
     private final FirebaseCloudMessageService fcmService;
     private final UserServiceImpl userService;
     private final ReportService reportService;
+    private final RewardService rewardService;
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request){
@@ -184,14 +185,34 @@ public class WorkServiceImpl implements WorkService {
         Conversation conversation = conversationRepository.findByWorkId(workId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         conversation.setFinished(true);
         conversationRepository.save(conversation);
+
         if(user.getId().equals(work.getCustomer().getId())){
             work.setProceedingStatus(WorkProceedingStatus.REWARDED);
             work.setFinishedAt(LocalDateTime.now());
+            rewardService.afterWork(work);
             fcmService.sendWorkProceeding(work, work.getHelper());
             fcmService.sendWorkProceeding(work, work.getCustomer());
             return new WorkDto(workRepository.save(work));
         }
         else throw new CustomException(ErrorCode.BAD_REQUEST);
+    }
+
+    /**
+     * void letFinish(Work work)
+     *
+     * Scheduler Method
+     * @param work
+     * @throws IOException
+     */
+    @Transactional
+    public void letFinish(Work work) throws IOException {
+        Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversation.setFinished(true);
+        work.setProceedingStatus(WorkProceedingStatus.REWARDED);
+        work.setFinishedAt(LocalDateTime.now());
+        rewardService.afterWork(work);
+        fcmService.sendWorkProceeding(work, work.getHelper());
+        fcmService.sendWorkProceeding(work, work.getCustomer());
     }
 
 

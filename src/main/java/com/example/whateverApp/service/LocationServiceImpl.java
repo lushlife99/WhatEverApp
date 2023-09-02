@@ -1,6 +1,8 @@
 package com.example.whateverApp.service;
 
+import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.UserDto;
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
@@ -18,6 +20,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
+import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -91,6 +94,8 @@ public class LocationServiceImpl implements LocationService {
     }
 
 
+
+
     public static double getDistance(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
@@ -130,7 +135,7 @@ public class LocationServiceImpl implements LocationService {
         return true;
     }
 
-    public List<Location> getHelperLocationList(Long workId){
+    public List<Location> getHelperLocationLists(Long workId){
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
@@ -141,6 +146,20 @@ public class LocationServiceImpl implements LocationService {
                 .orElseThrow(() -> new CustomException(ErrorCode.HELPERLOCATION_NOT_FOUND));
 
         return helperLocation.getLocationList();
+    }
+
+    public void getHelperLocation(Long workId){
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        simpMessagingTemplate.convertAndSend("/queue/"+work.getHelper().getId(), new MessageDto("SendLocation", new WorkDto(work)));
+    }
+
+    public void sendHelperLocationToCustomer(Long workId, Location location, String jwtToken){
+        Authentication authentication = jwtTokenProvider.getAuthentication(jwtToken.substring(7));
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        if(!authentication.getName().equals(work.getHelper().getUserId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        simpMessagingTemplate.convertAndSend("/queue/"+work.getCustomer().getId(), new MessageDto("HelperLocation", location));
     }
 
 

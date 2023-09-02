@@ -24,10 +24,9 @@ public class FcmController {
     }
 
     @PostMapping("/sendNearbyHelper")
-    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws FirebaseMessagingException, IOException {
+    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws FirebaseMessagingException{
         System.out.println("FcmController.sendNearbyHelper");
         firebaseCloudMessageService.sendNearByHelper(workDto);
     }
-
 
 }

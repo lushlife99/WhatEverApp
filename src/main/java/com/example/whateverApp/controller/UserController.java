@@ -57,6 +57,8 @@ public class UserController {
         return userService.getUserInfo(userId);
     }
 
-
-
+    @PutMapping("/user")
+    public UserDto modifyPassword(@RequestParam String password, HttpServletRequest request){
+        return userService.modifyPassword(password, request);
+    }
 }
