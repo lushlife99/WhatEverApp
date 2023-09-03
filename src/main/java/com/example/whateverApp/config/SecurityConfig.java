@@ -1,5 +1,6 @@
 package com.example.whateverApp.config;
 
+import com.example.whateverApp.jwt.JwtAuthenticationEntryPoint;
 import com.example.whateverApp.jwt.JwtAuthenticationFilter;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import io.jsonwebtoken.Jwt;
@@ -28,6 +29,7 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final JwtTokenProvider jwtTokenProvider;
+    private final JwtAuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
@@ -41,7 +43,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers("/**").permitAll()
                 .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
+                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint);
         return http.build();
     }
 

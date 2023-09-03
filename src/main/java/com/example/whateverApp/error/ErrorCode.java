@@ -29,11 +29,11 @@ public enum ErrorCode {
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자가 아닙니다"),
     UNSUPPORTED_JWT(HttpStatus.UNAUTHORIZED, "지원하지 않는 토큰 형식입니다"),
-
+    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다"),
+    JWT_CLAIM_EMPTY(HttpStatus.UNAUTHORIZED, "Jwt empty"),
 
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
-    TOKEN_EXPIRED(HttpStatus.FORBIDDEN, "만료된 토큰입니다"),
-    JWT_CLAIM_EMPTY(HttpStatus.FORBIDDEN, "Jwt empty"),
+
     ACCOUNT_IS_BANNED(HttpStatus.FORBIDDEN, "정지된 계정입니다"),
     WILL_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "현재 상태로는 서비스 이용이 제한됩니다"),
 

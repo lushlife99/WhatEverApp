@@ -283,6 +283,9 @@ public class WorkServiceImpl implements WorkService {
         return workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
     }
 
+    /**
+     * 검증 해보기.
+     */
     public void executeUserAfterWork(Long workId) throws IOException {
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 

@@ -40,7 +40,7 @@ public class User implements UserDetails {
     private String introduce;
     private Double rating;
     private Integer reward = 10000;
-    private Long avgReactTime;//평균 첫 응답 속도
+    private Long avgReactTime = 1000000000L;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
     private List<Work> purchaseList = new ArrayList<>();
     @OneToMany(mappedBy = "helper")

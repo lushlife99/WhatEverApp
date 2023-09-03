@@ -6,6 +6,7 @@ import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.service.AdminService;
 import com.example.whateverApp.service.FirebaseCloudMessageService;
 import com.example.whateverApp.service.RewardService;
+import com.example.whateverApp.service.UserServiceImpl;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
@@ -26,6 +27,7 @@ public class TestController {
     private final FirebaseCloudMessageService firebaseCloudMessageService;
     private final RewardService rewardService;
     private final AdminService adminService;
+    private final UserServiceImpl userService;
 
     @PostMapping("/test/user")
     public String addUser(@RequestBody User user){
@@ -70,4 +72,5 @@ public class TestController {
     public Boolean adminTest(HttpServletRequest request){
         return adminService.adminCheck(request);
     }
+
 }

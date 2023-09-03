@@ -177,11 +177,11 @@ public class UserServiceImpl implements UserService {
         int totalSize = workListByHelper.size() + 1;
         LocalDateTime sendTime = conversation.getChatList().get(0).getSendTime();
 
-        if(workListByHelper.size() == 1){
-            helper.setAvgReactTime(ChronoUnit.MINUTES.between(LocalDateTime.now(), sendTime));
+        if(helper.getAvgReactTime() == 1000000000L){
+            helper.setAvgReactTime(ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now()));
         }
         else {
-            Long avgReactTime = (helper.getAvgReactTime() * workListByHelper.size() + ChronoUnit.MINUTES.between(LocalDateTime.now(), sendTime)) / totalSize;
+            Long avgReactTime = (helper.getAvgReactTime() * workListByHelper.size() + ChronoUnit.MINUTES.between(sendTime, LocalDateTime.now())) / totalSize;
             helper.setAvgReactTime(avgReactTime);
         }
 
@@ -195,7 +195,6 @@ public class UserServiceImpl implements UserService {
 
         return new UserDto(user);
     }
-
 
 
     @Override

@@ -61,7 +61,7 @@ public class LocationController {
      * @return
      */
 
-    @PostMapping("/helperLocation/{workId}")
+    @PostMapping("/helperLocations/{workId}")
     public Boolean updateHelperLocation(@RequestBody Location location, @PathVariable Long workId){
         return locationService.setHelperLocation(location, workId);
     }

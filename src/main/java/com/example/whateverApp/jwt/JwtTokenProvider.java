@@ -49,7 +49,7 @@ public class JwtTokenProvider {
 
         long now = (new Date()).getTime();
         // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 86400000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
+        Date accessTokenExpiresIn = new Date(now + 30*60*1000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)//
@@ -120,12 +120,16 @@ public class JwtTokenProvider {
             Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
+            log.info("1 ",e.getMessage());
             throw new CustomException(ErrorCode.INVALID_AUTH_TOKEN);
         } catch (ExpiredJwtException e) {
+            log.info("2 ",e.getMessage());
             throw new CustomException(ErrorCode.TOKEN_EXPIRED);
         } catch (UnsupportedJwtException e) {
+            log.info("3 ",e.getMessage());
             throw new CustomException(ErrorCode.UNSUPPORTED_JWT);
         } catch (IllegalArgumentException e) {
+            log.info("4 ",e.getMessage());
             throw new CustomException(ErrorCode.JWT_CLAIM_EMPTY);
         }
 
@@ -171,6 +175,7 @@ public class JwtTokenProvider {
         try {
             return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();
         } catch (ExpiredJwtException e) {
+            log.info(e.getMessage());
             return e.getClaims();
         }
     }

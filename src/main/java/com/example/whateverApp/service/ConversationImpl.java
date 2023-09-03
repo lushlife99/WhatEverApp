@@ -104,8 +104,10 @@ public class ConversationImpl implements ConversationService {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
-        if(!conversation.getCreatorId().equals(user.getId()) && !conversation.getParticipantId().equals(user.getId()))
+        if(!conversation.getCreatorId().equals(user.getId()) && !conversation.getParticipantId().equals(user.getId())) {
+            System.out.println("여기서 오류");
             throw new CustomException(ErrorCode.BAD_REQUEST);
+        }
 
         if(conversation.getFinished())
             throw new CustomException(ErrorCode.FINISHED_CONVERSATION);
@@ -126,6 +128,7 @@ public class ConversationImpl implements ConversationService {
                 .message(mapper.writeValueAsString(workDto))
                 .senderName(conversation.getCreatorName())
                 .receiverName(conversation.getParticipatorName())
+                .sendTime(LocalDateTime.now())
                 .build();
 
         updateConv(conversation, chat, "Work");
