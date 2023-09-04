@@ -103,6 +103,7 @@ public class ReportService {
 
         return reportDtoList;
     }
+    @Transactional
     public ReportDto executeReport(ReportDto reportDto, User reportedUser) throws IOException {
 
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));

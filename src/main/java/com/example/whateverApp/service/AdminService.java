@@ -26,6 +26,7 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDateTime;
@@ -148,6 +149,7 @@ public class AdminService {
         return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
     }
 
+    @Transactional
     public ReportDto executeReport(ReportDto reportDto, HttpServletRequest request) throws IOException {
         adminCheck(request);
 
@@ -168,32 +170,40 @@ public class AdminService {
                 else throw new CustomException(ErrorCode.BAD_REQUEST);
                 break;
             case 3 :
-                if(reportedUser.isProceedingWork())
+                if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                    reportedUser.setPunishingDetail(report);
+                }
                 else {
                     banUserAccount(reportedUser, 3);
                     report.setExecuted(true);
                 }
                 break;
             case 4 :
-                if(reportedUser.isProceedingWork())
+                if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                    reportedUser.setPunishingDetail(report);
+                }
                 else {
                     banUserAccount(reportedUser, 7);
                     report.setExecuted(true);
                 }
                 break;
             case 5 :
-                if(reportedUser.isProceedingWork())
+                if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                    reportedUser.setPunishingDetail(report);
+                }
                 else {
                     banUserAccount(reportedUser, 30);
                     report.setExecuted(true);
                 }
                 break;
             case 6 :
-                if(reportedUser.isProceedingWork())
+                if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
+                    reportedUser.setPunishingDetail(report);
+                }
                 else {
                     permanentBanUserAccount(reportedUser);
                     report.setExecuted(true);

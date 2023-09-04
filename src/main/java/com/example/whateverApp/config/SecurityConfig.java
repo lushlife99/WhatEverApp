@@ -1,10 +1,8 @@
 package com.example.whateverApp.config;
 
 import com.example.whateverApp.jwt.JwtAuthenticationEntryPoint;
-import com.example.whateverApp.jwt.JwtAuthenticationFilter;
+import com.example.whateverApp.config.filter.JwtAuthenticationFilter;
 import com.example.whateverApp.jwt.JwtTokenProvider;
-import io.jsonwebtoken.Jwt;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -12,15 +10,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configurers.oauth2.server.resource.OAuth2ResourceServerConfigurer;
 import org.springframework.security.config.http.SessionCreationPolicy;
-import org.springframework.security.core.token.TokenService;
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.factory.PasswordEncoderFactories;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.access.AccessDeniedHandler;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 
 @Configuration
@@ -44,7 +37,8 @@ public class SecurityConfig {
                 .requestMatchers("/**").permitAll()
                 .and()
                 .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling().authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint);
         return http.build();
     }
 

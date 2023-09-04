@@ -25,12 +25,8 @@ public enum ErrorCode {
     ALREADY_REPORT_THIS_WORK(HttpStatus.BAD_REQUEST, "이미 신고했던 심부름입니다. 신고내역을 확인해주세요"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
-    INVALID_AUTH_TOKEN(HttpStatus.UNAUTHORIZED, "권한 정보가 없는 토큰입니다"),
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
     UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자가 아닙니다"),
-    UNSUPPORTED_JWT(HttpStatus.UNAUTHORIZED, "지원하지 않는 토큰 형식입니다"),
-    TOKEN_EXPIRED(HttpStatus.UNAUTHORIZED, "만료된 토큰입니다"),
-    JWT_CLAIM_EMPTY(HttpStatus.UNAUTHORIZED, "Jwt empty"),
 
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
 
@@ -41,7 +37,7 @@ public enum ErrorCode {
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),
     REFRESH_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "로그아웃 된 사용자입니다"),
     WORK_NOT_FOUND(HttpStatus.NOT_FOUND, "심부름 정보를 찾을 수 없습니다"),
-    HELPERLOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "헬퍼 위치정보를 찾을 수 없습니다"),
+    HELPER_LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "헬퍼 위치정보를 찾을 수 없습니다"),
     CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "대화를 찾을 수 없습니다"),
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고 내역을 찾을 수 없습니다"),
 

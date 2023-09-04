@@ -117,22 +117,18 @@ public class JwtTokenProvider {
     // 토큰 정보를 검증하는 메서드
     public boolean validateToken(String token) {
         try {
-            Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token);
+            Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
             return true;
         } catch (io.jsonwebtoken.security.SecurityException | MalformedJwtException e) {
-            log.info("1 ",e.getMessage());
-            throw new CustomException(ErrorCode.INVALID_AUTH_TOKEN);
+            log.info("잘못된 JWT 서명입니다.");
         } catch (ExpiredJwtException e) {
-            log.info("2 ",e.getMessage());
-            throw new CustomException(ErrorCode.TOKEN_EXPIRED);
+            log.info("만료된 JWT 토큰입니다.");
         } catch (UnsupportedJwtException e) {
-            log.info("3 ",e.getMessage());
-            throw new CustomException(ErrorCode.UNSUPPORTED_JWT);
+            log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
-            log.info("4 ",e.getMessage());
-            throw new CustomException(ErrorCode.JWT_CLAIM_EMPTY);
+            log.info("JWT 토큰이 잘못되었습니다.");
         }
-
+        return false;
     }
 
 

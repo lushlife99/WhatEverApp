@@ -56,10 +56,10 @@ public class UserServiceImpl implements UserService {
         User findUser = userRepository.findByUserId(user.getUserId())
                 .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        if(!findUser.isAccountNonLocked())
-            if(findUser.getAccountStatus().equals(AccountStatus.BAN))
-                throw new LockedException("계정이 잠겼습니다. " + user.getAccountReleaseTime() + "이후에 이용 가능 합니다.");
-            else throw new LockedException("계정이 영구 정지 당했습니다. ");
+//        if(!findUser.isAccountNonLocked())
+//            if(findUser.getAccountStatus().equals(AccountStatus.BAN))
+//                throw new LockedException("계정이 잠겼습니다. " + user.getAccountReleaseTime() + "이후에 이용 가능 합니다.");
+//            else throw new LockedException("계정이 영구 정지 당했습니다. ");
 
 
         tokenInfo.setId(findUser.getId());

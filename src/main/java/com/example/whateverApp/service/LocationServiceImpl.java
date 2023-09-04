@@ -123,7 +123,7 @@ public class LocationServiceImpl implements LocationService {
             return false;
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(work.getId())
-                .orElseThrow(() -> new CustomException(ErrorCode.HELPERLOCATION_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.HELPER_LOCATION_NOT_FOUND));
 
         List<Location> locationList = helperLocation.getLocationList();
         locationList.add(location);
@@ -143,7 +143,7 @@ public class LocationServiceImpl implements LocationService {
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
         HelperLocation helperLocation = helperLocationRepository.findByWorkId(workId)
-                .orElseThrow(() -> new CustomException(ErrorCode.HELPERLOCATION_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.HELPER_LOCATION_NOT_FOUND));
 
         return helperLocation.getLocationList();
     }
