@@ -4,6 +4,7 @@ import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.entity.User;
+import com.google.api.Http;
 import io.jsonwebtoken.ExpiredJwtException;
 import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
@@ -26,6 +27,7 @@ import org.springframework.web.server.ResponseStatusException;
 
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.Optional;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -50,10 +52,13 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
             // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
             Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            User user = jwtTokenProvider.getUser((HttpServletRequest) request).get();
-            if (!user.isAccountNonLocked()) {
-                httpServletResponse.sendError(HttpStatus.FORBIDDEN.value(), "계정이 정지되었습니다");
-            }
+
+//            Optional<User> optionalUser = jwtTokenProvider.getUser((HttpServletRequest) request);
+//            if(optionalUser.isPresent()){
+//                if (!optionalUser.get().isAccountNonLocked()) {
+//                    httpServletResponse.sendError(HttpStatus.FORBIDDEN.value(), "계정이 정지되었습니다");
+//                }
+//            }
         }
         //토큰이 유효하지 않을 경우 403에러.
         chain.doFilter(request, httpServletResponse);

@@ -49,6 +49,7 @@ public class UserServiceImpl implements UserService {
     @Value("${file:}")
     private String fileDir;
 
+
     public TokenInfo login(User user, HttpServletResponse response) {
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
@@ -61,8 +62,9 @@ public class UserServiceImpl implements UserService {
                 throw new LockedException("계정이 잠겼습니다. " + user.getAccountReleaseTime() + "이후에 이용 가능 합니다.");
             else throw new LockedException("계정이 영구 정지 당했습니다. ");
 
-
         tokenInfo.setId(findUser.getId());
+        findUser.setRefreshToken(tokenInfo.getRefreshToken());
+        userRepository.save(findUser);
         return tokenInfo;
     }
 

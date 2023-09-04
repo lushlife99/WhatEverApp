@@ -81,7 +81,8 @@ public class WorkServiceImpl implements WorkService {
 
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-
+        User helper = userRepository.findById(workDto.getHelperId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User customer = userRepository.findById(work.getCustomer().getId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED))
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
@@ -90,9 +91,10 @@ public class WorkServiceImpl implements WorkService {
 
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         conversation.setWorkId(work.getId());
-        User helper = userRepository.findById(workDto.getHelperId()).get();
         work.setHelper(helper);
         work.setProceedingStatus(WorkProceedingStatus.STARTED);
+        helper.setProceedingWork(true);
+        customer.setProceedingWork(true);
         conversationRepository.save(conversation);
 
 
@@ -106,10 +108,9 @@ public class WorkServiceImpl implements WorkService {
         }
 
         fcmService.sendWorkProceeding(work, helper);
-        helper.setProceedingWork(true);
-        requestUser.setProceedingWork(true);
+        userRepository.save(helper);
+        userRepository.save(customer);
         return workRepository.save(work);
-
     }
 
     @Transactional
@@ -176,7 +177,6 @@ public class WorkServiceImpl implements WorkService {
 
         work.setProceedingStatus(WorkProceedingStatus.FINISHED);
         fcmService.sendWorkProceeding(work, work.getCustomer());
-
         return new WorkDto(work);
     }
 
@@ -286,6 +286,7 @@ public class WorkServiceImpl implements WorkService {
     /**
      * 검증 해보기.
      */
+    @Transactional
     public void executeUserAfterWork(Long workId) throws IOException {
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 

@@ -32,6 +32,8 @@ public enum ErrorCode {
 
     ACCOUNT_IS_BANNED(HttpStatus.FORBIDDEN, "정지된 계정입니다"),
     WILL_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "현재 상태로는 서비스 이용이 제한됩니다"),
+    PERMANENT_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "영구 정지 당한 계정입니다"),
+    BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "정지 당한 계정입니다"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),

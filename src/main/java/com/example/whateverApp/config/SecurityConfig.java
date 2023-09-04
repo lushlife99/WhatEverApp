@@ -29,6 +29,9 @@ public class SecurityConfig {
         http
                 .httpBasic().disable()
                 .csrf().disable()
+                .exceptionHandling()
+                .authenticationEntryPoint(jwtAuthenticationEntryPoint)
+                .and()
                 .sessionManagement().sessionCreationPolicy(SessionCreationPolicy.STATELESS)
                 .and()
                 .authorizeHttpRequests()
@@ -36,9 +39,8 @@ public class SecurityConfig {
                 .requestMatchers("/api/**").hasAnyRole("ADMIN", "USER")
                 .requestMatchers("/**").permitAll()
                 .and()
-                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class)
-                .exceptionHandling()
-                .authenticationEntryPoint(jwtAuthenticationEntryPoint);
+                .addFilterBefore(new JwtAuthenticationFilter(jwtTokenProvider), UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
