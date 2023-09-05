@@ -122,7 +122,7 @@ public class WorkServiceImpl implements WorkService {
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
             if(work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
-            workDtos.add(new WorkDto(work));
+                workDtos.add(new WorkDto(work));
         }
         return workDtos;
     }

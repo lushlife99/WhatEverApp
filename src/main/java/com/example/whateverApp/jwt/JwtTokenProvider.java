@@ -19,6 +19,7 @@ import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
 
 
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
 import org.springframework.transaction.annotation.Transactional;
@@ -71,7 +72,8 @@ public class JwtTokenProvider {
 
         User user = userRepository.findByUserId(authentication.getName()).get();
         user.setRefreshToken(refreshToken);
-        //userRepository.save(user);
+
+        userRepository.save(user);
         return TokenInfo.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
@@ -145,18 +147,18 @@ public class JwtTokenProvider {
             findRefreshToken = user.getRefreshToken();
         }
         else{
-            response.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
+            response.setStatus(HttpServletResponse.SC_FORBIDDEN);
             return null;
         }
 
-        Collection<? extends GrantedAuthority> authorities =
-                Arrays.stream(user.getRoles().toString().split(","))
-                        .map(SimpleGrantedAuthority::new)
-                        .collect(Collectors.toList());
-        UserDetails principal = new org.springframework.security.core.userdetails.User(user.getUsername(), "", authorities);
-        Authentication authentication = new UsernamePasswordAuthenticationToken(user.getUserId(), authorities);
+        GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getRoles().toString().substring(1,10));
+
+        UserDetails principal = new org.springframework.security.core.userdetails.User(user.getUsername(), "", Collections.singletonList(grantedAuthority));
+
+        Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, Collections.singletonList(grantedAuthority));
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+
         if(findRefreshToken.equals(refreshToken)){
-            // 새로운거 생성
             TokenInfo newToken = generateToken(authentication, response);
             return newToken;
         }

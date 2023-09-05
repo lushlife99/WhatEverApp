@@ -31,7 +31,7 @@ public class AuthController {
     }
 
     //Token Update
-    @PutMapping("/token")
+    @PutMapping("/reIssueToken")
     public TokenInfo IssueToken(HttpServletRequest request, HttpServletResponse response){
         return userService.issueToken(request, response);
     }

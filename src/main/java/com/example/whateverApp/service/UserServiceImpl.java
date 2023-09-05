@@ -33,6 +33,7 @@ import java.io.IOException;
 import java.net.MalformedURLException;
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 import java.time.temporal.ChronoUnit;
 import java.util.*;
 
@@ -59,12 +60,10 @@ public class UserServiceImpl implements UserService {
 
         if(!findUser.isAccountNonLocked())
             if(findUser.getAccountStatus().equals(AccountStatus.BAN))
-                throw new LockedException("계정이 잠겼습니다. " + user.getAccountReleaseTime() + "이후에 이용 가능 합니다.");
+                throw new LockedException("계정이 잠겼습니다.\n"+user.getAccountReleaseTime().format(DateTimeFormatter.ofPattern("yy-MM-dd HH:mm")) + " 이후에 다시 시도하세요.");
             else throw new LockedException("계정이 영구 정지 당했습니다. ");
 
         tokenInfo.setId(findUser.getId());
-        findUser.setRefreshToken(tokenInfo.getRefreshToken());
-        userRepository.save(findUser);
         return tokenInfo;
     }
 
@@ -72,6 +71,8 @@ public class UserServiceImpl implements UserService {
         if (userRepository.findByUserId(user.getUserId()).isPresent())
             throw new CustomException(ErrorCode.DUPLICATE_USER);
 
+        user.setLatitude(35.1542217);
+        user.setLongitude(126.9207806);
         user.setRoles(Collections.singletonList("ROLE_USER"));
         user.setAccountStatus(AccountStatus.USING);
         user.setImageFileName(UUID.randomUUID());
