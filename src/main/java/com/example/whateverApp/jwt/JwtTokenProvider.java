@@ -132,14 +132,10 @@ public class JwtTokenProvider {
         }
         return false;
     }
-
-
-    //여기 문법 좀 많이 고쳐야됨. 어려움 ㅠㅠ
     @Transactional
     public TokenInfo reissueToken(String refreshToken, HttpServletResponse response) throws RuntimeException{
-        User user = null;
+        User user;
         String findRefreshToken;
-        //만약 값이 있으면 ? user의 refreshToken과 쿠키의 refreshToken을 비교.
         Optional<User> findUser = userRepository.findByRefreshToken(refreshToken);
 
         if(findUser.isPresent()){
@@ -167,7 +163,6 @@ public class JwtTokenProvider {
             return null;
         }
     }
-
 
     private Claims parseClaims(String accessToken) {
         try {

@@ -76,9 +76,8 @@ public class LocationController {
         locationService.getHelperLocation(workId);
     }
 
-    @MessageMapping("/location/{workId}")
-    public void sendHelperLocationToCustomer(@DestinationVariable Long workId, @RequestBody Location location, @Header("Authorization") String jwtToken){
-        locationService.sendHelperLocationToCustomer(workId, location, jwtToken);
+    @PostMapping("/sendToCustomer/{workId}")
+    public void sendHelperLocationToCustomer(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request){
+        locationService.sendHelperLocationToCustomer(workId, location, request);
     }
-
 }

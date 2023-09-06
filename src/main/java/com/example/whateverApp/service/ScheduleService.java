@@ -37,10 +37,10 @@ public class ScheduleService {
     /**
      * 매 정각마다 정지된 유저들의 계정을 해제해주는 함수.
      */
-    @Scheduled(cron = "10 0 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "10 52 * * * * ", zone = "Asia/Seoul")
     public void releaseBanAccounts(){
         LocalDateTime now = LocalDateTime.now();
-
+        System.out.println("계정 해제 Scheduler 실행");
         List<User> releaseUserList = userRepository.findAll().stream()
                 .filter(u -> u.getAccountStatus().equals(AccountStatus.BAN))
                 .filter(u -> now.isAfter(u.getAccountReleaseTime())).toList();
@@ -85,4 +85,5 @@ public class ScheduleService {
 
         conversationRepository.deleteAll(list);
     }
+
 }

@@ -19,7 +19,6 @@ import java.util.List;
 public class UserAuthenticationService implements UserDetailsService {
 
     private final UserRepository userRepository;
-    private final JwtTokenProvider jwtTokenProvider;
     private final PasswordEncoder passwordEncoder;
 
     @Override

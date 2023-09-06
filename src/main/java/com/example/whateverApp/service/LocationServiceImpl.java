@@ -103,6 +103,7 @@ public class LocationServiceImpl implements LocationService {
         double a = Math.sin(dLat / 2) * Math.sin(dLat / 2) + Math.cos(Math.toRadians(lat1)) * Math.cos(Math.toRadians(lat2)) * Math.sin(dLon / 2) * Math.sin(dLon / 2);
         double c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
         double d = EARTH_RADIUS * c * 1000;    // Distance in m
+        System.out.println(d);
         return d;
     }
 
@@ -153,14 +154,15 @@ public class LocationServiceImpl implements LocationService {
         simpMessagingTemplate.convertAndSend("/queue/"+work.getHelper().getId(), new MessageDto("SendLocation", new WorkDto(work)));
     }
 
-    public void sendHelperLocationToCustomer(Long workId, Location location, String jwtToken){
-        Authentication authentication = jwtTokenProvider.getAuthentication(jwtToken.substring(7));
+
+    public void sendHelperLocationToCustomer(Long workId, Location location, HttpServletRequest request){
+
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-        if(!authentication.getName().equals(work.getHelper().getUserId()))
+        if(!user.getUserId().equals(work.getHelper().getUserId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
         simpMessagingTemplate.convertAndSend("/queue/"+work.getCustomer().getId(), new MessageDto("HelperLocation", location));
     }
-
 
 }

@@ -44,26 +44,19 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         httpServletResponse.setHeader("Access-Control-Max-Age", "3600");
         httpServletResponse.setHeader("Access-Control-Allow-Headers", "Content-Type, Accept, X-Requested-With, remember-me, Origin,Content-Type,Access-Control-Request-Method,Access-Control-Request-Headers,Authorization");
         httpServletResponse.setHeader("Access-Control-Allow-Credentials",  "true");
-        // 1. Request Header 에서 JWT 토큰 추출
         String accessToken = jwtTokenProvider.resolveToken((HttpServletRequest) request);
-        // 2. validateToken 으로 토큰 유효성 검사
-        System.out.println(accessToken);
 
         if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
-            // 토큰이 유효할 경우 토큰에서 Authentication 객체를 가지고 와서 SecurityContext 에 저장
             Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
 
-//            Optional<User> optionalUser = jwtTokenProvider.getUser((HttpServletRequest) request);
-//            if(optionalUser.isPresent()){
-//                if (!optionalUser.get().isAccountNonLocked()) {
-//                    httpServletResponse.sendError(HttpStatus.FORBIDDEN.value(), "계정이 정지되었습니다");
-//                }
-//            }
+            Optional<User> optionalUser = jwtTokenProvider.getUser((HttpServletRequest) request);
+            if(optionalUser.isPresent()){
+                if (!optionalUser.get().isAccountNonLocked()) {
+                    httpServletResponse.sendError(HttpStatus.FORBIDDEN.value(), "계정이 정지되었습니다");
+                }
+            }
         }
-        //토큰이 유효하지 않을 경우 403에러.
         chain.doFilter(request, httpServletResponse);
     }
-
-
 }
