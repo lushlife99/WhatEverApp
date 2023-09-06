@@ -26,7 +26,7 @@ public class Conversation {
     private Long participantId;
     private String creatorName;
     private String participatorName;
-    private Long workId;
+    private Long workId = 0L;
     private List<Chat> chatList = new ArrayList<>();
 
     private int seenCountByCreator;

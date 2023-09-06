@@ -71,7 +71,6 @@ public class WorkController {
 
     @PutMapping("/work/finish/{workId}")
     public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) throws IOException {
-        System.out.println("WorkController.finishWork");
         return workService.letFinish(workId, request);
     }
 

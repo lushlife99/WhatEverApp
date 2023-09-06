@@ -70,12 +70,10 @@ public class LocationController {
     public List<Location> getHelperLocationList(@PathVariable Long workId){
         return locationService.getHelperLocationLists(workId);
     }
-
     @GetMapping("/helperLocation/{workId}")
     public void getHelperLocation(@PathVariable Long workId){
         locationService.getHelperLocation(workId);
     }
-
     @PostMapping("/sendToCustomer/{workId}")
     public void sendHelperLocationToCustomer(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request){
         locationService.sendHelperLocationToCustomer(workId, location, request);

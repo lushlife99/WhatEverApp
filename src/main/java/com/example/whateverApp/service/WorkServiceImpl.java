@@ -158,6 +158,7 @@ public class WorkServiceImpl implements WorkService {
 
     @Override
     public WorkDto get(Long id, HttpServletRequest request) {
+
         return new WorkDto(workRepository.findById(id)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND)));
     }
@@ -194,11 +195,9 @@ public class WorkServiceImpl implements WorkService {
             rewardService.afterWork(work);
             fcmService.sendWorkProceeding(work, work.getHelper());
             fcmService.sendWorkProceeding(work, work.getCustomer());
-            System.out.println("WorkServiceImpl.letFinish");
             return new WorkDto(workRepository.save(work));
         }
         else {
-            System.out.println("WorkServiceImpl.letFinish2222222");
             throw new CustomException(ErrorCode.BAD_REQUEST);}
     }
 
@@ -218,8 +217,8 @@ public class WorkServiceImpl implements WorkService {
         rewardService.afterWork(work);
         fcmService.sendWorkProceeding(work, work.getHelper());
         fcmService.sendWorkProceeding(work, work.getCustomer());
+        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
     }
-
 
     public List<WorkDto> getWorkListByDistance(HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));

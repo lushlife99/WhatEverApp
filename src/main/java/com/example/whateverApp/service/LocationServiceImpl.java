@@ -33,14 +33,12 @@ public class LocationServiceImpl implements LocationService {
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final UserServiceImpl userService;
     private final WorkRepository workRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
     static final double EARTH_RADIUS = 6371;
     @Value("${file:dir}")
     private String fileDir;
-
     @Override
     public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request)
@@ -72,7 +70,6 @@ public class LocationServiceImpl implements LocationService {
         Collections.sort(resultAroundUserList, Comparator.comparing(UserDto::getDistance));
         return resultAroundUserList;
     }
-
     public List<User> getAroundHelperList(Location location){
         double nowLatitude = location.getLatitude();
         double nowLongitude = location.getLongitude();
@@ -92,10 +89,6 @@ public class LocationServiceImpl implements LocationService {
                 .filter(u -> u.getLongitude().compareTo(maxX) <= 0)
                 .filter(u -> u.getLongitude().compareTo(minX) >= 0).toList();
     }
-
-
-
-
     public static double getDistance(double lat1, double lon1, double lat2, double lon2) {
         double dLat = Math.toRadians(lat2 - lat1);
         double dLon = Math.toRadians(lon2 - lon1);
@@ -106,7 +99,6 @@ public class LocationServiceImpl implements LocationService {
         System.out.println(d);
         return d;
     }
-
     @Override
     public UserDto setUserLocation(HttpServletRequest request, Location location) {
         User user = jwtTokenProvider.getUser(request)
@@ -116,7 +108,6 @@ public class LocationServiceImpl implements LocationService {
         user.setLongitude(location.getLongitude());
         return new UserDto(userRepository.save(user));
     }
-
     @Override
     public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
@@ -135,7 +126,6 @@ public class LocationServiceImpl implements LocationService {
 
         return true;
     }
-
     public List<Location> getHelperLocationLists(Long workId){
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -148,13 +138,10 @@ public class LocationServiceImpl implements LocationService {
 
         return helperLocation.getLocationList();
     }
-
     public void getHelperLocation(Long workId){
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         simpMessagingTemplate.convertAndSend("/queue/"+work.getHelper().getId(), new MessageDto("SendLocation", new WorkDto(work)));
     }
-
-
     public void sendHelperLocationToCustomer(Long workId, Location location, HttpServletRequest request){
 
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -164,5 +151,4 @@ public class LocationServiceImpl implements LocationService {
 
         simpMessagingTemplate.convertAndSend("/queue/"+work.getCustomer().getId(), new MessageDto("HelperLocation", location));
     }
-
 }

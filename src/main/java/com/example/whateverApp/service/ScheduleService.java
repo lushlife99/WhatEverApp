@@ -21,6 +21,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -37,14 +38,16 @@ public class ScheduleService {
     /**
      * 매 정각마다 정지된 유저들의 계정을 해제해주는 함수.
      */
-    @Scheduled(cron = "10 52 * * * * ", zone = "Asia/Seoul")
+    @Scheduled(cron = "1 0 * * * * ", zone = "Asia/Seoul")
     public void releaseBanAccounts(){
         LocalDateTime now = LocalDateTime.now();
         System.out.println("계정 해제 Scheduler 실행");
         List<User> releaseUserList = userRepository.findAll().stream()
                 .filter(u -> u.getAccountStatus().equals(AccountStatus.BAN))
-                .filter(u -> now.isAfter(u.getAccountReleaseTime())).toList();
-
+                .filter(u -> now.isBefore(u.getAccountReleaseTime())).toList();
+        for (User user : releaseUserList) {
+            System.out.println(user.getUserId());
+        }
         for (User user : releaseUserList) {
             user.setAccountReleaseTime(null);
             user.setAccountStatus(AccountStatus.USING);
@@ -61,29 +64,31 @@ public class ScheduleService {
                 .filter(w -> w.getFinishedAt().plusDays(3).isBefore(now)).toList();
 
         try {
-            for (Work work : nonFinishWorkList) {
+            for (Work work : nonFinishWorkList)
                 workService.letFinish(work);
-            }
+
         } catch (Exception e){}
 
     }
 
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 47 * * * *", zone = "Asia/Seoul")
     public void deleteDuplicatedConv() {
         LocalDateTime now = LocalDateTime.now();
         List<Conversation> list = conversationRepository.findAll();
 
         if (list != null) {
             list = list.stream()
-                    .filter(c -> c.getWorkId().longValue() == 0)
-                    .filter(c -> c.getCreatedAt().plusDays(1).isBefore(now))
+                    .filter(c -> c.getWorkId() == 0L)
+                    .filter(c -> c.getCreatedAt().isBefore(now))
                     .toList();
         }
-
-        for (Conversation conversation : list)
-            simpMessagingTemplate.convertAndSend("/topic/chat/" + conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
-
         conversationRepository.deleteAll(list);
+
+        for (Conversation conversation : list) {
+            System.out.println(conversation.get_id());
+            simpMessagingTemplate.convertAndSend("/topic/chat/" + conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
+        }
+
     }
 
 }

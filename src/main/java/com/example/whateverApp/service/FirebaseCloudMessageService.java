@@ -169,7 +169,8 @@ public class FirebaseCloudMessageService {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(()-> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         if(conversation.getChatList().size() == 0)
-            throw new CustomException(ErrorCode.BAD_REQUEST);
+            return;
+
         User findUser;
         Chat chat = conversation.getChatList().get(conversation.getChatList().size() - 1);
         String body = "새로운 채팅이 도착했습니다.";
