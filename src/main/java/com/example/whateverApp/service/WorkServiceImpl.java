@@ -244,11 +244,13 @@ public class WorkServiceImpl implements WorkService {
         for (Work work : nearByWorkList) {
             if(work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
                 if (work.getProceedingStatus().equals(WorkProceedingStatus.CREATED)) {
-                    double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
-                    if (distance < 5000) {
-                        workDto = new WorkDto(work);
-                        if (user.getId() != workDto.getCustomerId()) {
-                            resultAroundWorkList.add(workDto);
+                    if(work.getCustomer().isAccountNonLocked() == true){
+                     double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
+                     if (distance < 5000) {
+                         workDto = new WorkDto(work);
+                            if (user.getId() != workDto.getCustomerId()) {
+                             resultAroundWorkList.add(workDto);
+                          }
                         }
                     }
                 }

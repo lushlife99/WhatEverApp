@@ -56,7 +56,7 @@ public class ScheduleService {
         userRepository.saveAll(releaseUserList);
     }
 
-    @Scheduled(cron = "0 0 9 * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
     public void autoPermitNonFinishWorkList() {
         LocalDateTime now = LocalDateTime.now();
         List<Work> nonFinishWorkList = workRepository.findAll().stream()
@@ -71,7 +71,7 @@ public class ScheduleService {
 
     }
 
-    @Scheduled(cron = "0 47 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
     public void deleteDuplicatedConv() {
         LocalDateTime now = LocalDateTime.now();
         List<Conversation> list = conversationRepository.findAll();
@@ -79,7 +79,7 @@ public class ScheduleService {
         if (list != null) {
             list = list.stream()
                     .filter(c -> c.getWorkId() == 0L)
-                    .filter(c -> c.getCreatedAt().isBefore(now))
+                    .filter(c -> c.getCreatedAt().plusDays(1).isBefore(now))
                     .toList();
         }
         conversationRepository.deleteAll(list);

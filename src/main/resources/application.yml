@@ -5,25 +5,21 @@ jwt:
 spring:
   datasource:
     driver-class-name: com.mysql.cj.jdbc.Driver
-#    url: jdbc:mysql://rdstutorial.copner1jrptp.ap-northeast-2.rds.amazonaws.com:3306/WhatEverApp?useSSL=false&useLegacyDatetimeCode=false&characterEncoding=UTF-8
-#    username: chan
-#    password: chan1234
-    hikari:
-      max-lifetime: 177000
-    url: jdbc:mysql://localhost:3306/WhatEverApp?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false&characterEncoding=UTF-8
+    url: jdbc:mysql://rdstutorial.copner1jrptp.ap-northeast-2.rds.amazonaws.com:3306/WhatEverApp?useSSL=false&useLegacyDatetimeCode=false&characterEncoding=UTF-8
     username: chan
     password: chan1234
 
+    hikari:
+      max-lifetime: 177000
+
+#    url: jdbc:mysql://localhost:3306/WhatEverApp?serverTimezone=Asia/Seoul&useLegacyDatetimeCode=false&characterEncoding=UTF-8
+#    username: chan
+#    password: chan1234
+
   data:
     mongodb:
-      #username: chan
-      #password: 1234
-      spring:
-        data:
-          mongodb:
-            host: localhost
-            port: 27017
-            database: WhatEverApp
+      uri: mongodb://chan:chan1234@ec2-52-78-201-175.ap-northeast-2.compute.amazonaws.com/test?authSource=admin
+
   servlet:
     multipart:
       max-file-size: 1MB
