@@ -75,6 +75,7 @@ public class ConversationController {
         return conversationDto;
     }
 
+
     @GetMapping("/api/conversation/seen")
     public int getSeenCount(HttpServletRequest request){
         return conversationService.sendTotalSeenCount(request);

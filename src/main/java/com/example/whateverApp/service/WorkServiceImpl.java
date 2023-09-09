@@ -44,6 +44,7 @@ public class WorkServiceImpl implements WorkService {
     private final ReportService reportService;
     private final RewardService rewardService;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final ConversationImpl conversationServiceImpl;
     private static final double EARTH_RADIUS = 6371;
 
     public Work create(WorkDto workDto, HttpServletRequest request){
@@ -111,6 +112,21 @@ public class WorkServiceImpl implements WorkService {
         userRepository.save(helper);
         userRepository.save(customer);
         return workRepository.save(work);
+    }
+
+    public Work deny(WorkDto workDto, String conversationId, HttpServletRequest request){
+
+        Work work = workRepository.findById(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+
+        Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+
+        if(conversation.getCreatorId().equals(user.getId()) && conversation.getParticipantId().equals(user.getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+
+        conversationServiceImpl.delete(conversation);
+        return work;
     }
 
     @Transactional

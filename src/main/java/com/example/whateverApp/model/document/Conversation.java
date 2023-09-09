@@ -38,7 +38,7 @@ public class Conversation {
 
     public List<Chat> updateChat(Chat chat){
         chatList.add(chat);
-        setUpdatedAt(LocalDateTime.now());
+        setUpdatedAt(LocalDateTime.now().plusHours(9));
         return  chatList;
     }
 }

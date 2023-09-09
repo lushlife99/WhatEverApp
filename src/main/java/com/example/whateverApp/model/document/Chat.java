@@ -29,5 +29,5 @@ public class Chat {
     private String senderName;
     private String receiverName;
 
-    private LocalDateTime sendTime = LocalDateTime.now();
+    private LocalDateTime sendTime = LocalDateTime.now().plusHours(9);
 }

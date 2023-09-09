@@ -52,6 +52,7 @@ public class UserServiceImpl implements UserService {
 
 
     public TokenInfo login(User user, HttpServletResponse response) {
+
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);

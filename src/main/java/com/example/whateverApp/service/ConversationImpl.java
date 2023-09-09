@@ -100,6 +100,11 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
+    public void delete(Conversation conversation){
+        conversationRepository.deleteById(conversation.get_id());
+        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
+    }
+
     public ConversationDto getConversation(String conversationId, HttpServletRequest request){
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));

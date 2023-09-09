@@ -24,8 +24,13 @@ public class WorkController {
     private final WorkServiceImpl workService;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request) throws FirebaseMessagingException {
+    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
         return new WorkDto(workService.create(workDto, request));
+    }
+
+    @PutMapping("/work/deny/{conversationId}")
+    public WorkDto denyWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request){
+        return new WorkDto(workService.deny(workDto, conversationId, request));
     }
 
     /**
