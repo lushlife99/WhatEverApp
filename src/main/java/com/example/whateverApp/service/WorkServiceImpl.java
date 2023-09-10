@@ -56,6 +56,7 @@ public class WorkServiceImpl implements WorkService {
         Work work = new Work().updateWork(workDto);
         work.setProceedingStatus(WorkProceedingStatus.CREATED);
         work.setCustomer(user);
+        rewardService.beforeWork(workDto, request);
         return workRepository.save(work);
     }
 
@@ -114,6 +115,7 @@ public class WorkServiceImpl implements WorkService {
         return workRepository.save(work);
     }
 
+    @Transactional
     public Work deny(WorkDto workDto, String conversationId, HttpServletRequest request){
 
         Work work = workRepository.findById(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -169,6 +171,7 @@ public class WorkServiceImpl implements WorkService {
 
         else throw new CustomException(ErrorCode.BAD_REQUEST);
 
+        rewardService.chargeRewardToCustomer(work, request);
         return getWorkList(request);
     }
 
@@ -198,6 +201,7 @@ public class WorkServiceImpl implements WorkService {
     }
 
     @Override
+    @Transactional
     public WorkDto letFinish(Long workId, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));

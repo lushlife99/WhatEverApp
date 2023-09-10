@@ -2,6 +2,7 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.ReportDto;
+import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
@@ -44,9 +45,10 @@ public class ReportService {
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.WORK_NOT_FOUND));
-
         User reportUser = jwtTokenProvider.getUser(request).orElseThrow(()->
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
+                new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(reportRepository.findByWorkAndReportUser(work, reportUser).isPresent())
             throw new CustomException(ErrorCode.ALREADY_REPORT_THIS_WORK);
@@ -56,10 +58,6 @@ public class ReportService {
         if(work.getCustomer().getId().equals(reportUser.getId()))
             reportedUser = work.getHelper();
         else reportedUser = work.getCustomer();
-
-        Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
-                new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-
 
         Report report = Report.builder().reportReason(reportDto.getReportReason())
                 .conversationId(conversation.get_id())
@@ -109,7 +107,7 @@ public class ReportService {
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User reportUser = userRepository.findById(reportDto.getReportUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
+        Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         if(report.isExecuted())
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
@@ -159,6 +157,14 @@ public class ReportService {
         }
         report.updateReport(reportDto);
         reportRepository.save(report);
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED)){
+            conversation.setFinished(true);
+            conversationRepository.save(conversation);
+            work.setProceedingStatus(WorkProceedingStatus.REWARDED);
+            work.setFinishedAt(LocalDateTime.now());
+
+        }
+
         fcmService.sendReportExecuted(report);
         return new ReportDto((report));
     }

@@ -21,17 +21,6 @@ public class RewardController {
         rewardService.beforeWork(workDto, request);
     }
 
-    /**
-     *
-     * 음.. 이거 충전할 때도 검증이 필요함..
-     * 특히 돈에 관련된거라 나중에 꼭 수정.
-     * @param request
-     */
-    @PostMapping("/reward/charge")
-    public void chargeReward(HttpServletRequest request){
-        rewardService.chargeReward(request);
-    }
-
     @GetMapping("/reward/transfer")
     public UserDto rewardTransfer(@RequestParam("amount") int amount, HttpServletRequest request) throws IOException {
         return rewardService.transfer(amount, request);

@@ -68,8 +68,12 @@ public class ReviewService {
         review.updateReview(reviewDto);
         review.setUser(work.getHelper());
         review.setWork(work);
+        User helper = work.getHelper();
 
+        helper.addReview(review);
+        helper.setRating(helper.getRating() * helper.getReviewList().size() + review.getRating() / helper.getReviewList().size() + 1);
         fcmService.sendReviewUpload(review);
         reviewRepository.save(review);
+        userRepository.save(helper);
     }
 }

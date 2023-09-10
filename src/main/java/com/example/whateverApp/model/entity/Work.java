@@ -14,6 +14,7 @@ import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.DynamicInsert;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -56,7 +57,7 @@ public class Work {
     private User helper;
 
     @OneToMany(mappedBy = "work")
-    private List<Report> reportList;
+    private List<Report> reportList = new ArrayList<>();
 
     @Enumerated(EnumType.ORDINAL)
     private WorkProceedingStatus proceedingStatus;

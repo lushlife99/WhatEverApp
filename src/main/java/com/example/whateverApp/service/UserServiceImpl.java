@@ -140,13 +140,17 @@ public class UserServiceImpl implements UserService {
         return user;
     }
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
+        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!user.isAccountNonLocked())
+            throw new CustomException(ErrorCode.ACCOUNT_IS_BANNED);
+
         Cookie[] cookies = request.getCookies();
         String refreshToken = "";
-        for (Cookie cookie : cookies) {
-            if (cookie.getName().equals("refreshToken")) {
+        for (Cookie cookie : cookies)
+            if (cookie.getName().equals("refreshToken"))
                 refreshToken = cookie.getValue();
-            }
-        }
+
+
         return jwtTokenProvider.reissueToken(refreshToken, response);
     }
 

@@ -4,12 +4,15 @@ import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.messaging.Message;
+import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeType;
 import org.springframework.web.socket.messaging.StompSubProtocolErrorHandler;
 
 import java.nio.charset.StandardCharsets;
+import java.util.Set;
 
 @Slf4j
 @RequiredArgsConstructor
@@ -28,12 +31,11 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
             Message<byte[]> clientMessage,
             Throwable ex) {
 
-        // 오류 메시지가 "UNAUTHORIZED"인 경우 - throw new MessageDeliveryException("UNAUTHORIZED")
         if ("UNAUTHORIZED".equals(ex.getMessage())) {
-            return errorMessage("유효하지 않은 권한입니다.");
+            return errorMessage("UNAUTHORIZED", clientMessage);
         }
-        else if ("ReIssueToken".equals(ex.getMessage())){
-            return errorMessage("");
+        else if ("ReIssueJwt".equals(ex.getMessage())){
+            return errorMessage("ReIssueToken", clientMessage);
         }
 
         return super.handleClientMessageProcessingError(clientMessage, ex);
@@ -45,12 +47,18 @@ public class StompErrorHandler extends StompSubProtocolErrorHandler {
      * @param errorMessage 오류 메시지
      * @return 오류 메시지를 포함한 Message 객체
      */
-    private Message<byte[]> errorMessage(String errorMessage) {
+    private Message<byte[]> errorMessage(String errorMessage, Message<byte[]> clientMessage) {
 
         StompHeaderAccessor accessor = StompHeaderAccessor.create(StompCommand.ERROR);
         accessor.setLeaveMutable(true);
+        accessor.setNativeHeader("errorType", errorMessage);
+        Set<String> strings = clientMessage.getHeaders().keySet();
 
-        return MessageBuilder.createMessage(errorMessage.getBytes(StandardCharsets.UTF_8),
+        for (String string : strings)
+            accessor.setNativeHeader(string, clientMessage.getHeaders().get(string).toString());
+
+        return MessageBuilder.createMessage(clientMessage.getPayload(),
                 accessor.getMessageHeaders());
     }
+
 }

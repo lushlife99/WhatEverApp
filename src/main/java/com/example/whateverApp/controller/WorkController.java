@@ -33,10 +33,6 @@ public class WorkController {
         return new WorkDto(workService.deny(workDto, conversationId, request));
     }
 
-    /**
-     *
-     * 이거 상태코드 내려주는거 따로 공부해서 수정하기. 만약 일이 진행중이라면 상태코드 잘 내려주기 ㅇㅇ.
-     */
     @PutMapping("/work/matching/{conversationId}")
     public WorkDto matchWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request) throws IOException {
         return new WorkDto(workService.matchingHelper(workDto, conversationId, request));

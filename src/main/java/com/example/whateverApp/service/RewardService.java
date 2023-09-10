@@ -79,13 +79,10 @@ public class RewardService {
         if(!jwtTokenProvider.getUser(request).equals(customer) || workDto.getWorkProceedingStatus() != WorkProceedingStatus.CREATED.ordinal())
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
-
         if(customer.getReward().compareTo(workDto.getReward()) < 0)
             throw new CustomException(ErrorCode.LACK_REWORD);
 
         customer.setReward(customer.getReward() - workDto.getReward());
-        userRepository.save(customer);
-        log.info("Before Work. Customer payed.\n" +workDto);
     }
 
     @Transactional
@@ -94,12 +91,20 @@ public class RewardService {
     }
 
     @Transactional
-    public void chargeReward(HttpServletRequest request) {
+    public void chargeRewardToCustomer(Work work, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
-        user.setReward(user.getReward());
+        if(!work.getCustomer().getId().equals(user.getId()))
+            throw new CustomException(ErrorCode.BAD_REQUEST);
+
+        user.setReward(work.getReward() + user.getReward());
     }
 
+    public void chargeRewardToCustomer(Work work) {
+
+        User customer = work.getCustomer();
+        customer.setReward(work.getReward() + customer.getReward());
+    }
     /**
      * 230827 chan
      * transfer method

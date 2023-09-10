@@ -1,33 +1,18 @@
 package com.example.whateverApp.config.filter;
 
-import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.ErrorCode;
+
 import com.example.whateverApp.jwt.JwtTokenProvider;
-import com.example.whateverApp.model.entity.User;
-import com.google.api.Http;
-import io.jsonwebtoken.ExpiredJwtException;
-import io.jsonwebtoken.JwtException;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
 import jakarta.servlet.ServletRequest;
 import jakarta.servlet.ServletResponse;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.HttpStatus;
-import org.springframework.security.authentication.AccountStatusException;
-import org.springframework.security.authentication.LockedException;
-import org.springframework.security.authentication.dao.AbstractUserDetailsAuthenticationProvider;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.util.StringUtils;
 import org.springframework.web.filter.GenericFilterBean;
-import org.springframework.web.server.ResponseStatusException;
-
 import java.io.IOException;
-import java.util.Arrays;
-import java.util.Optional;
 
 @RequiredArgsConstructor
 public class JwtAuthenticationFilter extends GenericFilterBean {
@@ -46,16 +31,9 @@ public class JwtAuthenticationFilter extends GenericFilterBean {
         httpServletResponse.setHeader("Access-Control-Allow-Credentials",  "true");
         String accessToken = jwtTokenProvider.resolveToken((HttpServletRequest) request);
 
-        if (accessToken != null && jwtTokenProvider.validateToken(accessToken)) {
+        if (jwtTokenProvider.validateToken(accessToken)) {
             Authentication authentication = jwtTokenProvider.getAuthentication(accessToken);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-
-            Optional<User> optionalUser = jwtTokenProvider.getUser((HttpServletRequest) request);
-            if(optionalUser.isPresent()){
-                if (!optionalUser.get().isAccountNonLocked()) {
-                    httpServletResponse.sendError(HttpStatus.FORBIDDEN.value(), "계정이 정지되었습니다");
-                }
-            }
         }
         chain.doFilter(request, httpServletResponse);
     }

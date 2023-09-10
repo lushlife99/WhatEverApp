@@ -218,6 +218,12 @@ public class FirebaseCloudMessageService {
         sendMessageTo(report.getReportUser(), notificationTitle, body, data);
     }
 
+    public void workDeleteNotification(Work work) throws IOException {
+        String body = "마감기한이 지나 심부름이 삭제되었어요.";
+        FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
+        sendMessageTo(work.getCustomer(), notificationTitle, body, data);
+    }
+
     private String makeMessage(String targetToken, String title, String body, FcmMessage.Data data) throws JsonProcessingException {
         FcmMessage fcmMessage = FcmMessage.builder()
                 .message(FcmMessage.Message.builder()
@@ -231,6 +237,8 @@ public class FirebaseCloudMessageService {
         System.out.println(fcmMessage.toString());
         return objectMapper.writeValueAsString(fcmMessage);
     }
+
+
 
     private String getAccessToken() throws IOException {
         String firebaseConfigPath = "firebase/firebase_service_key.json";

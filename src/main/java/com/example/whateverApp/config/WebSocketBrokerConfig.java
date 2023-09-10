@@ -16,7 +16,7 @@ import org.springframework.web.socket.config.annotation.WebSocketMessageBrokerCo
 public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
 
     private final StompHandler stompHandler;
-    //private final StompErrorHandler stompErrorHandler;
+    private final StompErrorHandler stompErrorHandler;
     @Override
     public void configureMessageBroker(MessageBrokerRegistry registry) {
         registry.setApplicationDestinationPrefixes("/pub"); // /pub 경로로 시작하는 STOMP SEND 요청 메시지의 "destination" 헤더는 @Controller 객체의 @MessageMapping 메서드로 라우팅 된다. -> publish
@@ -26,7 +26,7 @@ public class WebSocketBrokerConfig implements WebSocketMessageBrokerConfigurer {
     @Override
     public void registerStompEndpoints(StompEndpointRegistry registry) {
         registry.addEndpoint("/ws").setAllowedOriginPatterns("*");
-        //registry.setErrorHandler(stompErrorHandler);
+        registry.setErrorHandler(stompErrorHandler);
     }
 
     @Override

@@ -39,7 +39,7 @@ public class User implements UserDetails {
     private String name;
     private String introduce;
     private Double rating;
-    private Integer reward = 10000;
+    private Integer reward = 1000000;
     private Long avgReactTime = 1000000000L;//평균 첫 응답 속도
     @OneToMany(mappedBy = "customer")
     private List<Work> purchaseList = new ArrayList<>();
@@ -91,6 +91,12 @@ public class User implements UserDetails {
     public User updateLocation(Location location){
         this.latitude = location.getLatitude();
         this.longitude = location.getLongitude();
+        return this;
+    }
+
+    public User addReview(Review review){
+        this.getReviewList().add(review);
+
         return this;
     }
     @Override

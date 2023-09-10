@@ -11,6 +11,7 @@ public enum RouteOptions {
     FINISH_WORK_VIEW("FinishWorkView"),
     MY_REVIEW_VIEW("MyReviewView"),
     REPORT_VIEW("ReportView"),
+    MAIN_VIEW("MainView")
     ;
 
     private final String detail;
