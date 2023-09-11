@@ -73,16 +73,15 @@ public class RewardService {
      */
 
     @Transactional
-    public void beforeWork(WorkDto workDto, HttpServletRequest request){
-        User customer = userRepository.findById(workDto.getCustomerId())
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!jwtTokenProvider.getUser(request).equals(customer) || workDto.getWorkProceedingStatus() != WorkProceedingStatus.CREATED.ordinal())
+    public void beforeWork(Work work, HttpServletRequest request){
+        User customer = work.getCustomer();
+        if(!jwtTokenProvider.getUser(request).get().getId().equals(customer.getId()) || work.getProceedingStatus() != WorkProceedingStatus.CREATED)
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
-        if(customer.getReward().compareTo(workDto.getReward()) < 0)
+        if(customer.getReward().compareTo(work.getReward()) < 0)
             throw new CustomException(ErrorCode.LACK_REWORD);
 
-        customer.setReward(customer.getReward() - workDto.getReward());
+        customer.setReward(customer.getReward() - work.getReward());
     }
 
     @Transactional

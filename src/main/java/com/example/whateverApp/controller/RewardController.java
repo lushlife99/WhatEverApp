@@ -16,11 +16,6 @@ public class RewardController {
 
     private final RewardService rewardService;
 
-    @PostMapping("/reward/beforeWork")
-    public void beforeWork(WorkDto workDto, HttpServletRequest request){
-        rewardService.beforeWork(workDto, request);
-    }
-
     @GetMapping("/reward/transfer")
     public UserDto rewardTransfer(@RequestParam("amount") int amount, HttpServletRequest request) throws IOException {
         return rewardService.transfer(amount, request);

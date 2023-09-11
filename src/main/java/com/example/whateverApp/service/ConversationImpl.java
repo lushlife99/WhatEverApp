@@ -16,7 +16,6 @@ import com.example.whateverApp.repository.mongoRepository.ChatRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
-import com.example.whateverApp.service.interfaces.ConversationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
@@ -32,7 +31,7 @@ import java.util.List;
 
 @RequiredArgsConstructor
 @Service
-public class ConversationImpl implements ConversationService {
+public class ConversationImpl{
 
     private final JwtTokenProvider jwtTokenProvider;
     private final UserRepository userRepository;
@@ -50,7 +49,6 @@ public class ConversationImpl implements ConversationService {
      * @return conversation
      * message to
      */
-    @Override
     public Conversation openAndMessage(HttpServletRequest request, Long participatorId, WorkDto workDto) {
         User creator = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -100,9 +98,9 @@ public class ConversationImpl implements ConversationService {
         return conversationRepository.save(conversation);
     }
 
-    public void delete(Conversation conversation){
-        conversationRepository.deleteById(conversation.get_id());
-        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
+    public void delete(String conversationId){
+        conversationRepository.deleteById(conversationId);
+        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId, new MessageDto("DeleteConv", conversationId));
     }
 
     public ConversationDto getConversation(String conversationId, HttpServletRequest request){
@@ -110,7 +108,6 @@ public class ConversationImpl implements ConversationService {
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(!conversation.getCreatorId().equals(user.getId()) && !conversation.getParticipantId().equals(user.getId())) {
-            System.out.println("여기서 오류");
             throw new CustomException(ErrorCode.BAD_REQUEST);
         }
 
@@ -121,7 +118,6 @@ public class ConversationImpl implements ConversationService {
     }
 
 
-    @Override
     @Transactional
     public ConversationDto sendWork(String conversationId, WorkDto workDto, String jwtToken) throws JsonProcessingException {
 
@@ -155,7 +151,6 @@ public class ConversationImpl implements ConversationService {
         return conversationDtoList;
     }
 
-    @Override
     @Transactional
     public ConversationDto sendChatting(Chat chat, String conversationId, String jwtToken) {
         Conversation conversation = conversationRepository.findById(conversationId).

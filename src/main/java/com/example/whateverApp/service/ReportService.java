@@ -49,9 +49,10 @@ public class ReportService {
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-
         if(reportRepository.findByWorkAndReportUser(work, reportUser).isPresent())
             throw new CustomException(ErrorCode.ALREADY_REPORT_THIS_WORK);
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED) || work.getProceedingStatus().equals(WorkProceedingStatus.CREATED) )
+            throw new CustomException(ErrorCode.BAD_REQUEST);
 
         User reportedUser;
 
@@ -155,16 +156,10 @@ public class ReportService {
             default:
                 throw new CustomException(ErrorCode.BAD_REQUEST);
         }
+        work.setProceedingStatus(WorkProceedingStatus.REWARDED);
         report.updateReport(reportDto);
-        reportRepository.save(report);
-        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED)){
-            conversation.setFinished(true);
-            conversationRepository.save(conversation);
-            work.setProceedingStatus(WorkProceedingStatus.REWARDED);
-            work.setFinishedAt(LocalDateTime.now());
-
-        }
-
+        conversation.setFinished(true);
+        conversationRepository.save(conversation);
         fcmService.sendReportExecuted(report);
         return new ReportDto((report));
     }

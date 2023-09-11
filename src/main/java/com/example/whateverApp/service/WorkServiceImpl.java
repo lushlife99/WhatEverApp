@@ -19,7 +19,6 @@ import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
 import com.example.whateverApp.repository.mongoRepository.HelperLocationRepository;
-import com.example.whateverApp.service.interfaces.WorkService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
@@ -32,7 +31,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class WorkServiceImpl implements WorkService {
+public class WorkServiceImpl {
 
     private final WorkRepository workRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -56,11 +55,10 @@ public class WorkServiceImpl implements WorkService {
         Work work = new Work().updateWork(workDto);
         work.setProceedingStatus(WorkProceedingStatus.CREATED);
         work.setCustomer(user);
-        rewardService.beforeWork(workDto, request);
+        rewardService.beforeWork(work, request);
         return workRepository.save(work);
     }
 
-    @Override
     public WorkDto update(WorkDto workDto) {
         Work work = workRepository.findById(workDto.getId())
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
@@ -127,7 +125,7 @@ public class WorkServiceImpl implements WorkService {
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
 
-        conversationServiceImpl.delete(conversation);
+        conversationServiceImpl.delete(conversation.get_id());
         return work;
     }
 
@@ -158,7 +156,6 @@ public class WorkServiceImpl implements WorkService {
         return workDtos;
     }
 
-    @Override
     @Transactional
     public List<WorkDto> delete(Long workId, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request)
@@ -175,7 +172,6 @@ public class WorkServiceImpl implements WorkService {
         return getWorkList(request);
     }
 
-    @Override
     public WorkDto get(Long id, HttpServletRequest request) {
 
         return new WorkDto(workRepository.findById(id)
@@ -200,7 +196,6 @@ public class WorkServiceImpl implements WorkService {
         return new WorkDto(work);
     }
 
-    @Override
     @Transactional
     public WorkDto letFinish(Long workId, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));

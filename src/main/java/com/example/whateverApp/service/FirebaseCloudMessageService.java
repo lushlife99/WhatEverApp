@@ -4,6 +4,7 @@ import com.example.whateverApp.dto.FcmMessage;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
+import com.example.whateverApp.model.NotificationBody;
 import com.example.whateverApp.model.RouteOptions;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Chat;
@@ -21,6 +22,7 @@ import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
+import org.aspectj.weaver.ast.Not;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.UrlResource;
@@ -51,7 +53,6 @@ public class FirebaseCloudMessageService {
     private final LocationServiceImpl locationService;
     private final WorkRepository workRepository;
 
-
     @Value("${file:}")
     private String fileDir;
     public void sendMessageTo(User user, String title, String body, FcmMessage.Data data) throws IOException {
@@ -72,7 +73,6 @@ public class FirebaseCloudMessageService {
                 .build();
 
         Response response = client.newCall(request).execute();
-        log.info(response.body().string());
     }
 
     public void sendNearByHelper(WorkDto workDto) throws FirebaseMessagingException{
@@ -98,27 +98,17 @@ public class FirebaseCloudMessageService {
             strings.add(user.getNotificationToken());
         }
 
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] photoEncode;
-        File file = new File(fileDir + "whateverlogo");
-        String s = "";
-        if (file.exists()) {
-            photoEncode = encoder.encode(new UrlResource("file:" + fileDir + "whateverlogo").getContentAsByteArray());
-            s = new String(photoEncode, "UTF8");
-        }
-        log.info(s);
+
         MulticastMessage message = MulticastMessage.builder()
-                .setNotification(Notification.builder().setTitle(title).setBody(body).setImage(s).build())
+                .setNotification(Notification.builder().setTitle(title).setBody(body).build())
                 .addAllTokens(strings)
                 .build();
         BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-        log.info("success count = " + response.getSuccessCount());
         if (response.getFailureCount() > 0) {
             List<SendResponse> responses = response.getResponses();
             List<String> failedTokens = new ArrayList<>();
             for (int i = 0; i < responses.size(); i++) {
                 if (!responses.get(i).isSuccessful()) {
-                    // The order of responses corresponds to the order of the registration tokens.
                     failedTokens.add(strings.get(i));
                 }
             }
@@ -146,7 +136,6 @@ public class FirebaseCloudMessageService {
                 .addAllTokens(strings)
                 .build();
         BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
-        log.info("success count = " + response.getSuccessCount());
         if (response.getFailureCount() > 0) {
             List<SendResponse> responses = response.getResponses();
             List<String> failedTokens = new ArrayList<>();
@@ -159,12 +148,6 @@ public class FirebaseCloudMessageService {
         }
     }
 
-    /**
-     * card, work Notification 만들기.
-     * @param conversationId
-     * @throws IOException
-     */
-
     public void chatNotification(String conversationId) throws IOException {
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(()-> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -173,7 +156,6 @@ public class FirebaseCloudMessageService {
 
         User findUser;
         Chat chat = conversation.getChatList().get(conversation.getChatList().size() - 1);
-        String body = "새로운 채팅이 도착했습니다.";
 
         if(!conversation.getCreatorName().equals(chat.getSenderName()))
             findUser = userRepository.findById(conversation.getCreatorId()).get();
@@ -181,7 +163,7 @@ public class FirebaseCloudMessageService {
         else findUser = userRepository.findById(conversation.getParticipantId()).get();
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).routeData(conversationId).build();
 
-        sendMessageTo(findUser, notificationTitle, body, data);
+        sendMessageTo(findUser, notificationTitle, NotificationBody.CHAT.getDetail(), data);
     }
 
     public void sendWorkProceeding(Work work, User user) throws IOException {
@@ -189,13 +171,13 @@ public class FirebaseCloudMessageService {
         FcmMessage.Data data;
         Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED)){
-            body = "심부름이 수락되었습니다. 진행상황을 확인해보세요";
+            body = NotificationBody.STARTED_WORK.getDetail();
             data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).routeData(conversation.get_id()).build();
         } else if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED)){
-            body = "헬퍼가 심부름을 완료했어요. 완료된 심부름을 마지막으로 검토해주세요";
+            body = NotificationBody.FINISHED_WORK.getDetail();
             data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).routeData(conversation.get_id()).build();
         } else if(work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED)){
-            body = "심부름이 최종 검토되었어요. 리뷰를 써주세요 ";
+            body = NotificationBody.REWARDED_WORK.getDetail();
             data = FcmMessage.Data.builder().routeType(RouteOptions.FINISH_WORK_VIEW.getDetail()).routeData(conversation.get_id()).build();
         }
         else return;
@@ -204,24 +186,31 @@ public class FirebaseCloudMessageService {
         alarmService.send(user, notificationTitle, body);
     }
     public void sendReviewUpload(Review review) throws IOException {
-        String body = "리뷰가 등록되었어요. 리뷰를 확인해보세요";
 
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MY_REVIEW_VIEW.getDetail()).build();
-        sendMessageTo(review.getUser(), notificationTitle, body, data);
-        alarmService.send(review.getUser(), notificationTitle, body);
+        sendMessageTo(review.getUser(), notificationTitle, NotificationBody.REVIEW_UPLOADED.getDetail(), data);
+        alarmService.send(review.getUser(), notificationTitle, NotificationBody.REVIEW_UPLOADED.getDetail());
     }
 
     public void sendReportExecuted(Report report) throws IOException {
-        String body = "신고가 처리되었어요. 결과를 확인해보세요";
 
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.REPORT_VIEW.getDetail()).build();
-        sendMessageTo(report.getReportUser(), notificationTitle, body, data);
+        sendMessageTo(report.getReportUser(), notificationTitle, NotificationBody.EXECUTED_REPORT.getDetail(), data);
+        alarmService.send(report.getReportUser(), notificationTitle, NotificationBody.EXECUTED_REPORT.getDetail());
     }
 
     public void workDeleteNotification(Work work) throws IOException {
-        String body = "마감기한이 지나 심부름이 삭제되었어요.";
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
-        sendMessageTo(work.getCustomer(), notificationTitle, body, data);
+        sendMessageTo(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail(), data);
+        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail());
+    }
+
+    public void nonFinishedWorkDeleteNotification(Work work) throws IOException {
+        FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
+        sendMessageTo(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);
+        sendMessageTo(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);
+        alarmService.send(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail());
+        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail());
     }
 
     private String makeMessage(String targetToken, String title, String body, FcmMessage.Data data) throws JsonProcessingException {
@@ -234,7 +223,6 @@ public class FirebaseCloudMessageService {
                                 .image(null)
                                 .build()
                         ).data(data).build()).validateOnly(false).build();
-        System.out.println(fcmMessage.toString());
         return objectMapper.writeValueAsString(fcmMessage);
     }
 

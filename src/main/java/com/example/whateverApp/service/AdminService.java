@@ -163,10 +163,13 @@ public class AdminService {
 
         switch (reportDto.getReportExecuteCode()){
             case 1 :
+                report.setExecuted(true);
                 break;
             case 2 :
-                if(paymentService.refund(work))
+                if(paymentService.refund(work)) {
                     reportUser.setReward(reportUser.getReward() + work.getReward());
+                    report.setExecuted(true);
+                }
                 else throw new CustomException(ErrorCode.BAD_REQUEST);
                 break;
             case 3 :

@@ -3,28 +3,16 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.ConversationDto;
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.WorkDto;
-import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.document.Chat;
-import com.example.whateverApp.model.document.Conversation;
-import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.service.ConversationImpl;
-import com.example.whateverApp.service.WorkServiceImpl;
-import com.example.whateverApp.service.interfaces.ConversationService;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.mongodb.CreateIndexCommitQuorum;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.servlet.http.HttpServletResponse;
-import jdk.jfr.MemoryAddress;
 import lombok.RequiredArgsConstructor;
-import org.bson.json.JsonObject;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.handler.annotation.*;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
-
 import java.util.List;
-import java.util.Map;
 
 @RequiredArgsConstructor
 @RestController
@@ -74,7 +62,6 @@ public class ConversationController {
         conversationService.sendTotalSeenCount(request);
         return conversationDto;
     }
-
 
     @GetMapping("/api/conversation/seen")
     public int getSeenCount(HttpServletRequest request){

@@ -14,13 +14,11 @@ import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.mongoRepository.HelperLocationRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
-import com.example.whateverApp.service.interfaces.LocationService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.UrlResource;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
-import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
 import java.io.File;
@@ -29,7 +27,7 @@ import java.util.*;
 
 @Service
 @RequiredArgsConstructor
-public class LocationServiceImpl implements LocationService {
+public class LocationServiceImpl{
 
     private final UserRepository userRepository;
     private final JwtTokenProvider jwtTokenProvider;
@@ -39,7 +37,6 @@ public class LocationServiceImpl implements LocationService {
     static final double EARTH_RADIUS = 6371;
     @Value("${file:dir}")
     private String fileDir;
-    @Override
     public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -98,7 +95,6 @@ public class LocationServiceImpl implements LocationService {
         double d = EARTH_RADIUS * c * 1000;    // Distance in m
         return d;
     }
-    @Override
     public UserDto setUserLocation(HttpServletRequest request, Location location) {
         User user = jwtTokenProvider.getUser(request)
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -107,7 +103,6 @@ public class LocationServiceImpl implements LocationService {
         user.setLongitude(location.getLongitude());
         return new UserDto(userRepository.save(user));
     }
-    @Override
     public Boolean setHelperLocation(Location location, Long workId) {
         Work work = workRepository.findById(workId).get();
         if (work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))

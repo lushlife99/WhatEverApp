@@ -41,22 +41,32 @@ public class JwtTokenProvider {
         this.userRepository = userRepository;
     }
 
-    // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
-    public TokenInfo generateToken(Authentication authentication, HttpServletResponse response) {
-        // 권한 가져오기
+    public TokenInfo generateAccessToken(Authentication authentication){
         String authorities = authentication.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
-        // Access Token 생성
-        Date accessTokenExpiresIn = new Date(now + 30*60*1000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
+        Date accessTokenExpiresIn = new Date(now + 3*1000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)//
                 .setExpiration(accessTokenExpiresIn) //유효기간 설정
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
+
+        return TokenInfo.builder()
+                .grantType("Bearer")
+                .accessToken(accessToken)
+                .refreshToken("httpOnly")
+                .build();
+    }
+
+    // 유저 정보를 가지고 AccessToken, RefreshToken 을 생성하는 메서드
+    public TokenInfo generateToken(Authentication authentication, HttpServletResponse response) {
+        long now = (new Date()).getTime();
+
+        TokenInfo tokenInfo = generateAccessToken(authentication);
         // Refresh Token 생성
         String refreshToken = Jwts.builder()
                 .setExpiration(new Date(now + 86400000))
@@ -74,11 +84,8 @@ public class JwtTokenProvider {
         user.setRefreshToken(refreshToken);
 
         userRepository.save(user);
-        return TokenInfo.builder()
-                .grantType("Bearer")
-                .accessToken(accessToken)
-                .refreshToken("httpOnly")
-                .build();
+
+        return tokenInfo;
     }
 
 
@@ -136,6 +143,7 @@ public class JwtTokenProvider {
     public TokenInfo reissueToken(String refreshToken, HttpServletResponse response) throws RuntimeException{
         User user;
         String findRefreshToken;
+
         Optional<User> findUser = userRepository.findByRefreshToken(refreshToken);
 
         if(findUser.isPresent()){
@@ -144,22 +152,23 @@ public class JwtTokenProvider {
         }
         else{
             response.setStatus(HttpServletResponse.SC_FORBIDDEN);
+            System.out.println(2);
             return null;
         }
 
+        System.out.println(findRefreshToken);
         GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getRoles().toString().substring(1,10));
-
         UserDetails principal = new org.springframework.security.core.userdetails.User(user.getUsername(), "", Collections.singletonList(grantedAuthority));
-
         Authentication authentication = new UsernamePasswordAuthenticationToken(principal, null, Collections.singletonList(grantedAuthority));
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
         if(findRefreshToken.equals(refreshToken)){
-            TokenInfo newToken = generateToken(authentication, response);
+            TokenInfo newToken = generateAccessToken(authentication);
+            System.out.println(3);
             return newToken;
         }
         else {
-            log.info("refresh 토큰이 일치하지 않습니다. ");
+            System.out.println(4);
             return null;
         }
     }
