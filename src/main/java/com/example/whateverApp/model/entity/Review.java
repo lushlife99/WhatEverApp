@@ -19,22 +19,14 @@ public class Review {
     private Long id;
 
     @ManyToOne
+    @JoinColumn(name = "user")
     private User user;
 
     @OneToOne
     private Work work;
 
     //private User
-    @NotNull(message = "별점을 적어주세요")
     private int rating;
     private String body;
 
-    public Review updateReview(ReviewDto reviewDto) {
-
-        this.id = reviewDto.getId();
-        this.rating = reviewDto.getRating();
-        this.body = reviewDto.getBody();
-
-        return this;
-    }
 }

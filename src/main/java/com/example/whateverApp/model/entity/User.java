@@ -54,8 +54,7 @@ public class User implements UserDetails {
 
     @OneToMany(mappedBy = "user")
     private List<Review> reviewList = new ArrayList<>();
-    @OneToMany(mappedBy = "user")
-    private List<PaymentsInfo> paymentsInfoList = new ArrayList<>();
+
 
     private UUID imageFileName;
     @ElementCollection(fetch = FetchType.EAGER)
@@ -94,10 +93,10 @@ public class User implements UserDetails {
         return this;
     }
 
-    public User addReview(Review review){
+    public List<Review> addReview(Review review){
         this.getReviewList().add(review);
 
-        return this;
+        return this.reviewList;
     }
     @Override
     public String getUsername() {

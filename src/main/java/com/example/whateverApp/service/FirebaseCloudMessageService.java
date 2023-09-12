@@ -73,6 +73,8 @@ public class FirebaseCloudMessageService {
                 .build();
 
         Response response = client.newCall(request).execute();
+
+        response.close();
     }
 
     public void sendNearByHelper(WorkDto workDto) throws FirebaseMessagingException{
@@ -104,6 +106,7 @@ public class FirebaseCloudMessageService {
                 .addAllTokens(strings)
                 .build();
         BatchResponse response = FirebaseMessaging.getInstance().sendMulticast(message);
+
         if (response.getFailureCount() > 0) {
             List<SendResponse> responses = response.getResponses();
             List<String> failedTokens = new ArrayList<>();
@@ -183,34 +186,34 @@ public class FirebaseCloudMessageService {
         else return;
 
         sendMessageTo(user, notificationTitle, body, data);
-        alarmService.send(user, notificationTitle, body);
+        alarmService.send(user, notificationTitle, body, data.getRouteType());
     }
     public void sendReviewUpload(Review review) throws IOException {
 
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MY_REVIEW_VIEW.getDetail()).build();
         sendMessageTo(review.getUser(), notificationTitle, NotificationBody.REVIEW_UPLOADED.getDetail(), data);
-        alarmService.send(review.getUser(), notificationTitle, NotificationBody.REVIEW_UPLOADED.getDetail());
+        alarmService.send(review.getUser(), notificationTitle, NotificationBody.REVIEW_UPLOADED.getDetail(), data.getRouteType());
     }
 
     public void sendReportExecuted(Report report) throws IOException {
 
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.REPORT_VIEW.getDetail()).build();
         sendMessageTo(report.getReportUser(), notificationTitle, NotificationBody.EXECUTED_REPORT.getDetail(), data);
-        alarmService.send(report.getReportUser(), notificationTitle, NotificationBody.EXECUTED_REPORT.getDetail());
+        alarmService.send(report.getReportUser(), notificationTitle, NotificationBody.EXECUTED_REPORT.getDetail(), data.getRouteType());
     }
 
     public void workDeleteNotification(Work work) throws IOException {
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
         sendMessageTo(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail(), data);
-        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail());
+        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail(), data.getRouteType());
     }
 
     public void nonFinishedWorkDeleteNotification(Work work) throws IOException {
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
         sendMessageTo(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);
         sendMessageTo(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);
-        alarmService.send(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail());
-        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail());
+        alarmService.send(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data.getRouteType());
+        alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data.getRouteType());
     }
 
     private String makeMessage(String targetToken, String title, String body, FcmMessage.Data data) throws JsonProcessingException {

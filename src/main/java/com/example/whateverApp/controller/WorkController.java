@@ -8,6 +8,7 @@ import com.example.whateverApp.model.entity.Review;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -24,7 +25,7 @@ public class WorkController {
     private final WorkServiceImpl workService;
 
     @PostMapping("/work")
-    public WorkDto createWork(@RequestBody WorkDto workDto, HttpServletRequest request){
+    public WorkDto createWork(@RequestBody @Valid WorkDto workDto, HttpServletRequest request){
         return new WorkDto(workService.create(workDto, request));
     }
 

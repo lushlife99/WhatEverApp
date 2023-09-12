@@ -141,6 +141,7 @@ public class WorkServiceImpl {
             if(work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
                 workDtos.add(new WorkDto(work));
         }
+        Collections.reverse(workDtos);
         return workDtos;
     }
 
@@ -154,6 +155,7 @@ public class WorkServiceImpl {
         for (Work work : workList) {
             workDtos.add(new WorkDto(work));
         }
+        Collections.reverse(workDtos);
         return workDtos;
     }
 
@@ -279,7 +281,7 @@ public class WorkServiceImpl {
                 }
             }
         }
-
+        Collections.reverse(resultAroundWorkList);
         return resultAroundWorkList;
     }
 
@@ -290,6 +292,7 @@ public class WorkServiceImpl {
         for (Work work : byHelper) {
             workDtoList.add(new WorkDto(work));
         }
+        Collections.reverse(workDtoList);
         return workDtoList;
     }
 
@@ -300,6 +303,7 @@ public class WorkServiceImpl {
         for (Work work : byHelper) {
             workDtoList.add(new WorkDto(work));
         }
+        Collections.reverse(workDtoList);
         return workDtoList;
     }
 

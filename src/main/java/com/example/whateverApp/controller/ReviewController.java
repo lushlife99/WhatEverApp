@@ -3,6 +3,7 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.service.ReviewService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
@@ -29,7 +30,7 @@ public class ReviewController {
     }
 
     @PostMapping("/{workId}")
-    public void setRating(@PathVariable Long workId, @RequestBody @Validated ReviewDto reviewDto, HttpServletRequest request) throws IOException {
+    public void setRating(@RequestBody @Validated ReviewDto reviewDto, @PathVariable Long workId, HttpServletRequest request) throws IOException {
         reviewService.setRating(workId, reviewDto, request);
     }
 

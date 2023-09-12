@@ -22,6 +22,7 @@ public class Alarm implements Cloneable {
     private Long id;
     private String title;
     private String body;
+    private String routeType;
 
     @ManyToOne
     @JoinColumn(name = "user")

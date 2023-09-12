@@ -3,7 +3,10 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.ReportDto;
 import com.example.whateverApp.service.ReportService;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import org.springframework.validation.BindingResult;
+import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,7 +19,7 @@ public class ReportController {
     private final ReportService reportService;
 
     @PostMapping()
-    public ReportDto createReport(@RequestBody ReportDto reportDto, HttpServletRequest request){
+    public ReportDto createReport(@RequestBody @Validated ReportDto reportDto, HttpServletRequest request){
         return reportService.createReport(reportDto, request);
     }
 

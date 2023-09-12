@@ -62,8 +62,8 @@ public class AlarmService {
         return totalCount;
     }
 
-    public Alarm send(User user, String title, String body){
-        Alarm alarm = Alarm.builder().title(title).body(body).seen(Boolean.FALSE).user(user).build();
+    public Alarm send(User user, String title, String body, String routeType){
+        Alarm alarm = Alarm.builder().title(title).body(body).seen(Boolean.FALSE).user(user).routeType(routeType).build();
         return alarmRepository.save(alarm);
     }
 

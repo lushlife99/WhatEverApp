@@ -107,7 +107,7 @@ public class AdminService {
         List<ReportDto> reportDtoList = new ArrayList<>();
         for (Report report : list)
             reportDtoList.add(new ReportDto(report));
-
+        Collections.reverse(reportDtoList);
         return reportDtoList;
     }
 
@@ -119,7 +119,7 @@ public class AdminService {
         List<ReportDto> reportDtoList = new ArrayList<>();
         for (Report report : list)
             reportDtoList.add(new ReportDto(report));
-
+        Collections.reverse(reportDtoList);
         return reportDtoList;
     }
 
@@ -131,18 +131,23 @@ public class AdminService {
         List<ReportDto> reportDtoList = new ArrayList<>();
         for (Report report : list)
             reportDtoList.add(new ReportDto(report));
-
+        Collections.reverse(reportDtoList);
         return reportDtoList;
     }
 
     public List<Report> findReportListWriteByHelper(){
-        return reportRepository.findAll().stream().filter(report -> report.getReportExecuteCode().equals(ReportExecuteCode.BEFORE_EXECUTE))
+        List<Report> list = reportRepository.findAll().stream().filter(report -> report.getReportExecuteCode().equals(ReportExecuteCode.BEFORE_EXECUTE))
                 .filter(report -> report.getWork().getHelper().getId().equals(report.getReportUser().getId())).toList();
+
+        Collections.reverse(list);
+        return list;
     }
 
     public List<Report> findReportListWriteByCustomer(){
-        return reportRepository.findAll().stream().filter(report -> report.getReportExecuteCode().equals(ReportExecuteCode.BEFORE_EXECUTE))
+        List<Report> list = reportRepository.findAll().stream().filter(report -> report.getReportExecuteCode().equals(ReportExecuteCode.BEFORE_EXECUTE))
                 .filter(report -> report.getWork().getCustomer().getId().equals(report.getReportUser().getId())).toList();
+        Collections.reverse(list);;
+        return list;
     }
 
     public Report get(Long reportId){
@@ -157,6 +162,7 @@ public class AdminService {
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User reportUser = userRepository.findById(reportDto.getReportUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         User reportedUser = userRepository.findById(reportDto.getReportedUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(report.isExecuted())
             throw new CustomException(ErrorCode.BAD_REQUEST);
@@ -215,7 +221,10 @@ public class AdminService {
             default:
                 throw new CustomException(ErrorCode.BAD_REQUEST);
         }
+        work.setProceedingStatus(WorkProceedingStatus.REWARDED);
         report.updateReport(reportDto);
+        conversation.setFinished(true);
+        conversationRepository.save(conversation);
         reportRepository.save(report);
         fcmService.sendReportExecuted(report);
         return new ReportDto((report));

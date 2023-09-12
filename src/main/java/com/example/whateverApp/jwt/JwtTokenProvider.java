@@ -47,7 +47,7 @@ public class JwtTokenProvider {
                 .collect(Collectors.joining(","));
 
         long now = (new Date()).getTime();
-        Date accessTokenExpiresIn = new Date(now + 3*1000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
+        Date accessTokenExpiresIn = new Date(now + 30*60*1000); //1800000 -> 토큰 유효기간 30분 = 30*60*1000 개발환경에서는 높게 해놓음.
         String accessToken = Jwts.builder()
                 .setSubject(authentication.getName())
                 .claim("auth", authorities)//
@@ -139,7 +139,7 @@ public class JwtTokenProvider {
             log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
             log.info("JWT 토큰이 잘못되었습니다.");
-            log.info(token);
+            log.info(token+"");
         }
         return false;
     }

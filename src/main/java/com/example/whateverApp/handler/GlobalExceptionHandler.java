@@ -55,8 +55,9 @@ public class GlobalExceptionHandler extends ResponseEntityExceptionHandler {
                                 .getFieldErrors()
                                 .stream()
                                 .map(x -> x.getDefaultMessage())
-                                .collect(Collectors.toList()).toString())
+                                .collect(Collectors.toList()).toString() + "를 적어주세요")
                         .status(HttpStatus.BAD_REQUEST.value())
+                        .error("ValidException")
                         .build());
     }
 }

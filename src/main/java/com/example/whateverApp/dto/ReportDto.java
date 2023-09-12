@@ -5,6 +5,7 @@ import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
+import jakarta.validation.constraints.NotNull;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -20,7 +21,9 @@ public class ReportDto {
     Long workId;
     Long reportUserId;
     Long reportedUserId;
+    @NotNull(message = "제목 ")
     String reportTitle;
+    @NotNull(message = "사유 ")
     String reportReason;
     String executeDetail;
     LocalDateTime createdTime;

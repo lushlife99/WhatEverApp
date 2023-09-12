@@ -1,18 +1,16 @@
 package com.example.whateverApp.handler;
 
+import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.Message;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageDeliveryException;
-import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.simp.stomp.StompCommand;
 import org.springframework.messaging.simp.stomp.StompHeaderAccessor;
 import org.springframework.messaging.support.ChannelInterceptor;
 import org.springframework.stereotype.Component;
-
-import java.util.Set;
 
 @RequiredArgsConstructor
 @Component
@@ -20,6 +18,7 @@ import java.util.Set;
 public class StompHandler implements ChannelInterceptor {
 
     private final JwtTokenProvider tokenProvider;
+
 
     @Override
     public Message<?> preSend(Message<?> message, MessageChannel channel) {
@@ -30,8 +29,6 @@ public class StompHandler implements ChannelInterceptor {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
                 if (!tokenProvider.validateToken(token)) {
-                    log.info("ReIssueJwt to MessageChannel");
-                    log.info(String.valueOf(accessor.getCommand()));
                     throw new MessageDeliveryException("ReIssueJwt");
                 }
             } else {

@@ -3,6 +3,7 @@ package com.example.whateverApp.dto;
 
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.Work;
+import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,17 +18,15 @@ import java.time.LocalDateTime;
 @Builder
 public class WorkDto {
     private Long id;
-    //@NotNull(message = "제목을 적어주세요")
+    @NotNull(message = "제목 ")
     private String title;
-    //@NotNull(message = "내용을 적어주세요")
+    @NotNull(message = "내용 ")
     private String context;
-   // @NotNull(message = "마감기한을 적어주세요")
+    @NotNull(message = "마감기한 ")
     private Integer deadLineTime;
-   // @NotNull(message = "보상 금액을 적어주세요")
+    @NotNull(message = "보상금액 ")
     private Integer reward;
-   // @NotNull(message = "위치 정보를 적어주세요")
     private Double latitude;
-    //@NotNull(message = "위치 정보를 적어주세요")
     private Double longitude;
     private Double receiveLatitude;
     private Double receiveLongitude;
