@@ -30,9 +30,12 @@ public class StompHandler implements ChannelInterceptor {
             if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
                 String token = authorizationHeader.substring(7);
                 if (!tokenProvider.validateToken(token)) {
+                    log.info("ReIssueJwt to MessageChannel");
+                    log.info(String.valueOf(accessor.getCommand()));
                     throw new MessageDeliveryException("ReIssueJwt");
                 }
             } else {
+                System.out.println(message.getHeaders().get("Authorization").toString()+ " "+ accessor.getDestination());
                 throw new MessageDeliveryException("UNAUTHORIZED");
             }
           }

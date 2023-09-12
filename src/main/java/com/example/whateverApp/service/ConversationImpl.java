@@ -93,7 +93,7 @@ public class ConversationImpl{
         conversation.setParticipatorName(participator.getName());
         conversation.setSeenCountByParticipator(0);
         conversation.setSeenCountByParticipator(0);
-        conversation.setCreatedAt(LocalDateTime.now());
+        conversation.setCreatedAt(LocalDateTime.now().plusHours(9));
         conversation.setFinished(false);
         return conversationRepository.save(conversation);
     }
@@ -129,7 +129,7 @@ public class ConversationImpl{
                 .message(mapper.writeValueAsString(workDto))
                 .senderName(conversation.getCreatorName())
                 .receiverName(conversation.getParticipatorName())
-                .sendTime(LocalDateTime.now())
+                .sendTime(LocalDateTime.now().plusHours(9))
                 .build();
 
         updateConv(conversation, chat, "Work");

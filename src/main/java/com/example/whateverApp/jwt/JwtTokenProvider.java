@@ -55,6 +55,8 @@ public class JwtTokenProvider {
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
 
+        System.out.println("토큰 발급 "+accessToken);
+
         return TokenInfo.builder()
                 .grantType("Bearer")
                 .accessToken(accessToken)
@@ -124,6 +126,7 @@ public class JwtTokenProvider {
     }
 
     // 토큰 정보를 검증하는 메서드
+
     public boolean validateToken(String token) {
         try {
             Claims claims = Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
@@ -136,6 +139,7 @@ public class JwtTokenProvider {
             log.info("지원되지 않는 JWT 토큰입니다.");
         } catch (IllegalArgumentException e) {
             log.info("JWT 토큰이 잘못되었습니다.");
+            log.info(token);
         }
         return false;
     }
@@ -155,7 +159,6 @@ public class JwtTokenProvider {
             System.out.println(2);
             return null;
         }
-
         System.out.println(findRefreshToken);
         GrantedAuthority grantedAuthority = new SimpleGrantedAuthority(user.getRoles().toString().substring(1,10));
         UserDetails principal = new org.springframework.security.core.userdetails.User(user.getUsername(), "", Collections.singletonList(grantedAuthority));
@@ -172,7 +175,6 @@ public class JwtTokenProvider {
             return null;
         }
     }
-
     private Claims parseClaims(String accessToken) {
         try {
             return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(accessToken).getBody();

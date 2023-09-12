@@ -25,6 +25,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.io.CharConversionException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;
@@ -205,6 +206,13 @@ public class WorkServiceImpl {
         conversationRepository.save(conversation);
 
         if(user.getId().equals(work.getCustomer().getId())){
+            List<Report> reportList = work.getReportList();
+            for (Report report : reportList) {
+                if(report.getReportUser().getId().equals(user.getId())){
+                    throw new CustomException(ErrorCode.CANT_FINISH_REPORTED_WORK);
+                }
+            }
+
             work.setProceedingStatus(WorkProceedingStatus.REWARDED);
             work.setFinishedAt(LocalDateTime.now());
             rewardService.afterWork(work);

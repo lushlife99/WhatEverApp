@@ -5,6 +5,7 @@ import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
+import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Component;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @Component
 @RequiredArgsConstructor
@@ -52,22 +54,24 @@ public class ScheduleService {
         userRepository.saveAll(releaseUserList);
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
-    public void autoPermitNonFinishWorkList() {
-        LocalDateTime now = LocalDateTime.now();
-        List<Work> nonFinishWorkList = workRepository.findAll().stream()
-                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
-                .filter(w -> w.getFinishedAt().plusDays(3).isBefore(now))
-                .filter(w -> w.getReportList().size() == 0).toList();
-
-        try {
-            for (Work work : nonFinishWorkList) {
-                workService.letFinish(work);
-            }
-
-        } catch (Exception e){}
-
-    }
+//    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+//    public void autoPermitNonFinishWorkList() {
+//        LocalDateTime now = LocalDateTime.now();
+//        List<Work> nonFinishWorkList = workRepository.findAll().stream()
+//                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
+//                .filter(w -> w.getFinishedAt().plusDays(3).isBefore(now))
+//                .filter(w -> w.getReportList().size() == 0)
+//                .filter(w -> w.getReportList().size() == 0).toList();
+//
+//
+//        try {
+//            for (Work work : nonFinishWorkList) {
+//                workService.letFinish(work);
+//            }
+//
+//        } catch (Exception e){}
+//
+//    }
 
     @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
     public void deleteDuplicatedConv() {
@@ -100,8 +104,9 @@ public class ScheduleService {
         for (Work work : workList) {
             rewardService.chargeRewardToCustomer(work);
             firebaseCloudMessageService.workDeleteNotification(work);
-            Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-            conversationService.delete(conversation.get_id());
+            Optional<Conversation> conv = conversationRepository.findByWorkId(work.getId());
+            if(conv.isPresent())
+                conversationService.delete(conv.get().get_id());
         }
         workRepository.deleteAll(workList);
     }
@@ -112,7 +117,9 @@ public class ScheduleService {
         List<Work> workList = workRepository.findAll().stream()
                 .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED))
                 .filter(w -> w.getCreatedTime().plusDays(3).isBefore(now))
+                .filter(w -> w.getReportList().size() == 0)
                 .toList();
+
 
         for (Work work : workList) {
             rewardService.chargeRewardToCustomer(work);

@@ -23,6 +23,7 @@ public enum ErrorCode {
     AMOUNT_IS_MORE_THAN_REWARD(HttpStatus.BAD_REQUEST, "출금 금액이 reward 보다 많습니다"),
     PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방이 대화할 수 없는 상태입니다"),
     ALREADY_REPORT_THIS_WORK(HttpStatus.BAD_REQUEST, "이미 신고했던 심부름입니다. 신고내역을 확인해주세요"),
+    CANT_FINISH_REPORTED_WORK(HttpStatus.BAD_REQUEST, "신고된 심부름을 검증할 수 없습니다"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
@@ -48,6 +49,7 @@ public enum ErrorCode {
     DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
     DUPLICATE_REVIEW(HttpStatus.CONFLICT, "이미 작성한 Review 입니다."),
     FINISHED_CONVERSATION(HttpStatus.CONFLICT, "심부름이 종료되어서 대화창을 불러올 수 없습니다"),
+
 
     /* 500 */
     TRANSFER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "송금 오류"),
