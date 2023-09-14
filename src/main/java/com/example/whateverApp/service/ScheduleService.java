@@ -54,24 +54,25 @@ public class ScheduleService {
         userRepository.saveAll(releaseUserList);
     }
 
-//    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
-//    public void autoPermitNonFinishWorkList() {
-//        LocalDateTime now = LocalDateTime.now();
-//        List<Work> nonFinishWorkList = workRepository.findAll().stream()
-//                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
-//                .filter(w -> w.getFinishedAt().plusDays(3).isBefore(now))
-//                .filter(w -> w.getReportList().size() == 0)
-//                .filter(w -> w.getReportList().size() == 0).toList();
-//
-//
-//        try {
-//            for (Work work : nonFinishWorkList) {
-//                workService.letFinish(work);
-//            }
-//
-//        } catch (Exception e){}
-//
-//    }
+    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    public void autoPermitNonFinishWorkList() {
+        LocalDateTime now = LocalDateTime.now();
+        List<Work> nonFinishWorkList = workRepository.findAll().stream()
+                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
+                .filter(w -> {
+                    LocalDateTime finishedAt = w.getFinishedAt();
+                    return finishedAt != null && finishedAt.plusDays(3).isBefore(now);
+                })
+                .filter(w -> w.getReportList().isEmpty())
+                .toList();
+
+        try {
+            for (Work work : nonFinishWorkList) {
+                workService.letFinish(work);
+            }
+        } catch (Exception e) {
+        }
+    }
 
     @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
     public void deleteDuplicatedConv() {

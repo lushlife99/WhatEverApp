@@ -26,6 +26,7 @@ public class UserDto {
     private Double longitude;
     private Long bankAccount;
     private String image;
+    private Integer reward;
 
     public UserDto(User user){
         id = user.getId();
@@ -36,5 +37,6 @@ public class UserDto {
         latitude = user.getLatitude();
         bankAccount = user.getBankAccount();
         longitude = user.getLongitude();
+        reward = user.getReward();
     }
 }

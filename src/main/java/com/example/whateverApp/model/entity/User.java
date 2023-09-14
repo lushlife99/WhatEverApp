@@ -68,7 +68,7 @@ public class User implements UserDetails {
     private Double latitude = 0.0;
 
     private Double longitude = 0.0;
-    private String notificationToken;
+    private String notificationToken = "";
 
     private Boolean notification = true;
     private Long bankAccount = 3020000008694L;
@@ -95,7 +95,6 @@ public class User implements UserDetails {
 
     public List<Review> addReview(Review review){
         this.getReviewList().add(review);
-
         return this.reviewList;
     }
     @Override

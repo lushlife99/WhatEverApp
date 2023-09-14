@@ -38,7 +38,7 @@ public class RewardService {
     private final String accessToken = "5dd9ada786f5df42a9459ab1220c8d46ee377f402f78036d630854146f9b6b8b";
     private final String FinAcno = "00820100019960000000000015422";
     private final String iscd = "001996";
-    private int isTuno = 300;
+    private int isTuno = 1000000;
     /**
      * chan
      *

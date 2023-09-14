@@ -77,10 +77,11 @@ public class ReviewService {
 
         List<Review> reviewList = helper.addReview(review);
 
-        System.out.println(reviewList.size());
+
         if(reviewList.size() == 1)
             helper.setRating((double) review.getRating());
-        else helper.setRating(helper.getRating() * helper.getReviewList().size() + review.getRating() / helper.getReviewList().size() + 1);
+        else helper.setRating((helper.getRating() * (helper.getReviewList().size()-1) + review.getRating()) / helper.getReviewList().size());
+
         fcmService.sendReviewUpload(review);
         reviewRepository.save(review);
         userRepository.save(helper);
