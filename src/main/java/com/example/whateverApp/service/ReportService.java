@@ -6,6 +6,7 @@ import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.AccountStatus;
+import com.example.whateverApp.model.MessageType;
 import com.example.whateverApp.model.ReportExecuteCode;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
@@ -37,6 +38,7 @@ public class ReportService {
     private final ConversationRepository conversationRepository;
     private final UserRepository userRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final String queuePrefix = "/queue/";
 
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
@@ -45,17 +47,14 @@ public class ReportService {
                 new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        User reportedUser;
+        if(work.getCustomer().getId().equals(reportUser.getId()))
+            reportedUser = work.getHelper();
+        else reportedUser = work.getCustomer();
         if(reportRepository.findByWorkAndReportUser(work, reportUser).isPresent())
             throw new CustomException(ErrorCode.ALREADY_REPORT_THIS_WORK);
         if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED) || work.getProceedingStatus().equals(WorkProceedingStatus.CREATED) )
             throw new CustomException(ErrorCode.BAD_REQUEST);
-
-        User reportedUser;
-
-        if(work.getCustomer().getId().equals(reportUser.getId()))
-            reportedUser = work.getHelper();
-        else reportedUser = work.getCustomer();
-
         Report report = Report.builder().reportReason(reportDto.getReportReason())
                 .conversationId(conversation.get_id())
                 .work(work)
@@ -64,6 +63,7 @@ public class ReportService {
                 .reportedUser(reportedUser)
                 .reportExecuteCode(ReportExecuteCode.BEFORE_EXECUTE)
                 .build();
+        
         reportRepository.save(report);
         return new ReportDto(report);
     }
@@ -168,13 +168,13 @@ public class ReportService {
         user.setAccountStatus(AccountStatus.BAN);
         user.setAccountReleaseTime(localDateTime);
         user.setAccountReleaseTime(LocalDateTime.now().plusDays(amountDayOfBan));
-        simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
+        simpMessagingTemplate.convertAndSend(queuePrefix + user.getId(), new MessageDto(MessageType.LogOut.getDetail(), new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
         userRepository.save(user);
     }
 
     public void permanentBanUserAccount(User user){
         user.setAccountStatus(AccountStatus.PERMANENT_BAN);
-        simpMessagingTemplate.convertAndSend("/queue/"+user.getId(), new MessageDto("LogOut", new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
+        simpMessagingTemplate.convertAndSend(queuePrefix + user.getId(), new MessageDto(MessageType.LogOut.getDetail(), new String("계정이 정지 당했습니다. 접속을 해제합니다.")));
         userRepository.save(user);
     }
 

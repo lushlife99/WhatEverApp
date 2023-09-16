@@ -12,6 +12,7 @@ public enum MessageType {
     Card("Card"),
     SetConvSeenCount("SetConvSeenCount"),
     RouteType("RouteType"),
+    LogOut("LogOut")
     ;
     private final String detail;
 }
