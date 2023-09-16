@@ -41,6 +41,9 @@ public class LocationServiceImpl{
     public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
         User user = jwtTokenProvider.getUser(request).orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         List<User> tempAroundHelperList = getAroundHelperList(location);
+        if(tempAroundHelperList.contains(user)){
+            System.out.println("LocationServiceImpl.findHelperByDistance");
+        }
         List<UserDto> resultAroundUserList = new ArrayList<>();
         UserDto userDto;
 
@@ -49,7 +52,7 @@ public class LocationServiceImpl{
             if (distance < 5000) {
                 userDto = new UserDto(aroundHelper);
                 userDto.setDistance(distance);
-                userDto.setImage(new String(userService.getUserImage(aroundHelper), "UTF8"));
+                userDto.setImage(userService.getUserImage(aroundHelper));
                 if (user.getId() != userDto.getId())
                     resultAroundUserList.add(userDto);
             }

@@ -95,7 +95,7 @@ public class UserServiceImpl {
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         UserDto userDto = new UserDto(findUser);
-        userDto.setImage(new String(getUserImage(findUser), "UTF8"));
+        userDto.setImage(getUserImage(findUser));
         return userDto;
     }
 
@@ -104,16 +104,17 @@ public class UserServiceImpl {
         User findUser = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         UserDto userDto = new UserDto(findUser);
-        userDto.setImage(new String(getUserImage(findUser), "UTF8"));
+        userDto.setImage(getUserImage(findUser));
         return userDto;
     }
 
-    public byte[] getUserImage(User findUser) throws IOException {
+    public String getUserImage(User findUser) throws IOException {
         Base64.Encoder encoder = Base64.getEncoder();
         File file = new File(fileDir + findUser.getImageFileName());
 
         if (file.exists())
-            return encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
+            return new String(encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray()), "UTF8");
+
         return null;
     }
 
