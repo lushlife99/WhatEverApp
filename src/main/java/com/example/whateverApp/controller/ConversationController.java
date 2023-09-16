@@ -21,39 +21,35 @@ public class ConversationController {
 
     private final ConversationImpl conversationService;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final String AuthHeader = "Authorization";
 
     @PostMapping("/api/conversation/{participantId}")
     @NotNull
     public ConversationDto createChat(@RequestBody WorkDto workDto , @PathVariable Long participantId, HttpServletRequest request){
-        return new ConversationDto(conversationService.openAndMessage(request, participantId,workDto));
+        return new ConversationDto(conversationService.openConv(request, participantId,workDto));
     }
 
     @MessageMapping("/chat/{conversationId}")
-    public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",conversationService.sendChatting(chat, conversationId, jwtToken)));
+    public void sendChat(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header(AuthHeader) String jwtToken){
+        conversationService.sendChatting(conversationId, chat, jwtToken);
         conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     @MessageMapping("/work/{conversationId}")
-    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken) throws JsonProcessingException{
-        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversationId , new MessageDto("Conversation",conversationService.sendWork(conversationId, workDto, jwtToken)));
+    public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId, @Header(AuthHeader) String jwtToken) throws JsonProcessingException{
+        conversationService.sendWork(conversationId, workDto, jwtToken);
         conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     @MessageMapping("/card/{conversationId}")
-    public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header("Authorization") String jwtToken){
-        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversationId , new MessageDto("Conversation", conversationService.sendCard(chat, conversationId, jwtToken)));
+    public void sendCard(@RequestBody Chat chat, @DestinationVariable String conversationId, @Header(AuthHeader) String jwtToken){
+        conversationService.sendCard(conversationId, chat, jwtToken);
         conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
     }
 
     @GetMapping("/api/conversations")
     public List<ConversationDto> getConversations(HttpServletRequest request){
         return conversationService.getConversations(request);
-    }
-
-    @MessageMapping("/pub/conversation/{participantId}")
-    public void getConversations(@RequestBody WorkDto workDto ,@PathVariable Long participantId, HttpServletRequest request){
-        simpMessagingTemplate.convertAndSend("/queue/"+participantId, new ConversationDto(conversationService.openAndMessage(request, participantId,workDto)));
     }
 
     @PostMapping("/api/conversation/seen/{conversationId}")

@@ -3,9 +3,7 @@ package com.example.whateverApp.controller;
 import com.example.whateverApp.dto.ReportDto;
 import com.example.whateverApp.service.ReportService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.validation.BindingResult;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 

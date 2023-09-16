@@ -2,7 +2,10 @@ package com.example.whateverApp.model.document;
 
 import jakarta.persistence.EntityListeners;
 import jakarta.persistence.Id;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.LastModifiedBy;
 import org.springframework.data.annotation.LastModifiedDate;
 import org.springframework.data.jpa.domain.support.AuditingEntityListener;
@@ -18,6 +21,9 @@ import java.util.List;
 
 @Data
 @Document("conversations")
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 public class Conversation {
 
     @Id

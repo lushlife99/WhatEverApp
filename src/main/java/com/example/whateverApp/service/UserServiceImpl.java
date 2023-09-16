@@ -6,7 +6,6 @@ import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.AccountStatus;
-import com.example.whateverApp.model.NotificationBody;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
@@ -23,6 +22,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
@@ -44,24 +44,26 @@ public class UserServiceImpl {
     private final AuthenticationManager authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
     private final WorkRepository workRepository;
+    private final PasswordEncoder passwordEncoder;
 
     @Value("${file:}")
     private String fileDir;
 
 
     public TokenInfo login(User user, HttpServletResponse response) {
-
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
-        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
-        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         User findUser = userRepository.findByUserId(user.getUserId())
                 .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if(!passwordEncoder.matches(user.getPassword(), findUser.getPassword()))
+            throw new CustomException(ErrorCode.MISMATCH_PASSWORD);
 
         if(!findUser.isAccountNonLocked())
             if(findUser.getAccountStatus().equals(AccountStatus.BAN))
                 throw new LockedException("계정이 잠겼습니다.\n"+user.getAccountReleaseTime().format(DateTimeFormatter.ofPattern("yy-MM-dd HH:mm")) + " 이후에 다시 시도하세요.");
             else throw new LockedException("계정이 영구 정지 당했습니다. ");
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
+        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
 
+        TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         tokenInfo.setId(findUser.getId());
         return tokenInfo;
     }
@@ -70,6 +72,7 @@ public class UserServiceImpl {
         if (userRepository.findByUserId(user.getUserId()).isPresent())
             throw new CustomException(ErrorCode.DUPLICATE_USER);
 
+        user.setPassword(passwordEncoder.encode(user.getPassword()));
         user.setLatitude(35.1542217);
         user.setLongitude(126.9207806);
         user.setRoles(Collections.singletonList("ROLE_USER"));
@@ -92,14 +95,7 @@ public class UserServiceImpl {
                 .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         UserDto userDto = new UserDto(findUser);
-        // 사진파일 보내기.
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] photoEncode;
-        File file = new File(fileDir + findUser.getImageFileName());
-        if (file.exists()) {
-            photoEncode = encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
-            userDto.setImage(new String(photoEncode, "UTF8"));
-        }
+        userDto.setImage(new String(getUserImage(findUser), "UTF8"));
         return userDto;
     }
 
@@ -108,14 +104,17 @@ public class UserServiceImpl {
         User findUser = userRepository.findById(userId)
                 .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         UserDto userDto = new UserDto(findUser);
-        Base64.Encoder encoder = Base64.getEncoder();
-        byte[] photoEncode;
-        File file = new File(fileDir + findUser.getImageFileName());
-        if (file.exists()) {
-            photoEncode = encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
-            userDto.setImage(new String(photoEncode, "UTF8"));
-        }
+        userDto.setImage(new String(getUserImage(findUser), "UTF8"));
         return userDto;
+    }
+
+    public byte[] getUserImage(User findUser) throws IOException {
+        Base64.Encoder encoder = Base64.getEncoder();
+        File file = new File(fileDir + findUser.getImageFileName());
+
+        if (file.exists())
+            return encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray());
+        return null;
     }
 
     @Transactional(rollbackFor = Exception.class)
@@ -139,7 +138,7 @@ public class UserServiceImpl {
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         if(!user.isAccountNonLocked())
-            throw new CustomException(ErrorCode.ACCOUNT_IS_BANNED);
+            throw new CustomException(ErrorCode.BANNED_ACCOUNT);
 
         Cookie[] cookies = request.getCookies();
         String refreshToken = "";
@@ -199,5 +198,7 @@ public class UserServiceImpl {
 
         return new UserDto(user);
     }
+
+
 
 }

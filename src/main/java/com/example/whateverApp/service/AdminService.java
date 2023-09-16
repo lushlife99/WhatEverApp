@@ -8,7 +8,6 @@ import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.ReportExecuteCode;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
-import com.example.whateverApp.model.entity.PaymentsInfo;
 import com.example.whateverApp.model.entity.Report;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
@@ -16,7 +15,6 @@ import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
 import com.example.whateverApp.repository.jpaRepository.ReportRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
-import com.mongodb.CreateIndexCommitQuorum;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
@@ -24,7 +22,7 @@ import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -43,8 +41,9 @@ public class AdminService {
     private final ConversationRepository conversationRepository;
     private final WorkRepository workRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
-    private final PaymentService paymentService;
     private final FirebaseCloudMessageService fcmService;
+    private final PasswordEncoder passwordEncoder;
+    private final RewardService rewardService;
 
     public TokenInfo login(User user, HttpServletResponse response){
         User admin = userRepository.findByUserIdAndPassword(user.getUserId(),user.getPassword()).orElseThrow(()->
@@ -69,13 +68,11 @@ public class AdminService {
 
     public ConversationDto getConv(String conversationId, HttpServletRequest request){
         adminCheck(request);
-
         return new ConversationDto(conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND)));
     }
 
     public WorkDto getWork(Long workId, HttpServletRequest request){
         adminCheck(request);
-
         return new WorkDto(workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND)));
     }
 
@@ -90,16 +87,13 @@ public class AdminService {
 
     public UserDto getUserInfo(Long userId, HttpServletRequest request){
         adminCheck(request);
-
         return new UserDto(userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND)));
     }
 
 
 
     public List<ReportDto> getUserPunishList(Long userId, HttpServletRequest request){
-       adminCheck(request);
-
-        User user = userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        adminCheck(request);
         List<Report> list = reportRepository.findAll().stream()
                 .filter(report -> report.getReportedUser().getId().equals(userId))
                 .filter(report -> report.getReportExecuteCode().ordinal() > ReportExecuteCode.REJECT.ordinal()).toList();
@@ -113,10 +107,9 @@ public class AdminService {
 
     public List<ReportDto> getReportListWriteByHelper(HttpServletRequest request){
         adminCheck(request);
-
         List<Report> list = findReportListWriteByHelper();
-
         List<ReportDto> reportDtoList = new ArrayList<>();
+
         for (Report report : list)
             reportDtoList.add(new ReportDto(report));
         Collections.reverse(reportDtoList);
@@ -125,10 +118,9 @@ public class AdminService {
 
     public List<ReportDto> getReportListWriteByCustomer(HttpServletRequest request){
         adminCheck(request);
-
         List<Report> list = findReportListWriteByCustomer();
-
         List<ReportDto> reportDtoList = new ArrayList<>();
+
         for (Report report : list)
             reportDtoList.add(new ReportDto(report));
         Collections.reverse(reportDtoList);
@@ -150,14 +142,9 @@ public class AdminService {
         return list;
     }
 
-    public Report get(Long reportId){
-        return reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
-    }
-
     @Transactional
     public ReportDto executeReport(ReportDto reportDto, HttpServletRequest request) throws IOException {
         adminCheck(request);
-
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User reportUser = userRepository.findById(reportDto.getReportUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
@@ -172,7 +159,7 @@ public class AdminService {
                 report.setExecuted(true);
                 break;
             case 2 :
-                if(paymentService.refund(work)) {
+                if(rewardService.refund(work)) {
                     reportUser.setReward(reportUser.getReward() + work.getReward());
                     report.setExecuted(true);
                 }
@@ -198,6 +185,7 @@ public class AdminService {
                     report.setExecuted(true);
                 }
                 break;
+
             case 5 :
                 if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
@@ -208,6 +196,7 @@ public class AdminService {
                     report.setExecuted(true);
                 }
                 break;
+
             case 6 :
                 if(reportedUser.isProceedingWork()) {
                     reportedUser.setAccountStatus(AccountStatus.WILL_BAN);
@@ -255,10 +244,10 @@ public class AdminService {
 
         userRepository.saveAll(all);
     }
-    public void joinAdmin(){
+    public void joinAdmin(String name, String password){
         User admin = User.builder()
-                .userId("admin")
-                .password("1234")
+                .userId(name)
+                .password(passwordEncoder.encode(password))
                 .name("admin")
                 .roles(Collections.singletonList("ROLE_ADMIN"))
                 .imageFileName(UUID.randomUUID())

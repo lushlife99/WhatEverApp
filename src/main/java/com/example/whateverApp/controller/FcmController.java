@@ -18,13 +18,13 @@ public class FcmController {
     private final FirebaseCloudMessageService firebaseCloudMessageService;
 
     @PostMapping("/chatNotification/{conversationId}")
-    public ResponseEntity notifyChat(@PathVariable String conversationId) throws IOException{
+    public ResponseEntity notifyOnChat(@PathVariable String conversationId) throws IOException{
         firebaseCloudMessageService.chatNotification(conversationId);
         return ResponseEntity.ok().build();
     }
 
     @PostMapping("/sendNearbyHelper")
-    public void sendNearbyHelper(@RequestBody WorkDto workDto) throws FirebaseMessagingException{
+    public void notifyCreatedWork (@RequestBody WorkDto workDto) throws FirebaseMessagingException{
         firebaseCloudMessageService.sendNearByHelper(workDto);
     }
 

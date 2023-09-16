@@ -5,6 +5,7 @@ import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Review;
+import com.example.whateverApp.service.ReportService;
 import com.example.whateverApp.service.WorkServiceImpl;
 import com.google.firebase.messaging.FirebaseMessagingException;
 import jakarta.servlet.http.HttpServletRequest;
@@ -23,6 +24,7 @@ import java.util.List;
 public class WorkController {
 
     private final WorkServiceImpl workService;
+    private final ReportService reportService;
 
     @PostMapping("/work")
     public WorkDto createWork(@RequestBody @Valid WorkDto workDto, HttpServletRequest request){
@@ -79,7 +81,7 @@ public class WorkController {
     @PutMapping("/work/success/{workId}")
     public WorkDto successWork(@PathVariable Long workId, @RequestBody Location location, HttpServletRequest request) throws IOException {
         WorkDto workDto = workService.successWork(location, workId, request);
-        workService.executeUserAfterWork(workId);
+        reportService.executeAfterWork(workId);
         return workDto;
     }
 

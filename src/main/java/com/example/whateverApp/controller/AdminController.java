@@ -62,21 +62,4 @@ public class AdminController {
         return adminService.getReportListWriteByCustomer(request);
     }
 
-    @PostMapping("/joinAdmin")
-    public void joinAdmin(){
-        adminService.joinAdmin();
-    }
-
-    /**
-     * 아래 두개 나중에 지우기.
-     */
-    @PostMapping("/freeAllUser")
-    public void freeAllUser(){
-        adminService.freeAllUser();
-    }
-
-    @PostMapping("/ban/{userId}")
-    public void banUser(@PathVariable Long userId){
-        adminService.banUserAccountTest(userId);
-    }
 }

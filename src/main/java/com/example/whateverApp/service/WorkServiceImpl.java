@@ -47,10 +47,10 @@ public class WorkServiceImpl {
     private final ConversationImpl conversationServiceImpl;
     private static final double EARTH_RADIUS = 6371;
 
-    public Work create(WorkDto workDto, HttpServletRequest request){
+    public Work create(WorkDto workDto, HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(user.getAccountStatus().equals(AccountStatus.WILL_BAN))
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        if (user.getAccountStatus().equals(AccountStatus.WILL_BAN))
             throw new CustomException(ErrorCode.WILL_BANNED_ACCOUNT);
 
         Work work = new Work().updateWork(workDto);
@@ -68,7 +68,6 @@ public class WorkServiceImpl {
     }
 
     /**
-     *
      * matchingHelper과 update함수를 구분해 놓은 이유는
      * update는 매번 호출 할 수 있는 함수지만
      * matchingHelper함수는 Helper와 Work가 매칭됐을 때 한번 실행된다.
@@ -84,10 +83,10 @@ public class WorkServiceImpl {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User helper = userRepository.findById(workDto.getHelperId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         User customer = userRepository.findById(work.getCustomer().getId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED))
+        if (work.getProceedingStatus().equals(WorkProceedingStatus.STARTED))
             throw new CustomException(ErrorCode.ALREADY_PROCEED_WORK);
 
-        if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
+        if (work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED))
             throw new CustomException(ErrorCode.ALREADY_FINISHED_WORK);
 
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
@@ -99,12 +98,12 @@ public class WorkServiceImpl {
         conversationRepository.save(conversation);
 
 
-        if(work.getDeadLineTime() == 1){
+        if (work.getDeadLineTime() == 1) {
             HelperLocation helperLocation = HelperLocation.builder().workId(work.getId()).locationList(new ArrayList<>()).build();
             helperLocationRepository.save(helperLocation);
         }
 
-        if(requestUser.getId().equals(work.getHelper().getId())){ //심부름 요청서
+        if (requestUser.getId().equals(work.getHelper().getId())) { //심부름 요청서
             userService.setAvgReactTime(work, conversation);
         }
 
@@ -115,14 +114,14 @@ public class WorkServiceImpl {
     }
 
     @Transactional
-    public Work deny(WorkDto workDto, String conversationId, HttpServletRequest request){
+    public Work deny(WorkDto workDto, String conversationId, HttpServletRequest request) {
 
         Work work = workRepository.findById(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
-        if(conversation.getCreatorId().equals(user.getId()) && conversation.getParticipantId().equals(user.getId()))
+        if (conversation.getCreatorId().equals(user.getId()) && conversation.getParticipantId().equals(user.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
 
@@ -131,23 +130,23 @@ public class WorkServiceImpl {
     }
 
     @Transactional
-    public List<WorkDto> getWorkList(HttpServletRequest request){
+    public List<WorkDto> getWorkList(HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         List<Work> workList = workRepository.findByCustomer(user);
         List<WorkDto> workDtos = new ArrayList<>();
         for (Work work : workList) {
-            if(work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
+            if (work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
                 workDtos.add(new WorkDto(work));
         }
         Collections.reverse(workDtos);
         return workDtos;
     }
 
-    public List<WorkDto> getWorkListAll(HttpServletRequest request){
+    public List<WorkDto> getWorkListAll(HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         List<Work> workList = workRepository.findByCustomer(user);
         workList.addAll(workRepository.findByHelper(user));
@@ -166,7 +165,7 @@ public class WorkServiceImpl {
         Work work = workRepository.findById(workId)
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
-        if(work.getCustomer().getId().equals(user.getId()))
+        if (work.getCustomer().getId().equals(user.getId()))
             workRepository.deleteById(workId);
 
         else throw new CustomException(ErrorCode.BAD_REQUEST);
@@ -188,10 +187,10 @@ public class WorkServiceImpl {
                 .orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
 
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-        if(!user.getId().equals(work.getHelper().getId()))
+        if (!user.getId().equals(work.getHelper().getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
-        if(LocationServiceImpl.getDistance(location.getLatitude(), location.getLongitude(), work.getLatitude(), work.getLongitude()) > 500)
+        if (LocationServiceImpl.getDistance(location.getLatitude(), location.getLongitude(), work.getLatitude(), work.getLongitude()) > 500)
             throw new CustomException(ErrorCode.INVALID_LOCATION);
 
         work.setProceedingStatus(WorkProceedingStatus.FINISHED);
@@ -207,10 +206,10 @@ public class WorkServiceImpl {
         conversation.setFinished(true);
         conversationRepository.save(conversation);
 
-        if(user.getId().equals(work.getCustomer().getId())){
+        if (user.getId().equals(work.getCustomer().getId())) {
             List<Report> reportList = work.getReportList();
             for (Report report : reportList) {
-                if(report.getReportUser().getId().equals(user.getId())){
+                if (report.getReportUser().getId().equals(user.getId())) {
                     throw new CustomException(ErrorCode.CANT_FINISH_REPORTED_WORK);
                 }
             }
@@ -221,15 +220,16 @@ public class WorkServiceImpl {
             fcmService.sendWorkProceeding(work, work.getHelper());
             fcmService.sendWorkProceeding(work, work.getCustomer());
             return new WorkDto(workRepository.save(work));
+        } else {
+            throw new CustomException(ErrorCode.BAD_REQUEST);
         }
-        else {
-            throw new CustomException(ErrorCode.BAD_REQUEST);}
     }
 
     /**
      * void letFinish(Work work)
-     *
+     * <p>
      * Scheduler Method
+     *
      * @param work
      * @throws IOException
      */
@@ -242,10 +242,10 @@ public class WorkServiceImpl {
         rewardService.afterWork(work);
         fcmService.sendWorkProceeding(work, work.getHelper());
         fcmService.sendWorkProceeding(work, work.getCustomer());
-        simpMessagingTemplate.convertAndSend("/topic/chat/"+conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
+        simpMessagingTemplate.convertAndSend("/topic/chat/" + conversation.get_id(), new MessageDto("DeleteConv", conversation.get_id()));
     }
 
-    public List<WorkDto> getWorkListByDistance(HttpServletRequest request){
+    public List<WorkDto> getWorkListByDistance(HttpServletRequest request) {
         User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
 
         double nowLatitude = user.getLatitude();
@@ -267,15 +267,15 @@ public class WorkServiceImpl {
         WorkDto workDto;
 
         for (Work work : nearByWorkList) {
-            if(work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
+            if (work.getCreatedTime().plusHours(work.getDeadLineTime().longValue()).isAfter(LocalDateTime.now())) {
                 if (work.getProceedingStatus().equals(WorkProceedingStatus.CREATED)) {
-                    if(work.getCustomer().isAccountNonLocked() == true){
-                     double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
-                     if (distance < 5000) {
-                         workDto = new WorkDto(work);
+                    if (work.getCustomer().isAccountNonLocked() == true) {
+                        double distance = LocationServiceImpl.getDistance(nowLatitude, nowLongitude, work.getLatitude(), work.getLongitude());
+                        if (distance < 5000) {
+                            workDto = new WorkDto(work);
                             if (user.getId() != workDto.getCustomerId()) {
-                             resultAroundWorkList.add(workDto);
-                          }
+                                resultAroundWorkList.add(workDto);
+                            }
                         }
                     }
                 }
@@ -296,7 +296,7 @@ public class WorkServiceImpl {
         return workDtoList;
     }
 
-    public List<WorkDto> getWorkListByCustomer (Long customerId) {
+    public List<WorkDto> getWorkListByCustomer(Long customerId) {
         User user = userRepository.findById(customerId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         List<Work> byHelper = workRepository.findByCustomer(user);
         List<WorkDto> workDtoList = new ArrayList<>();
@@ -307,37 +307,4 @@ public class WorkServiceImpl {
         return workDtoList;
     }
 
-    public Work get(Long workId){
-        return workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-    }
-
-    /**
-     * 검증 해보기.
-     */
-    @Transactional
-    public void executeUserAfterWork(Long workId) throws IOException {
-        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
-
-        User customer = work.getCustomer();
-        User helper = work.getHelper();
-        List<Work> proceedingWorkList = workRepository.findByCustomerOrHelper(customer, customer).stream()
-                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
-
-        if(proceedingWorkList.size() == 0){
-            customer.setProceedingWork(false);
-            if(customer.getAccountStatus().equals(AccountStatus.WILL_BAN)) {
-                reportService.executeReport(new ReportDto(customer.getPunishingDetail()), customer);
-            }
-        }
-
-        proceedingWorkList = workRepository.findByCustomerOrHelper(helper, helper).stream()
-                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
-
-        if(proceedingWorkList.size() == 0){
-            helper.setProceedingWork(false);
-            if(helper.getAccountStatus().equals(AccountStatus.WILL_BAN)) {
-                reportService.executeReport(new ReportDto(helper.getPunishingDetail()), helper);
-            }
-        }
-    }
 }

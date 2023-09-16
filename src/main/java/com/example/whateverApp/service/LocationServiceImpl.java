@@ -34,37 +34,26 @@ public class LocationServiceImpl{
     private final WorkRepository workRepository;
     private final HelperLocationRepository helperLocationRepository;
     private final SimpMessagingTemplate simpMessagingTemplate;
+    private final UserServiceImpl userService;
     static final double EARTH_RADIUS = 6371;
     @Value("${file:dir}")
     private String fileDir;
     public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-
+        User user = jwtTokenProvider.getUser(request).orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         List<User> tempAroundHelperList = getAroundHelperList(location);
-
-
         List<UserDto> resultAroundUserList = new ArrayList<>();
         UserDto userDto;
 
-        for (User user1 : tempAroundHelperList) {
-            double distance = getDistance(location.getLatitude(), location.getLongitude(), user1.getLatitude(), user1.getLongitude());
-            byte[] photoEncode;
+        for (User aroundHelper : tempAroundHelperList) {
+            double distance = getDistance(location.getLatitude(), location.getLongitude(), aroundHelper.getLatitude(), aroundHelper.getLongitude());
             if (distance < 5000) {
-                userDto = new UserDto(user1);
+                userDto = new UserDto(aroundHelper);
                 userDto.setDistance(distance);
-                Base64.Encoder encoder = Base64.getEncoder();
-                File file = new File(fileDir + user1.getImageFileName());
-                if (file.exists()) {
-                    photoEncode = encoder.encode(new UrlResource("file:" + fileDir + user1.getImageFileName()).getContentAsByteArray());
-                    userDto.setImage(new String(photoEncode, "UTF8"));
-                }
-                if (user.getId() != userDto.getId()) {
+                userDto.setImage(new String(userService.getUserImage(aroundHelper), "UTF8"));
+                if (user.getId() != userDto.getId())
                     resultAroundUserList.add(userDto);
-                }
             }
         }
-        Collections.sort(resultAroundUserList, Comparator.comparing(UserDto::getDistance));
         return resultAroundUserList;
     }
     public List<User> getAroundHelperList(Location location){

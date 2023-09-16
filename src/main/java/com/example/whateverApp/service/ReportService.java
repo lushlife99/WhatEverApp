@@ -2,7 +2,6 @@ package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.ReportDto;
-import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
@@ -17,18 +16,15 @@ import com.example.whateverApp.repository.mongoRepository.ConversationRepository
 import com.example.whateverApp.repository.jpaRepository.ReportRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
-import com.google.firebase.database.core.Repo;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Optional;
 
 @Service
 @RequiredArgsConstructor
@@ -183,6 +179,27 @@ public class ReportService {
     }
 
 
+    @Transactional
+    public void executeAfterWork(Long workId) throws IOException {
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
+        List<Work> customerProceedingList = getProceedingWork(work.getCustomer());
+        List<Work> helperProceedingList = getProceedingWork(work.getHelper());
+
+        if(customerProceedingList.size() == 0)
+            executeNonProceedingUser(work.getCustomer());
+
+        if(helperProceedingList.size() == 0)
+          executeNonProceedingUser(work.getHelper());
+    }
+    public void executeNonProceedingUser(User user) throws IOException {
+        user.setProceedingWork(false);
+        if(user.getAccountStatus().equals(AccountStatus.WILL_BAN))
+            executeReport(new ReportDto(user.getPunishingDetail()), user);
+    }
+    public List<Work> getProceedingWork(User user){
+        return workRepository.findByCustomerOrHelper(user, user).stream()
+                .filter(w -> w.getProceedingStatus().equals(WorkProceedingStatus.STARTED)).toList();
+    }
 
 
 }

@@ -24,17 +24,18 @@ public enum ErrorCode {
     PARTICIPATOR_ACCOUNT_WILL_BAN(HttpStatus.BAD_REQUEST, "상대방이 대화할 수 없는 상태입니다"),
     ALREADY_REPORT_THIS_WORK(HttpStatus.BAD_REQUEST, "이미 신고했던 심부름입니다. 신고내역을 확인해주세요"),
     CANT_FINISH_REPORTED_WORK(HttpStatus.BAD_REQUEST, "신고된 심부름을 검증할 수 없습니다"),
+    ALREADY_REWARD_TO_HELPER(HttpStatus.BAD_REQUEST, "이미 보상이 전송되었으므로 환불할 수 없습니다"),
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
-    UNAUTHORIZED_ADMIN(HttpStatus.UNAUTHORIZED, "관리자가 아닙니다"),
 
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
 
-    ACCOUNT_IS_BANNED(HttpStatus.FORBIDDEN, "정지된 계정입니다"),
     WILL_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "현재 상태로는 서비스 이용이 제한됩니다"),
     PERMANENT_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "영구 정지 당한 계정입니다"),
     BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "정지 당한 계정입니다"),
+    MISMATCH_PASSWORD(HttpStatus.FORBIDDEN, "비밀번호가 일치하지 않습니다"),
+    UNAUTHORIZED_ADMIN(HttpStatus.FORBIDDEN, "관리자가 아닙니다"),
 
     /* 404 NOT_FOUND : Resource 를 찾을 수 없음 */
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 유저 정보를 찾을 수 없습니다"),

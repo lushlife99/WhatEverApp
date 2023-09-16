@@ -169,5 +169,13 @@ public class RewardService {
         return new UserDto(user);
     }
 
+    public boolean refund(Work work){
+        if(work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED))
+            throw new CustomException(ErrorCode.ALREADY_REWARD_TO_HELPER);
+
+        chargeRewardToCustomer(work);
+        return true;
+    }
+
 
 }

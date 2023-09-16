@@ -5,7 +5,6 @@ import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.model.AccountStatus;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.document.Conversation;
-import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
