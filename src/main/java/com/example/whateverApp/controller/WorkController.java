@@ -18,7 +18,6 @@ public class WorkController {
 
     private final WorkServiceImpl workService;
     private final ReportService reportService;
-    private final ConversationImpl conversationService;
     private final RewardService rewardService;
 
     @PostMapping("/work")

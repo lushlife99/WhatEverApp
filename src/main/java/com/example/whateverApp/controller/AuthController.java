@@ -1,11 +1,9 @@
 package com.example.whateverApp.controller;
 
-
 import com.example.whateverApp.dto.TokenInfo;
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
-import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;

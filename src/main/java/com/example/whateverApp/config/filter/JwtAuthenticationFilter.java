@@ -1,6 +1,5 @@
 package com.example.whateverApp.config.filter;
 
-
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import jakarta.servlet.FilterChain;
 import jakarta.servlet.ServletException;
@@ -12,6 +11,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.filter.GenericFilterBean;
+
 import java.io.IOException;
 
 @RequiredArgsConstructor

@@ -1,7 +1,6 @@
 package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.ConversationDto;
-import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.service.ConversationImpl;
@@ -10,7 +9,6 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
 import org.springframework.messaging.handler.annotation.*;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
@@ -20,7 +18,6 @@ import java.util.List;
 public class ConversationController {
 
     private final ConversationImpl conversationService;
-    private final SimpMessagingTemplate simpMessagingTemplate;
     private final String AuthHeader = "Authorization";
 
     @PostMapping("/api/conversation/{participantId}")

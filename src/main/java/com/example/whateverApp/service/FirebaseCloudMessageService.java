@@ -1,7 +1,6 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.FcmMessage;
-import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -13,7 +12,6 @@ import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.*;
-import com.example.whateverApp.repository.jpaRepository.ReviewRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
@@ -24,7 +22,6 @@ import com.google.firebase.messaging.*;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Component;
@@ -48,7 +45,6 @@ public class FirebaseCloudMessageService {
     private final AlarmService alarmService;
     private final LocationServiceImpl locationService;
     private final WorkRepository workRepository;
-    private final ReviewRepository reviewRepository;
 
     public void sendMessageTo(User user, String title, String body, FcmMessage.Data data) throws IOException {
         if(user.isAccountNonLocked() == false)

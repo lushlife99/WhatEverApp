@@ -1,20 +1,13 @@
 package com.example.whateverApp.service;
 
-import com.example.whateverApp.error.CustomException;
-import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
-import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.Alarm;
 import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.model.entity.Work;
 import com.example.whateverApp.repository.jpaRepository.AlarmRepository;
-import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
-import org.springframework.web.bind.annotation.PostMapping;
 
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 

@@ -1,9 +1,6 @@
 package com.example.whateverApp.dto;
 
-
-import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.Work;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;

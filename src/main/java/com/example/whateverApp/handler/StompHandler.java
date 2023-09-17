@@ -1,6 +1,5 @@
 package com.example.whateverApp.handler;
 
-import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;

@@ -1,6 +1,5 @@
 package com.example.whateverApp.error;
 
-import com.google.api.Http;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import org.springframework.http.HttpStatus;

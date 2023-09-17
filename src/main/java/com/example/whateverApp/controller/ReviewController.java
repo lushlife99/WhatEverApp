@@ -1,12 +1,9 @@
 package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.ReviewDto;
-import com.example.whateverApp.service.FirebaseCloudMessageService;
 import com.example.whateverApp.service.ReviewService;
 import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Controller;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
@@ -19,7 +16,6 @@ import java.util.List;
 public class ReviewController {
 
     private final ReviewService reviewService;
-    private final FirebaseCloudMessageService fcmService;
 
     @GetMapping("")
     public List<ReviewDto> getMyReviews(HttpServletRequest request){

@@ -1,10 +1,6 @@
 package com.example.whateverApp.dto;
 
-import com.example.whateverApp.model.ReportExecuteCode;
-import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.entity.Report;
-import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.model.entity.Work;
 import jakarta.validation.constraints.NotNull;
 import lombok.*;
 

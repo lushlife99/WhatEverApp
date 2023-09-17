@@ -1,16 +1,11 @@
 package com.example.whateverApp.dto;
 
 import com.example.whateverApp.model.entity.Review;
-import com.example.whateverApp.model.entity.User;
-import com.example.whateverApp.model.entity.Work;
 import jakarta.validation.constraints.Min;
-import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import org.bson.codecs.pojo.annotations.BsonDiscriminator;
-import org.springframework.jmx.export.annotation.ManagedNotifications;
 
 @Data
 @NoArgsConstructor

@@ -1,6 +1,5 @@
 package com.example.whateverApp.service;
 
-import com.example.whateverApp.dto.MessageDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -20,11 +19,9 @@ import com.example.whateverApp.repository.mongoRepository.HelperLocationReposito
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.jetbrains.annotations.NotNull;
-import org.springframework.messaging.simp.SimpMessagingTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.CharConversionException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.*;

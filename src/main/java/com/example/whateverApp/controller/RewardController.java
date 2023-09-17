@@ -1,7 +1,6 @@
 package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.UserDto;
-import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.service.RewardService;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;

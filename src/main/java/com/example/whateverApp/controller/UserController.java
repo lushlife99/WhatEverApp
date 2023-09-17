@@ -3,20 +3,15 @@ package com.example.whateverApp.controller;
 
 import com.example.whateverApp.dto.UserDto;
 import com.example.whateverApp.model.document.Location;
-import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.service.UserServiceImpl;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.boot.autoconfigure.couchbase.CouchbaseProperties;
-import org.springframework.core.io.Resource;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.net.MalformedURLException;
-
 
 @Slf4j
 @RequiredArgsConstructor
