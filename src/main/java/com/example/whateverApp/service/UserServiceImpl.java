@@ -40,28 +40,26 @@ import java.util.*;
 @Service
 public class UserServiceImpl {
 
+    @Value("${file:}")
+    private String fileDir;
     private final UserRepository userRepository;
     private final AuthenticationManager authenticationManagerBuilder;
     private final JwtTokenProvider jwtTokenProvider;
     private final WorkRepository workRepository;
     private final PasswordEncoder passwordEncoder;
 
-    @Value("${file:}")
-    private String fileDir;
-
-
     public TokenInfo login(User user, HttpServletResponse response) {
-        User findUser = userRepository.findByUserId(user.getUserId())
-                .orElseThrow(() ->new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User findUser = get(user.getUserId());
+        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
+        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
+
         if(!passwordEncoder.matches(user.getPassword(), findUser.getPassword()))
             throw new CustomException(ErrorCode.MISMATCH_PASSWORD);
 
         if(!findUser.isAccountNonLocked())
             if(findUser.getAccountStatus().equals(AccountStatus.BAN))
-                throw new LockedException("계정이 잠겼습니다.\n"+user.getAccountReleaseTime().format(DateTimeFormatter.ofPattern("yy-MM-dd HH:mm")) + " 이후에 다시 시도하세요.");
+                throw new LockedException(makeMessage(findUser));
             else throw new LockedException("계정이 영구 정지 당했습니다. ");
-        UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
-        Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
 
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         tokenInfo.setId(findUser.getId());
@@ -73,26 +71,14 @@ public class UserServiceImpl {
             throw new CustomException(ErrorCode.DUPLICATE_USER);
 
         user.setPassword(passwordEncoder.encode(user.getPassword()));
-        user.setLatitude(35.1542217);
-        user.setLongitude(126.9207806);
         user.setRoles(Collections.singletonList("ROLE_USER"));
         user.setAccountStatus(AccountStatus.USING);
         user.setImageFileName(UUID.randomUUID());
         return new UserDto(userRepository.save(user));
     }
 
-    public User get(Long userId){
-        return userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-    public User get(String userId){
-        return userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
-    }
-
-
-    public UserDto getMyInfo(HttpServletRequest request) throws MalformedURLException, IOException{
-        User findUser = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    public UserDto getMyInfo(HttpServletRequest request) throws IOException{
+        User findUser = jwtTokenProvider.getUser(request);
 
         UserDto userDto = new UserDto(findUser);
         userDto.setImage(getUserImage(findUser));
@@ -100,9 +86,7 @@ public class UserServiceImpl {
     }
 
     public UserDto getUserInfo(Long userId) throws IOException {
-
-        User findUser = userRepository.findById(userId)
-                .orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User findUser = get(userId);
         UserDto userDto = new UserDto(findUser);
         userDto.setImage(getUserImage(findUser));
         return userDto;
@@ -114,14 +98,12 @@ public class UserServiceImpl {
 
         if (file.exists())
             return new String(encoder.encode(new UrlResource("file:" + fileDir + findUser.getImageFileName()).getContentAsByteArray()), "UTF8");
-
         return null;
     }
 
     @Transactional(rollbackFor = Exception.class)
     public UserDto update(UserDto userDto, HttpServletRequest request) {
-        User findUser = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User findUser = jwtTokenProvider.getUser(request);
 
         findUser.updateUserInfo(userDto);
         userRepository.save(findUser);
@@ -130,30 +112,28 @@ public class UserServiceImpl {
 
     @Transactional(rollbackFor = Exception.class)
     public User updateProfileImage(HttpServletRequest request, MultipartFile file) throws IOException {;
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         file.transferTo(new File(fileDir + user.getImageFileName()));
         return user;
     }
     public TokenInfo issueToken(HttpServletRequest request, HttpServletResponse response) {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
+        Cookie[] cookies = request.getCookies();
+        String refreshToken = "";
+
         if(!user.isAccountNonLocked())
             throw new CustomException(ErrorCode.BANNED_ACCOUNT);
 
-        Cookie[] cookies = request.getCookies();
-        String refreshToken = "";
         for (Cookie cookie : cookies)
-            if (cookie.getName().equals("refreshToken")) {
+            if (cookie.getName().equals("refreshToken"))
                 refreshToken = cookie.getValue();
-                System.out.println("refreshToekn = " + refreshToken);
-            }
+
         return jwtTokenProvider.reissueToken(refreshToken, response);
     }
 
     public Location setUserLocation(Location location, HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         user.updateLocation(location);
         userRepository.save(user);
@@ -161,8 +141,7 @@ public class UserServiceImpl {
     }
 
     public String updateNotificationToken(String notificationToken, HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         user.setNotificationToken(notificationToken);
         userRepository.save(user);
@@ -171,7 +150,7 @@ public class UserServiceImpl {
 
     @Transactional
     public void delete(HttpServletRequest request) {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         userRepository.delete(user);
     }
 
@@ -193,13 +172,26 @@ public class UserServiceImpl {
     }
 
     public UserDto modifyPassword(String password, HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         user.setPassword(password);
         userRepository.save(user);
 
         return new UserDto(user);
     }
 
+    private String makeMessage(User banUser){
+        return new String("계정이 잠겼습니다.\n" +
+                banUser.getAccountReleaseTime().format(DateTimeFormatter.ofPattern("yy-MM-dd HH:mm")) +
+                " 이후에 다시 시도하세요.");
+    }
+
+    public User get(Long userId){
+        return userRepository.findById(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
+
+    public User get(String userId){
+        return userRepository.findByUserId(userId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+    }
 
 
 }

@@ -1,26 +1,21 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.UserDto;
-import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
 import com.example.whateverApp.jwt.JwtTokenProvider;
 import com.example.whateverApp.model.WorkProceedingStatus;
 import com.example.whateverApp.model.entity.User;
 import com.example.whateverApp.model.entity.Work;
-import com.example.whateverApp.repository.jpaRepository.UserRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import okhttp3.*;
 import org.json.JSONObject;
-import org.springframework.http.HttpHeaders;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.io.CharConversionException;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
@@ -30,15 +25,14 @@ import java.time.format.DateTimeFormatter;
 @Slf4j
 public class RewardService {
 
-    private final UserRepository userRepository;
-    private final WorkRepository workRepository;
     private final JwtTokenProvider jwtTokenProvider;
-    private final ObjectMapper objectMapper;
+    private final WorkRepository workRepository;
     private final String BANK_API_URL = "https://developers.nonghyup.com/ReceivedTransferAccountNumber.nh";
     private final String accessToken = "5dd9ada786f5df42a9459ab1220c8d46ee377f402f78036d630854146f9b6b8b";
     private final String FinAcno = "00820100019960000000000015422";
     private final String iscd = "001996";
-    private int isTuno = 1000000;
+    private int isTuno = 1100000;
+
     /**
      * chan
      *
@@ -75,7 +69,7 @@ public class RewardService {
     @Transactional
     public void beforeWork(Work work, HttpServletRequest request){
         User customer = work.getCustomer();
-        if(!jwtTokenProvider.getUser(request).get().getId().equals(customer.getId()) || work.getProceedingStatus() != WorkProceedingStatus.CREATED)
+        if(!jwtTokenProvider.getUser(request).getId().equals(customer.getId()) || work.getProceedingStatus() != WorkProceedingStatus.CREATED)
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
         if(customer.getReward().compareTo(work.getReward()) < 0)
@@ -85,13 +79,14 @@ public class RewardService {
     }
 
     @Transactional
-    public void afterWork(Work work){
+    public void addRewardToHelper(Long workId){
+        Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         work.getHelper().setReward(work.getHelper().getReward() + work.getReward());
     }
 
     @Transactional
     public void chargeRewardToCustomer(Work work, HttpServletRequest request) {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         if(!work.getCustomer().getId().equals(user.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
@@ -99,7 +94,7 @@ public class RewardService {
         user.setReward(work.getReward() + user.getReward());
     }
 
-    public void chargeRewardToCustomer(Work work) {
+    public void chargeToCustomer(Work work) {
 
         User customer = work.getCustomer();
         customer.setReward(work.getReward() + customer.getReward());
@@ -129,52 +124,50 @@ public class RewardService {
      */
     @Transactional
     public UserDto transfer(int amount, HttpServletRequest request) throws IOException {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         if(amount > user.getReward())
             throw new CustomException(ErrorCode.AMOUNT_IS_MORE_THAN_REWARD);
 
         OkHttpClient client = new OkHttpClient();
-        JSONObject jsonObject2 = new JSONObject();
-        jsonObject2.put("ApiNm", "ReceivedTransferAccountNumber");
-        jsonObject2.put("FintechApsno", "001");
-        jsonObject2.put("Tsymd", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
-        jsonObject2.put("Trtm", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss")));
-        jsonObject2.put("Iscd", iscd);
-        jsonObject2.put("ApiSvcCd", "DrawingTransferA");
-        jsonObject2.put("IsTuno", Integer.toString(isTuno++));
-        jsonObject2.put("AccessToken", accessToken);
-
-        JSONObject jsonObject = new JSONObject();
-        jsonObject.put("Header", jsonObject2);
-        jsonObject.put("Bncd", "011");
-        jsonObject.put("Acno", user.getBankAccount());
-        jsonObject.put("Tram", amount);
-        RequestBody requestBody = RequestBody.create(jsonObject.toString(), MediaType.get("application/json; charset=utf-8"));
-        log.info(jsonObject.toString());
+        JSONObject transferRequestBody = getTransferRequestBody(user.getBankAccount(), amount);
+        RequestBody requestBody = RequestBody.create(transferRequestBody.toString(), MediaType.get("application/json; charset=utf-8"));
         Request getFinNoRequest = new Request.Builder()
                 .url(BANK_API_URL)
                 .post(requestBody)
                 .build();
-
-        log.info(getFinNoRequest.toString());
         Response response = client.newCall(getFinNoRequest).execute();
-        String string = response.body().string();
-
-        if(string.contains("정상처리 되었습니다")){
+        String responseBody = response.body().string();
+        response.close();
+        System.out.println(responseBody);
+        if(responseBody.contains("정상처리 되었습니다"))
             user.setReward(user.getReward() - amount);
-        }
         else throw new CustomException(ErrorCode.TRANSFER_ERROR);
-
-        log.info(string);
         return new UserDto(user);
     }
-
     public boolean refund(Work work){
         if(work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED))
             throw new CustomException(ErrorCode.ALREADY_REWARD_TO_HELPER);
 
-        chargeRewardToCustomer(work);
+        chargeToCustomer(work);
         return true;
+    }
+
+    private JSONObject getTransferRequestBody(long bankAccount, int amount){
+        JSONObject jsonObject = new JSONObject();
+        jsonObject.put("ApiNm", "ReceivedTransferAccountNumber");
+        jsonObject.put("FintechApsno", "001");
+        jsonObject.put("Tsymd", LocalDateTime.now().format(DateTimeFormatter.BASIC_ISO_DATE));
+        jsonObject.put("Trtm", LocalDateTime.now().format(DateTimeFormatter.ofPattern("HHmmss")));
+        jsonObject.put("Iscd", iscd);
+        jsonObject.put("ApiSvcCd", "DrawingTransferA");
+        jsonObject.put("IsTuno", Integer.toString(isTuno++));
+        jsonObject.put("AccessToken", accessToken);
+        JSONObject reqBody = new JSONObject();
+        reqBody.put("Header", jsonObject);
+        reqBody.put("Bncd", "011");
+        reqBody.put("Acno", bankAccount);
+        reqBody.put("Tram", amount);
+        return reqBody;
     }
 
 

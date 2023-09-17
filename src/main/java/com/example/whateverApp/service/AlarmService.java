@@ -27,7 +27,7 @@ public class AlarmService {
     private final JwtTokenProvider jwtTokenProvider;
 
     public List<Alarm> getAlarms(HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<Alarm> alarmList = user.getAlarmList();
 
         alarmRepository.saveAll(alarmList);
@@ -35,7 +35,7 @@ public class AlarmService {
     }
 
     public void setSeenTrue(HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<Alarm> list = alarmRepository.findAll().stream()
                 .filter(
                         a -> user.getId().equals(a.getUser().getId())
@@ -51,7 +51,7 @@ public class AlarmService {
     }
 
     public int getSeenCount(HttpServletRequest request) {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<Alarm> alarmList = user.getAlarmList();
         int totalCount = 0;
         for (Alarm alarm : alarmList) {

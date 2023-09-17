@@ -110,10 +110,10 @@ public class JwtTokenProvider {
         return new UsernamePasswordAuthenticationToken(principal, "", authorities);
     }
 
-    public Optional<User> getUser(HttpServletRequest request){
+    public User getUser(HttpServletRequest request){
         String accessToken = resolveToken(request);
         Authentication authentication = getAuthentication(accessToken);
-        return userRepository.findByUserId(authentication.getName());
+        return userRepository.findByUserId(authentication.getName()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
     }
 
     // Request Cookie 에서 토큰 정보 추출

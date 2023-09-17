@@ -39,7 +39,7 @@ public class LocationServiceImpl{
     @Value("${file:dir}")
     private String fileDir;
     public List<UserDto> findHelperByDistance(Location location, HttpServletRequest request) throws IOException {
-        User user = jwtTokenProvider.getUser(request).orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<User> tempAroundHelperList = getAroundHelperList(location);
         if(tempAroundHelperList.contains(user)){
             System.out.println("LocationServiceImpl.findHelperByDistance");
@@ -62,15 +62,12 @@ public class LocationServiceImpl{
     public List<User> getAroundHelperList(Location location){
         double nowLatitude = location.getLatitude();
         double nowLongitude = location.getLongitude();
-
         double mForLatitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180))) / 1000;
         double mForLongitude = (1 / (EARTH_RADIUS * 1 * (Math.PI / 180) * Math.cos(Math.toRadians(nowLatitude)))) / 1000;
-
         double maxY = nowLatitude + (5000 * mForLatitude);
         double minY = nowLatitude - (5000 * mForLatitude);
         double maxX = nowLongitude + (5000 * mForLongitude);
         double minX = nowLongitude - (5000 * mForLongitude);
-
 
         return userRepository.findAll().stream()
                 .filter(u -> u.getLatitude().compareTo(maxY) <= 0)
@@ -88,8 +85,7 @@ public class LocationServiceImpl{
         return d;
     }
     public UserDto setUserLocation(HttpServletRequest request, Location location) {
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         user.setLatitude(location.getLatitude());
         user.setLongitude(location.getLongitude());
@@ -130,7 +126,7 @@ public class LocationServiceImpl{
     }
     public void sendHelperLocationToCustomer(Long workId, Location location, HttpServletRequest request){
 
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         Work work = workRepository.findById(workId).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         if(!user.getUserId().equals(work.getHelper().getUserId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);

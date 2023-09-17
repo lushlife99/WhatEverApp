@@ -1,18 +1,11 @@
 package com.example.whateverApp.controller;
 
-
-import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.model.document.Location;
-import com.example.whateverApp.model.entity.Review;
-import com.example.whateverApp.service.ReportService;
-import com.example.whateverApp.service.WorkServiceImpl;
-import com.google.firebase.messaging.FirebaseMessagingException;
+import com.example.whateverApp.service.*;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
-import org.springframework.transaction.annotation.Transactional;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -25,25 +18,27 @@ public class WorkController {
 
     private final WorkServiceImpl workService;
     private final ReportService reportService;
+    private final ConversationImpl conversationService;
+    private final RewardService rewardService;
 
     @PostMapping("/work")
     public WorkDto createWork(@RequestBody @Valid WorkDto workDto, HttpServletRequest request){
-        return new WorkDto(workService.create(workDto, request));
+        return workService.create(workDto, request);
     }
 
     @PutMapping("/work/deny/{conversationId}")
     public WorkDto denyWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request){
-        return new WorkDto(workService.deny(workDto, conversationId, request));
+        return workService.deny(workDto, conversationId, request);
     }
 
     @PutMapping("/work/matching/{conversationId}")
     public WorkDto matchWork(@RequestBody WorkDto workDto, @PathVariable String conversationId, HttpServletRequest request) throws IOException {
-        return new WorkDto(workService.matchingHelper(workDto, conversationId, request));
+        return workService.matchingHelper(workDto, conversationId, request);
     }
 
     @GetMapping("/work/{id}")
-    public WorkDto getWork(@PathVariable Long id, HttpServletRequest request){
-        return workService.get(id, request);
+    public WorkDto getWork(@PathVariable Long id){
+        return workService.get(id);
     }
 
     // 현재 끝나지 않은 심부름 리스트를 리턴
@@ -75,7 +70,10 @@ public class WorkController {
 
     @PutMapping("/work/finish/{workId}")
     public WorkDto finishWork(@PathVariable Long workId, HttpServletRequest request) throws IOException {
-        return workService.letFinish(workId, request);
+        WorkDto workDto = workService.finish(workId, request);
+        rewardService.addRewardToHelper(workId);
+        return workDto;
+
     }
 
     @PutMapping("/work/success/{workId}")

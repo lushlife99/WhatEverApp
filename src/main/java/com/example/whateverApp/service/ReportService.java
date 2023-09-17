@@ -43,8 +43,7 @@ public class ReportService {
     public ReportDto createReport(ReportDto reportDto, HttpServletRequest request){
         Work work = workRepository.findById(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.WORK_NOT_FOUND));
-        User reportUser = jwtTokenProvider.getUser(request).orElseThrow(()->
-                new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User reportUser = jwtTokenProvider.getUser(request);
         Conversation conversation = conversationRepository.findByWorkId(reportDto.getWorkId()).orElseThrow(() ->
                 new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         User reportedUser;
@@ -63,7 +62,7 @@ public class ReportService {
                 .reportedUser(reportedUser)
                 .reportExecuteCode(ReportExecuteCode.BEFORE_EXECUTE)
                 .build();
-        
+
         reportRepository.save(report);
         return new ReportDto(report);
     }
@@ -71,7 +70,7 @@ public class ReportService {
     @Transactional
     public void deleteReport(Long reportId, HttpServletRequest request){
         Report report = reportRepository.findById(reportId).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         if(!report.getReportUser().getId().equals(user.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
@@ -81,7 +80,7 @@ public class ReportService {
     @Transactional
     public void modifyReport(ReportDto reportDto, HttpServletRequest request){
         Report report = reportRepository.findById(reportDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.REPORT_NOT_FOUND));
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         if(!report.getReportUser().getId().equals(user.getId()))
             throw new CustomException(ErrorCode.BAD_REQUEST);
 
@@ -91,7 +90,7 @@ public class ReportService {
     }
 
     public List<ReportDto> getMyReportList(HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<ReportDto> reportDtoList = new ArrayList<>();
         for (Report report : user.getReportList())
             reportDtoList.add(new ReportDto(report));

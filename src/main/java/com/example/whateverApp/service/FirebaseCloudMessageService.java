@@ -1,6 +1,7 @@
 package com.example.whateverApp.service;
 
 import com.example.whateverApp.dto.FcmMessage;
+import com.example.whateverApp.dto.ReviewDto;
 import com.example.whateverApp.dto.WorkDto;
 import com.example.whateverApp.error.CustomException;
 import com.example.whateverApp.error.ErrorCode;
@@ -12,6 +13,7 @@ import com.example.whateverApp.model.document.Chat;
 import com.example.whateverApp.model.document.Conversation;
 import com.example.whateverApp.model.document.Location;
 import com.example.whateverApp.model.entity.*;
+import com.example.whateverApp.repository.jpaRepository.ReviewRepository;
 import com.example.whateverApp.repository.jpaRepository.WorkRepository;
 import com.example.whateverApp.repository.mongoRepository.ConversationRepository;
 import com.example.whateverApp.repository.jpaRepository.UserRepository;
@@ -36,8 +38,8 @@ import java.util.List;
 @Slf4j
 public class FirebaseCloudMessageService {
 
-    @Value("${fcm:url}")
-    private String API_URL;
+
+    private final String API_URL = "https://fcm.googleapis.com/v1/projects/real-d0a66/";
     private final String firebaseConfigPath = "firebase/firebase_service_key.json";
     private final String notificationTitle = "WhatEverApp";
     private final ObjectMapper objectMapper;
@@ -46,6 +48,7 @@ public class FirebaseCloudMessageService {
     private final AlarmService alarmService;
     private final LocationServiceImpl locationService;
     private final WorkRepository workRepository;
+    private final ReviewRepository reviewRepository;
 
     public void sendMessageTo(User user, String title, String body, FcmMessage.Data data) throws IOException {
         if(user.isAccountNonLocked() == false)
@@ -53,7 +56,6 @@ public class FirebaseCloudMessageService {
 
         String targetToken = user.getNotificationToken();
         String message = makeMessage(targetToken, title, body, data);
-
         OkHttpClient client = new OkHttpClient();
         RequestBody requestBody = RequestBody.create(message,
                 MediaType.get("application/json; charset=utf-8"));
@@ -111,8 +113,9 @@ public class FirebaseCloudMessageService {
     public void chatNotification(String conversationId) throws IOException {
         User findUser;
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(()-> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        Chat chat = conversation.getChatList().get(conversation.getChatList().size() - 1);
         if(conversation.getChatList().size() == 0) return;
+        Chat chat = conversation.getChatList().get(conversation.getChatList().size() - 1);
+
         if(!conversation.getCreatorName().equals(chat.getSenderName()))
             findUser = userRepository.findById(conversation.getCreatorId()).get();
         else findUser = userRepository.findById(conversation.getParticipantId()).get();
@@ -160,7 +163,7 @@ public class FirebaseCloudMessageService {
         alarmService.send(work.getCustomer(), notificationTitle, NotificationBody.WORK_DELETED.getDetail(), data.getRouteType());
     }
 
-    public void nonFinishedWorkDeleteNotification(Work work) throws IOException {
+    public void notifyDeletedNonFinishWork(Work work) throws IOException {
         FcmMessage.Data data = FcmMessage.Data.builder().routeType(RouteOptions.MAIN_VIEW.getDetail()).build();
         sendMessageTo(work.getCustomer(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);
         sendMessageTo(work.getHelper(), notificationTitle, NotificationBody.NON_FINISHED_WORK_DELETED.getDetail(), data);

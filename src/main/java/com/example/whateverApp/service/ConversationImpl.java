@@ -46,7 +46,7 @@ public class ConversationImpl{
     private final String topicPrefix = "/topic/chat/";
 
     public Conversation openConv(HttpServletRequest request, Long participatorId, WorkDto workDto) {
-        User creator = jwtTokenProvider.getUser(request).orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User creator = jwtTokenProvider.getUser(request);
         Work work = workRepository.findById(workDto.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         User participator = userRepository.findById(participatorId).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         if(!work.getProceedingStatus().equals(WorkProceedingStatus.CREATED))
@@ -59,9 +59,8 @@ public class ConversationImpl{
             throw new CustomException(ErrorCode.OTHER_WORK_IS_PROCEEDING);
 
         Conversation conversation = createConv(creator, participator);
-        sendStompMessage(queuePrefix+creator.getId(), new MessageDto("OpenChat", new ConversationDto(conversation)));
-        sendStompMessage(queuePrefix+participatorId, new MessageDto("OpenChat", new ConversationDto(conversation)));
-
+        simpMessagingTemplate.convertAndSend(queuePrefix + creator.getId() , new MessageDto(MessageType.OpenChat.getDetail(), conversation));
+        simpMessagingTemplate.convertAndSend(queuePrefix + participatorId , new MessageDto(MessageType.OpenChat.getDetail(), conversation));
         return conversation;
     }
 
@@ -78,7 +77,6 @@ public class ConversationImpl{
         return false;
     }
 
-    @Transactional
     public Conversation createConv(User creator, User participator){
 
         return conversationRepository.save(Conversation.builder()
@@ -86,19 +84,26 @@ public class ConversationImpl{
                 .participantId(participator.getId())
                 .creatorName(creator.getName())
                 .participatorName(participator.getName())
-                .seenCountByCreator(0)
+                .seenCountByCreator(1)
                 .seenCountByParticipator(0)
+                .chatList(new ArrayList<Chat>())
                 .createdAt(LocalDateTime.now().plusHours(9))
                 .finished(false).build());
     }
 
-    public void delete(String conversationId){
+    public void sendDelete(String conversationId){
         conversationRepository.deleteById(conversationId);
-        sendStompMessage(topicPrefix+conversationId, new MessageDto("DeleteConv", conversationId));
+        sendStompMessage(topicPrefix+conversationId, new MessageDto(MessageType.DeleteConv.getDetail() , conversationId));
+    }
+
+    public void sendDelete(Long workId){
+        Conversation conversation = conversationRepository.findByWorkId(workId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
+        conversationRepository.deleteById(conversation.get_id());
+        sendStompMessage(topicPrefix + conversation.get_id(), new MessageDto(MessageType.DeleteConv.getDetail() , conversation.get_id()));
     }
 
     public ConversationDto getConversation(String conversationId, HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(!conversation.getCreatorId().equals(user.getId()) && !conversation.getParticipantId().equals(user.getId()))
@@ -113,7 +118,6 @@ public class ConversationImpl{
 
     @Transactional
     public void sendWork(String conversationId, WorkDto workDto, String jwtToken) throws JsonProcessingException {
-
         Conversation conversation = conversationRepository.findById(conversationId)
                 .orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
         Chat chat = Chat.builder()
@@ -124,14 +128,13 @@ public class ConversationImpl{
                 .sendTime(LocalDateTime.now().plusHours(9))
                 .build();
 
-        updateConv(conversation, chat, MessageType.Work.getDetail());
-        sendStompMessage(topicPrefix+conversationId,
-                new MessageDto(MessageType.Conversation.getDetail(), setConversationSeenCount(jwtToken, conversation)));
+        conversation = updateConv(conversation, chat, MessageType.Work.getDetail());
+        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
+        sendStompMessage(topicPrefix+conversationId, new MessageDto(MessageType.Conversation.getDetail(), conversationDto));
     }
 
     public List<ConversationDto> getConversations(HttpServletRequest request){
-        User user = jwtTokenProvider.getUser(request)
-                .orElseThrow(()-> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
 
         List<Conversation> list = conversationRepository.findAll().stream()
                 .filter(c -> user.getId().equals(c.getParticipantId()) || user.getId().equals(c.getCreatorId()))
@@ -147,10 +150,10 @@ public class ConversationImpl{
     public void sendChatting(String conversationId, Chat chat, String jwtToken) {
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
 
-        updateConv(conversation, chat, MessageType.Chat.getDetail());
-        sendStompMessage(topicPrefix+conversationId, new MessageDto(MessageType.Conversation.getDetail(), conversationDto));
+        conversation = updateConv(conversation, chat, MessageType.Chat.getDetail());
+        setConversationSeenCount(jwtToken, conversation);
+        sendStompMessage(topicPrefix+conversationId, new MessageDto(MessageType.Conversation.getDetail(), new ConversationDto(conversation)));
     }
 
 
@@ -158,14 +161,14 @@ public class ConversationImpl{
     public void sendCard(String conversationId, Chat chat, String jwtToken){
         Conversation conversation = conversationRepository.findById(conversationId).
                 orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
 
         updateConv(conversation, chat, MessageType.Card.getDetail());
+        ConversationDto conversationDto = setConversationSeenCount(jwtToken, conversation);
         sendStompMessage(topicPrefix+conversationId, new MessageDto(MessageType.Conversation.getDetail(), conversationDto));
     }
 
     public ConversationDto setConversationSeenCount(HttpServletRequest request, String conversationId){
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         Conversation conversation = conversationRepository.findById(conversationId).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
 
         if(conversation.getCreatorId().equals(user.getId())){
@@ -187,11 +190,9 @@ public class ConversationImpl{
         return new ConversationDto(conversationRepository.save(conversation));
     }
 
-
-
     public int sendTotalSeenCount(HttpServletRequest request){
         int totalSeenCount = 0;
-        User user = jwtTokenProvider.getUser(request).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User user = jwtTokenProvider.getUser(request);
         List<Conversation> list = conversationRepository.findAll().stream()
                 .filter(c -> c.getFinished().equals(Boolean.FALSE))
                 .filter(c -> c.getCreatorId().equals(user.getId()) || c.getParticipantId().equals(user.getId())).toList();

@@ -33,18 +33,16 @@ public class ScheduleService {
     private final FirebaseCloudMessageService firebaseCloudMessageService;
     private final ConversationImpl conversationService;
     /**
-     * 매 정각마다 정지된 유저들의 계정을 해제해주는 함수.
+     * 동일한 시간에 동일한 db의 동일 table을 조회한다고 했을 때
+     * 동시성 문제가 생길 수 있음.
+     * 그래서 10초씩 딜레이를 둬서 실행.
      */
-    @Scheduled(cron = "1 0 * * * * ", zone = "Asia/Seoul")
+    @Scheduled(cron = "10 0 * * * * ", zone = "Asia/Seoul")
     public void releaseBanAccounts(){
         LocalDateTime now = LocalDateTime.now();
-        System.out.println("계정 해제 Scheduler 실행");
         List<User> releaseUserList = userRepository.findAll().stream()
                 .filter(u -> u.getAccountStatus().equals(AccountStatus.BAN))
                 .filter(u -> now.isBefore(u.getAccountReleaseTime())).toList();
-        for (User user : releaseUserList) {
-            System.out.println(user.getUserId());
-        }
         for (User user : releaseUserList) {
             user.setAccountReleaseTime(null);
             user.setAccountStatus(AccountStatus.USING);
@@ -53,7 +51,7 @@ public class ScheduleService {
         userRepository.saveAll(releaseUserList);
     }
 
-    @Scheduled(cron = "0 * * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
     public void autoPermitNonFinishWorkList() {
         LocalDateTime now = LocalDateTime.now();
         List<Work> nonFinishWorkList = workRepository.findAll().stream()
@@ -67,33 +65,31 @@ public class ScheduleService {
 
         try {
             for (Work work : nonFinishWorkList) {
-                workService.letFinish(work);
+                String convId = workService.finishAuto(work);
+                conversationService.sendDelete(convId);
             }
         } catch (Exception e) {
+            log.info(e.getMessage());
         }
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "20 0 * * * *", zone = "Asia/Seoul")
     public void deleteDuplicatedConv() {
         LocalDateTime now = LocalDateTime.now();
         List<Conversation> list = conversationRepository.findAll();
-
         if (list != null) {
             list = list.stream()
                     .filter(c -> c.getWorkId() == 0L)
                     .filter(c -> c.getCreatedAt().plusDays(1).isBefore(now))
                     .toList();
         }
+
         conversationRepository.deleteAll(list);
-
-        for (Conversation conversation : list) {
-            System.out.println(conversation.get_id());
-            conversationService.delete(conversation.get_id());
-        }
-
+        for (Conversation conversation : list)
+            conversationService.sendDelete(conversation.get_id());
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "30 0 * * * *", zone = "Asia/Seoul")
     public void deletePastWork() throws IOException {
         LocalDateTime now = LocalDateTime.now();
         List<Work> workList = workRepository.findAll().stream()
@@ -102,16 +98,16 @@ public class ScheduleService {
                 .toList();
 
         for (Work work : workList) {
-            rewardService.chargeRewardToCustomer(work);
+            rewardService.chargeToCustomer(work);
             firebaseCloudMessageService.workDeleteNotification(work);
             Optional<Conversation> conv = conversationRepository.findByWorkId(work.getId());
             if(conv.isPresent())
-                conversationService.delete(conv.get().get_id());
+                conversationService.sendDelete(conv.get().get_id());
         }
         workRepository.deleteAll(workList);
     }
 
-    @Scheduled(cron = "0 0 * * * *", zone = "Asia/Seoul")
+    @Scheduled(cron = "40 0 * * * *", zone = "Asia/Seoul")
     public void deleteNonFinishedWork() throws IOException {
         LocalDateTime now = LocalDateTime.now();
         List<Work> workList = workRepository.findAll().stream()
@@ -120,12 +116,11 @@ public class ScheduleService {
                 .filter(w -> w.getReportList().size() == 0)
                 .toList();
 
-
         for (Work work : workList) {
-            rewardService.chargeRewardToCustomer(work);
-            firebaseCloudMessageService.nonFinishedWorkDeleteNotification(work);
+            rewardService.chargeToCustomer(work);
+            firebaseCloudMessageService.notifyDeletedNonFinishWork(work);
             Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.CONVERSATION_NOT_FOUND));
-            conversationService.delete(conversation.get_id());
+            conversationService.sendDelete(conversation.get_id());
         }
         workRepository.deleteAll(workList);
     }

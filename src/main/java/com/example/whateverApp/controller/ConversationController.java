@@ -39,6 +39,7 @@ public class ConversationController {
     public void sendWork(@RequestBody WorkDto workDto, @DestinationVariable String conversationId, @Header(AuthHeader) String jwtToken) throws JsonProcessingException{
         conversationService.sendWork(conversationId, workDto, jwtToken);
         conversationService.sendTotalSeenCountToReceiver(jwtToken, conversationId);
+
     }
 
     @MessageMapping("/card/{conversationId}")
