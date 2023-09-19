@@ -1,6 +1,7 @@
 package com.example.whateverApp.model;
 
 /**
+ * 23-09-01 chan
  * USING -> 이용할 수 있는 계정
  * WILL_BAN -> 정지를 시켜야 하지만 만약 심부름이 진행중이라면 Status가 Using -> WILL_BAN으로 바뀐다.
  * 이 상태에서는 심부름을 더이상 추가적으로 진행할 수 없고, 만약 진행중인 심부름들이 완료된다면 BAN으로 바뀐다.

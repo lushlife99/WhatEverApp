@@ -11,9 +11,7 @@ public class CommonConfig {
 
 
     private final AdminService adminService;
-
     private final String adminUsername = "admin";
-
     private final String adminPassword = "1234";
 
     @PostConstruct

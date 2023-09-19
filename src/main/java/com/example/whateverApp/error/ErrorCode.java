@@ -27,7 +27,6 @@ public enum ErrorCode {
 
     /* 401 UNAUTHORIZED : 인증되지 않은 사용자 */
     UNAUTHORIZED_MEMBER(HttpStatus.UNAUTHORIZED, "현재 내 계정 정보가 존재하지 않습니다"),
-
     /* 403 FORBIDDEN : 권한이 없는 사용자 */
 
     WILL_BANNED_ACCOUNT(HttpStatus.FORBIDDEN, "현재 상태로는 서비스 이용이 제한됩니다"),
@@ -43,14 +42,11 @@ public enum ErrorCode {
     HELPER_LOCATION_NOT_FOUND(HttpStatus.NOT_FOUND, "헬퍼 위치정보를 찾을 수 없습니다"),
     CONVERSATION_NOT_FOUND(HttpStatus.NOT_FOUND, "대화를 찾을 수 없습니다"),
     REPORT_NOT_FOUND(HttpStatus.NOT_FOUND, "신고 내역을 찾을 수 없습니다"),
-
     /* 409 CONFLICT : Resource 의 현재 상태와 충돌. 보통 중복된 데이터 존재 */
     DUPLICATE_RESOURCE(HttpStatus.CONFLICT, "데이터가 이미 존재합니다"),
     DUPLICATE_USER(HttpStatus.CONFLICT, "존재하는 userId 입니다"),
     DUPLICATE_REVIEW(HttpStatus.CONFLICT, "이미 작성한 Review 입니다."),
     FINISHED_CONVERSATION(HttpStatus.CONFLICT, "심부름이 종료되어서 대화창을 불러올 수 없습니다"),
-
-
     /* 500 */
     TRANSFER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "송금 오류"),
     ;

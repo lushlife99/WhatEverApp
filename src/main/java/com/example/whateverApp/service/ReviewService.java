@@ -70,6 +70,8 @@ public class ReviewService {
         if(reviewList.size() == 1)
             helper.setRating((double) review.getRating());
         else helper.setRating((helper.getRating() * (helper.getReviewList().size()-1) + review.getRating()) / helper.getReviewList().size());
+        work.setReview(review);
+        workRepository.save(work);
         reviewRepository.save(review);
         userRepository.save(helper);
         fcmService.sendReviewUpload(review);

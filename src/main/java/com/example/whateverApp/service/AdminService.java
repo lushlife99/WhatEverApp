@@ -46,14 +46,14 @@ public class AdminService {
     private final RewardService rewardService;
 
     public TokenInfo login(User user, HttpServletResponse response){
-        User admin = userRepository.findByUserIdAndPassword(user.getUserId(),user.getPassword()).orElseThrow(()->
-                new CustomException(ErrorCode.MEMBER_NOT_FOUND));
+        User admin = userRepository.findByUserId(user.getUserId()).orElseThrow(() -> new CustomException(ErrorCode.MEMBER_NOT_FOUND));
         UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(user.getUserId(), user.getPassword());
         Authentication authentication = authenticationManagerBuilder.authenticate(authenticationToken);
 
+        if(!passwordEncoder.matches(user.getPassword(), admin.getPassword()))
+            throw new CustomException(ErrorCode.MISMATCH_PASSWORD);
         if(!authentication.getAuthorities().toString().contains("ROLE_ADMIN"))
             throw new CustomException(ErrorCode.UNAUTHORIZED_ADMIN);
-
         TokenInfo tokenInfo = jwtTokenProvider.generateToken(authentication, response);
         tokenInfo.setId(admin.getId());
         return tokenInfo;

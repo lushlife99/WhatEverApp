@@ -123,16 +123,15 @@ public class FirebaseCloudMessageService {
     public void sendWorkProceeding(Work work, User user) throws IOException {
         String body = "";
         FcmMessage.Data data;
-        Conversation conversation = conversationRepository.findByWorkId(work.getId()).orElseThrow(() -> new CustomException(ErrorCode.WORK_NOT_FOUND));
         if(work.getProceedingStatus().equals(WorkProceedingStatus.STARTED)){
             body = NotificationBody.STARTED_WORK.getDetail();
-            data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).routeData(conversation.get_id()).build();
+            data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).build();
         } else if(work.getProceedingStatus().equals(WorkProceedingStatus.FINISHED)){
             body = NotificationBody.FINISHED_WORK.getDetail();
-            data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).routeData(conversation.get_id()).build();
+            data = FcmMessage.Data.builder().routeType(RouteOptions.CONVERSATION_VIEW.getDetail()).build();
         } else if(work.getProceedingStatus().equals(WorkProceedingStatus.REWARDED)){
             body = NotificationBody.REWARDED_WORK.getDetail();
-            data = FcmMessage.Data.builder().routeType(RouteOptions.FINISH_WORK_VIEW.getDetail()).routeData(conversation.get_id()).build();
+            data = FcmMessage.Data.builder().routeType(RouteOptions.FINISH_WORK_VIEW.getDetail()).build();
         }
         else return;
 
